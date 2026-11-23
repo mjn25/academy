@@ -624,9 +624,14 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
         {/* ثبت‌نام در دوره‌ها — بخش دوم فرایند */}
         <section>
         <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
-          <p className="flex items-center gap-2 text-sm font-black-fa text-ink">
-            <BookOpenCheck className="size-4 text-rd-accent" />
-            دوره‌های ثبت‌نام
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۲</span>
+            <div>
+              <h2 className="text-sm font-black-fa text-ink">انتخاب دوره‌ها</h2>
+              <p className="text-[11px] text-ink-soft">دوره‌های موردنظر را اضافه کنید؛ جمع شهریه پایین همین بخش محاسبه می‌شود.</p>
+            </div>
+          </div>
+          <p className="hidden">
           </p>
           <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">دوره یا دوره‌هایی که این دانشجو ثبت‌نام می‌شود را انتخاب و «افزودن دوره» را بزنید؛ جمع شهریه خودکار حساب می‌شود.</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
