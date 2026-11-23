@@ -750,7 +750,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
   const myCourses = courses.filter((c) => c.teacherId === t.id);
   const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
   const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
-  const myFeedback: never[] = [];
+  const myFeedback: { id: string; student: string; course: string; score: number; text: string; criteria: Record<string, number> }[] = [];
   const unassigned = courses.filter((c) => !c.teacherId);
 
   const doAssign = () => {
