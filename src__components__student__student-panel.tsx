@@ -193,9 +193,9 @@ function StudentDashboard() {
       </div>
 
       {/* Bento داشبورد */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* کلاس بعدی — سلول بزرگ */}
-        <div className="md:col-span-2 md:row-span-2 rd-inside rounded-[8px] bg-canvas-soft/70 text-ink p-6 flex flex-col justify-between min-h-[240px]">
+        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 xl:row-span-2 rd-inside rounded-[8px] bg-canvas-soft/70 text-ink p-6 flex flex-col justify-between min-h-[240px]">
           <div>
             <p className="text-xs font-bold text-ink-soft mb-3 flex items-center gap-1.5"><CalendarDays className="size-4" /> کلاس بعدی (حضوری)</p>
             <h3 className="text-[16px] font-black-fa text-ink">آلمانی A1 — جلسه ۱۹</h3>
@@ -211,7 +211,7 @@ function StudentDashboard() {
         </div>
 
         {/* تکالیف در انتظار */}
-        <div className="md:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
+        <div className="sm:col-span-2 xl:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm flex items-center gap-1.5"><ClipboardList className="size-4 text-ink" /> تکالیف در انتظار</p>
             <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(pending.length)} مورد</Badge>
