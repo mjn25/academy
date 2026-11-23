@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PanelHeading, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
-import { useStore, CURRENT_TEACHER_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentTeacherId } from "@/lib/current-user";
 import { feedbackComments, todayClassesTeacher } from "@/lib/data";
 import {
   LayoutDashboard,
@@ -60,7 +61,8 @@ const titles: Record<string, string> = {
 };
 
 export function TeacherPanel({ section }: { section: string }) {
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const currentTeacherId = useCurrentTeacherId();
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
   /* بخش حذف‌شده (محتوای کلاس — محتواگذاری با پنل مدیریت) → داشبورد */
   const sec = section === "content" ? "dash" : section;
   return (
@@ -80,9 +82,10 @@ export function TeacherPanel({ section }: { section: string }) {
 /* -------------------------------- داشبورد -------------------------------- */
 
 function TeacherDashboard() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { assignments, submissions, courses } = useStore();
-  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myCourses = courses.filter((c) => c.teacherId === currentTeacherId);
   const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
   const pendingSubs = myAssignments
     .map((a) => ({ a, count: submissions.filter((s) => s.assignmentId === a.id && s.status === "در انتظار بررسی").length }))
@@ -172,9 +175,10 @@ function TeacherDashboard() {
 /* ------------------------------ کلاس‌های من ------------------------------ */
 
 function TeacherClasses() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { courses } = useStore();
-  const myClasses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myClasses = courses.filter((c) => c.teacherId === currentTeacherId);
   return (
     <div>
       <PanelHeading title="کلاس‌های من" desc="فقط کلاس‌هایی که مدیریت به شما تخصیص داده است — برای مدیریت روی هر کلاس کلیک کنید." />
@@ -210,10 +214,11 @@ function TeacherClasses() {
 type AttStatus = "present" | "absent" | "excused" | "late";
 
 function TeacherAttendance() {
+  const currentTeacherId = useCurrentTeacherId();
   const { toast } = useToastImport();
   const { students, courses } = useStore();
   const myCourses = React.useMemo(
-    () => courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID && c.type === "offline"),
+    () => courses.filter((c) => c.teacherId === currentTeacherId && c.type === "offline"),
     [courses],
   );
   const [cls, setCls] = React.useState(myCourses[0]?.id ?? "");
@@ -370,6 +375,7 @@ function TeacherAttendance() {
 /* ---------------------------- نمره‌دهی تکالیف ----------------------------- */
 
 function TeacherAssignments() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { toast } = useToastImport();
   const { assignments, submissions, courses, gradeSubmission } = useStore();
@@ -377,7 +383,7 @@ function TeacherAssignments() {
   const [feedbacks, setFeedbacks] = React.useState<Record<string, string>>({});
   const [savedIds, setSavedIds] = React.useState<string[]>([]);
 
-  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myCourses = courses.filter((c) => c.teacherId === currentTeacherId);
   const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
   const mySubs = submissions.filter((s) => myAssignments.some((a) => a.id === s.assignmentId));
   const gradeable = mySubs.filter((s) => s.status === "در انتظار بررسی");
@@ -506,10 +512,11 @@ function TeacherAssignments() {
 /* ------------------------------ دانشجویان -------------------------------- */
 
 function TeacherStudents() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { students, courses } = useStore();
   const [q, setQ] = React.useState("");
-  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myCourses = courses.filter((c) => c.teacherId === currentTeacherId);
   const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
   const roster = rosterIds.map((id) => students.find((s) => s.id === id)!).filter(Boolean);
   const list = roster.filter((s) => !q || s.name.includes(q));
@@ -664,8 +671,9 @@ function TeacherMessages() {
 /* -------------------------------- پروفایل -------------------------------- */
 
 function TeacherProfile() {
+  const currentTeacherId = useCurrentTeacherId();
   const { toast } = useToastImport();
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
   const updateTeacher = useStore((s) => s.updateTeacher);
   const [name, setName] = React.useState(me?.name ?? "");
   const [title, setTitle] = React.useState(me?.title ?? "");
@@ -714,7 +722,7 @@ function TeacherProfile() {
               toast({ title: "نام را وارد کنید", variant: "destructive" });
               return;
             }
-            updateTeacher(CURRENT_TEACHER_ID, { name: name.trim(), title: title.trim(), phone: phone.trim(), bio: bio.trim() });
+            updateTeacher(currentTeacherId, { name: name.trim(), title: title.trim(), phone: phone.trim(), bio: bio.trim() });
             toast({ title: "پروفایل ذخیره شد ✓", description: "تغییرات پس از تأیید مدیریت در سایت عمومی نمایش داده می‌شود." });
           }}
         >
