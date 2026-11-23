@@ -546,7 +546,7 @@ export const useStore = create<AppState>()(
     const alreadyInCourse = course.studentIds.includes(studentId);
     const alreadyInStudent = student.courseIds.includes(courseId);
     if (alreadyInCourse && alreadyInStudent) return;
-    if (!alreadyInCourse && course.capacity && course.studentIds.length >= course.capacity) return;
+    if (!alreadyInCourse && !alreadyInStudent && course.capacity && course.studentIds.length >= course.capacity) return;
     const alreadyEnrolled = alreadyInCourse || alreadyInStudent;
     set((st) => ({
       courses: st.courses.map((c) =>
