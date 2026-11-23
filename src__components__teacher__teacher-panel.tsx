@@ -690,7 +690,6 @@ function TeacherProfile() {
           <div className="min-w-0 flex-1">
             <p className="font-black-fa text-ink text-lg">{name || "—"}</p>
             <p className="text-sm text-ink-soft">{title || "—"} — {fa(me?.experience ?? 0)} سال سابقه</p>
-            <Badge className="mt-1.5 bg-ok/10 text-ok hover:bg-ok/10">رزومه عمومی: تأییدشده توسط مدیریت</Badge>
           </div>
         </div>
         <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
