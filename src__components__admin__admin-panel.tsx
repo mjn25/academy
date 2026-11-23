@@ -29,7 +29,6 @@ import {
   ClipboardCheck,
   ShoppingBag,
   FileText,
-  Settings,
   TrendingUp,
   TriangleAlert,
   Plus,
