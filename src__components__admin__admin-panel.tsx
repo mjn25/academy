@@ -442,22 +442,56 @@ function AdminShop() {
   const { toast } = useToast();
   const [orders, setOrders] = React.useState(shopOrders);
   const [checkoutOrders, setCheckoutOrders] = React.useState<LocalCheckoutOrder[]>([]);
+  const [ordersHydrated, setOrdersHydrated] = React.useState(false);
 
   React.useEffect(() => {
     try {
       const raw = window.localStorage.getItem("edc-orders");
-      if (!raw) return;
-      const parsed: unknown = JSON.parse(raw);
-      if (Array.isArray(parsed)) setCheckoutOrders(parsed as LocalCheckoutOrder[]);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCheckoutOrders(parsed as LocalCheckoutOrder[]);
+      }
+      const shippingRaw = window.localStorage.getItem("edc-shop-shipping");
+      if (shippingRaw) {
+        const saved: unknown = JSON.parse(shippingRaw);
+        if (Array.isArray(saved)) setOrders(saved as ShopOrder[]);
+      }
     } catch {
       setCheckoutOrders([]);
+    } finally {
+      setOrdersHydrated(true);
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!ordersHydrated) return;
+    try {
+      window.localStorage.setItem("edc-shop-shipping", JSON.stringify(orders));
+    } catch {
+      toast({ title: "ذخیره وضعیت ارسال انجام نشد", description: "فضای ذخیره‌سازی مرورگر در دسترس نیست.", variant: "destructive" });
+    }
+  }, [orders, ordersHydrated, toast]);
 
   const nextShip: Partial<Record<ShopOrder["shipping"], ShopOrder["shipping"]>> = { "در حال آماده‌سازی": "ارسال‌شده", "ارسال‌شده": "تحویل‌شده" };
   const advance = (id: string) => {
     setOrders((os) => os.map((o) => (o.id === id && o.shipping in nextShip ? { ...o, shipping: nextShip[o.shipping]! } : o)));
-    toast({ title: "وضعیت ارسال به‌روزرسانی شد ✓" });
+    toast({ title: "وضعیت ارسال در این مرورگر ذخیره شد ✓" });
+  };
+  const exportOrders = () => {
+    const rows = [
+      ["شماره سفارش", "خریدار", "اقلام", "مبلغ (تومان)", "وضعیت پرداخت", "وضعیت ارسال", "شماره مرسوله"],
+      ...orders.map((order) => [order.id, order.customer, order.items, String(order.total), order.payment, order.shipping, order.tracking ?? ""]),
+    ];
+    const csv = "\uFEFF" + rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "academy-shop-orders.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast({ title: "فایل CSV سفارش‌ها دانلود شد ✓", description: "خروجی با Excel قابل باز کردن است." });
   };
 
   return (
@@ -504,9 +538,9 @@ function AdminShop() {
       <div>
         <PanelHeading
           title="سفارش‌های فروشگاه"
-          desc="مدیریت وضعیت ارسال و ثبت شماره مرسوله."
+          desc="تغییر وضعیت ارسال سفارش‌های نمونه؛ تغییرات فقط در همین مرورگر ذخیره می‌شوند."
           action={
-            <Button variant="outline" className="border-hairline text-ink" onClick={() => toast({ title: "خروجی اکسل آماده شد ✓" })}>
+            <Button variant="outline" className="border-hairline text-ink" onClick={exportOrders}>
               خروجی اکسل
             </Button>
           }
