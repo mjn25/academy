@@ -442,10 +442,10 @@ export function CartPage() {
                     ارسال سفارش به واتساپ
                   </a>
                   <SiteLink
-                    href="/shop"
+                    href={placed.items.some((it) => it.type === "book") ? "/shop" : "/courses"}
                     className="rd-inside inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-[13px] font-bold text-ink transition-colors hover:bg-canvas-soft"
                   >
-                    ادامهٔ خرید
+                    {placed.items.some((it) => it.type === "book") ? "فروشگاه کتاب‌ها" : "مشاهده دوره‌ها"}
                     <ArrowLeft className="size-4" />
                   </SiteLink>
                 </div>
