@@ -230,11 +230,11 @@ export function PanelShell({
 export function PanelHeading({ title, desc, action }: { title: string; desc?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div>
+      <div className="min-w-0 flex-1">
         <h2 className="text-[17px] font-black-fa text-ink">{title}</h2>
-        {desc && <p className="text-[13px] text-ink-soft mt-1">{desc}</p>}
+        {desc && <p className="mt-1 text-[13px] leading-6 text-ink-soft">{desc}</p>}
       </div>
-      {action}
+      {action && <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">{action}</div>}
     </div>
   );
 }
@@ -276,11 +276,11 @@ export function PageHeader({
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-[17px] font-black-fa text-ink">{title}</h2>
-          {desc && <p className="text-[13px] text-ink-soft mt-1">{desc}</p>}
+          {desc && <p className="mt-1 text-[13px] leading-6 text-ink-soft">{desc}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">{actions}</div>}
       </div>
     </div>
   );
