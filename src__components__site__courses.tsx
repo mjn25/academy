@@ -475,9 +475,6 @@ export function CoursePage({ slug }: { slug: string }) {
             </div>
           </RdCard>
 
-            {/* نوار تب‌ها — داخل ستون محتوا، زیر ویدئو، چسبان */}
-            <CourseTabBar c={c} />
-
             {/* کاشی‌های مشخصات + خدمات آموزشی — یک بوردر، بدون کاشی خاکستری خالی */}
             <section className="rd-inside rounded-[8px] bg-white p-3 sm:p-4">
               <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[8px] bg-hairline-soft sm:grid-cols-4">
