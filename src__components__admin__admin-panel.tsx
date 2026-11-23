@@ -158,10 +158,10 @@ function AdminClasses() {
     <div>
       <PanelHeading
         title="کلاس‌ها و دوره‌ها"
-        desc="تعریف دوره، ظرفیت، شهریه، تخصیص استاد و انتشار در سایت — برای جزئیات روی هر ردیف کلیک کنید."
+        desc="مدیریت کلاس‌ها، ظرفیت، شهریه و تخصیص استاد — برای جزئیات روی هر ردیف کلیک کنید."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => { setForm({ title: "", type: "offline", capacity: "", price: "", teacherId: "" }); setOpen(true); }}>
-            <Plus className="size-4 me-1.5" /> دوره / کلاس جدید
+            <Plus className="size-4 me-1.5" /> کلاس جدید
           </Button>
         }
       />
@@ -229,7 +229,7 @@ function AdminClasses() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-black-fa text-ink">تعریف دوره / کلاس جدید</DialogTitle>
+            <DialogTitle className="font-black-fa text-ink">تعریف کلاس جدید</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -573,29 +573,3 @@ function AdminShop() {
   );
 }
 
-/* -------------------------------- تنظیمات -------------------------------- */
-
-function AdminSettings() {
-  const { toast } = useToast();
-  return (
-    <div className="max-w-2xl space-y-5">
-      <PanelHeading title="تنظیمات" desc="اطلاعات موسسه و پنل پیامک." />
-      {[
-        { t: "اطلاعات موسسه", f: ["نام کلینیک: کلینیک تخصصی زبان آلمانی المیرا", "تلفن: ۰۲۱-۹۱۰۰۹۱۰۰", "آدرس: رشت، بلوار معلم"] },
-        { t: "پنل پیامک", f: ["سرویس: کاوه‌نگار", "خط: ۱۰۰۰۶۶۵۵", "اعتبار باقی‌مانده: ۱۲٬۴۰۰ پیامک"] },
-      ].map((g) => (
-        <div key={g.t} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-          <p className="font-bold text-ink text-sm mb-3">{g.t}</p>
-          <div className="space-y-2">
-            {g.f.map((f) => (
-              <div key={f} className="rounded-[8px] bg-canvas-soft px-3.5 py-2.5 text-xs text-ink">{f}</div>
-            ))}
-          </div>
-          <Button variant="outline" size="sm" className="mt-3 border-hairline text-ink" onClick={() => toast({ title: "تنظیمات ذخیره شد ✓" })}>
-            ویرایش
-          </Button>
-        </div>
-      ))}
-    </div>
-  );
-}
