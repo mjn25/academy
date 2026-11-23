@@ -1,0 +1,666 @@
+"use client";
+
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { PanelShell, PanelHeading, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
+import { useRouter } from "@/lib/app-context";
+import { fa, faNum } from "@/lib/format";
+import { useStore, CURRENT_TEACHER_ID } from "@/lib/store";
+import { feedbackComments, todayClassesTeacher } from "@/lib/data";
+import {
+  LayoutDashboard,
+  BookOpenCheck,
+  UserCheck,
+  ClipboardList,
+  Star,
+  Users,
+  MessageSquare,
+  UserCircle,
+  Check,
+  X,
+  MinusCircle,
+  Clock,
+  Users2,
+  FileText,
+  Send,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Trophy,
+  Plus,
+} from "lucide-react";
+
+const nav: PanelNavItem[] = [
+  { key: "dash", label: "داشبورد", icon: LayoutDashboard, href: "/teacher" },
+  { key: "classes", label: "کلاس‌های من", icon: BookOpenCheck, href: "/teacher/classes" },
+  { key: "attendance", label: "حضور و غیاب", icon: UserCheck, href: "/teacher/attendance" },
+  { key: "assignments", label: "تکالیف و نمره‌دهی", icon: ClipboardList, href: "/teacher/assignments", badge: 3 },
+  { key: "students", label: "دانشجویان", icon: Users, href: "/teacher/students" },
+  { key: "feedback", label: "بازخوردها", icon: Star, href: "/teacher/feedback" },
+  { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/teacher/messages" },
+  { key: "profile", label: "پروفایل", icon: UserCircle, href: "/teacher/profile" },
+];
+
+const titles: Record<string, string> = {
+  dash: "داشبورد استاد",
+  classes: "کلاس‌های من",
+  attendance: "حضور و غیاب",
+  assignments: "تکالیف و نمره‌دهی",
+  students: "لیست دانشجویان",
+  feedback: "بازخوردهای دانشجویان",
+  messages: "پیام‌ها",
+  profile: "پروفایل من",
+};
+
+export function TeacherPanel({ section }: { section: string }) {
+  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  /* بخش حذف‌شده (محتوای کلاس — محتواگذاری با پنل مدیریت) → داشبورد */
+  const sec = section === "content" ? "dash" : section;
+  return (
+    <PanelShell title={titles[sec] ?? "پنل استاد"} nav={nav} active={sec} roleLabel="پنل استاد" userName={me?.name ?? "استاد"}>
+      {section === "dash" && <TeacherDashboard />}
+      {section === "classes" && <TeacherClasses />}
+      {section === "attendance" && <TeacherAttendance />}
+      {section === "assignments" && <TeacherAssignments />}
+      {section === "students" && <TeacherStudents />}
+      {section === "feedback" && <TeacherFeedback />}
+      {section === "messages" && <TeacherMessages />}
+      {section === "profile" && <TeacherProfile />}
+    </PanelShell>
+  );
+}
+
+/* -------------------------------- داشبورد -------------------------------- */
+
+function TeacherDashboard() {
+  const { navigate } = useRouter();
+  const { assignments, submissions, courses } = useStore();
+  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
+  const pendingSubs = myAssignments
+    .map((a) => ({ a, count: submissions.filter((s) => s.assignmentId === a.id && s.status === "در انتظار بررسی").length }))
+    .filter((x) => x.count > 0)
+    .sort((x, y) => y.count - x.count);
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={BookOpenCheck} label="کلاس‌های تخصیص‌یافته" value={`${faNum(myCourses.length)} کلاس`} />
+        <StatCard icon={Users2} label="دانشجویان فعال" value={`${faNum(new Set(myCourses.flatMap((c) => c.studentIds)).size)} نفر`} tint="yellow" />
+        <StatCard icon={ClipboardList} label="تکالیف منتظر نمره" value={`${faNum(pendingSubs.reduce((s, x) => s + x.count, 0))} مورد`} tint="red" />
+        <StatCard icon={Star} label="میانگین امتیاز شما" value="۴.۹ از ۵" tint="green" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4">
+        {/* کلاس‌های امروز */}
+        <div className="md:col-span-2 md:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
+          <div>
+            <p className="text-xs font-bold text-ink-soft mb-4 flex items-center gap-1.5"><Clock className="size-4" /> کلاس‌های امروز</p>
+            <div className="space-y-3">
+              {todayClassesTeacher.map((c) => (
+                <div key={c.id} className="rounded-[8px] bg-canvas-soft border border-hairline-soft p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-bold text-sm text-ink">{c.title}</p>
+                    {c.attendanceDone ? (
+                      <Badge className="bg-ok/20 text-ok hover:bg-ok/20 shrink-0"><Check className="size-3 me-1" /> ثبت شد</Badge>
+                    ) : (
+                      <Button size="sm" className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold shrink-0" onClick={() => navigate("/teacher/attendance")}>
+                        ثبت حضور و غیاب
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-xs text-ink-faint mt-2">{c.time} — {c.room} — {faNum(c.students)} دانشجو</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Button variant="secondary" className="mt-4 bg-white text-ink hover:bg-canvas-soft border border-hairline-soft" onClick={() => navigate("/teacher/assignments/new")}>
+            <Plus className="size-4 me-1.5" /> ایجاد تکلیف جدید
+          </Button>
+        </div>
+
+        {/* تکالیف منتظر نمره */}
+        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-bold text-ink text-sm">تکالیف منتظر نمره‌دهی</p>
+            <Badge className="bg-bad/10 text-bad hover:bg-bad/10">{faNum(pendingSubs.length)} مورد</Badge>
+          </div>
+          <div className="space-y-2.5 max-h-40 overflow-y-auto scroll-thin">
+            {pendingSubs.slice(0, 4).map(({ a, count }) => (
+              <button key={a.id} onClick={() => navigate(`/teacher/assignments/${a.id}`)} className="w-full flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start hover:border-navy-deep transition-colors">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-xs font-bold text-ink truncate">{a.title}</span>
+                  <span className="block text-[11px] text-ink-soft">{faNum(count)} تحویل‌شده — مهلت {a.due}</span>
+                </span>
+                <ArrowLeft className="size-4 text-ink-soft" />
+              </button>
+            ))}
+            {pendingSubs.length === 0 && <p className="text-xs text-ink-soft py-3 text-center">همه پاسخ‌ها نمره‌دهی شده‌اند ✓</p>}
+          </div>
+        </div>
+
+        {/* آخرین بازخوردها */}
+        <div className="md:col-span-2 rounded-[8px] border border-hairline-soft bg-canvas-soft p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Star className="size-4 fill-brand-500 text-brand-600" /> آخرین بازخوردها</p>
+            <button onClick={() => navigate("/teacher/feedback")} className="text-[11px] font-bold text-ink">مشاهده همه</button>
+          </div>
+          <div className="space-y-2.5 max-h-40 overflow-y-auto scroll-thin">
+            {feedbackComments.slice(0, 2).map((f) => (
+              <div key={f.id} className="rounded-[8px] bg-white border border-hairline-soft p-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold text-ink">{f.student}</p>
+                  <span className="text-[11px] font-bold text-ink">{"★".repeat(f.score)} {fa(f.score)}/۵</span>
+                </div>
+                <p className="text-[11px] text-ink-soft mt-1 leading-5 line-clamp-2">{f.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ کلاس‌های من ------------------------------ */
+
+function TeacherClasses() {
+  const { navigate } = useRouter();
+  const { courses } = useStore();
+  const myClasses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  return (
+    <div>
+      <PanelHeading title="کلاس‌های من" desc="فقط کلاس‌هایی که مدیریت به شما تخصیص داده است — برای مدیریت روی هر کلاس کلیک کنید." />
+      {myClasses.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+          <p className="font-bold text-ink">کلاسی به شما تخصیص نیافته</p>
+          <p className="mt-1 text-sm text-ink-soft">مدیریت از پنل مدیریت کلاس‌ها را به شما واگذار می‌کند.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {myClasses.map((c) => (
+            <button key={c.id} onClick={() => navigate(`/teacher/classes/${c.id}`)} className="text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 hover:border-navy-deep transition-colors">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="font-bold text-ink text-sm">{c.title}</h3>
+                <StatusBadge status={c.status} />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-ink-soft">
+                <span>{c.type === "online" ? "آنلاین ضبط‌شده" : "حضوری"}</span>
+                <span>{faNum(c.studentIds.length)} دانشجو</span>
+                <span>{c.schedule ?? "بدون برنامه (ویدئویی)"}</span>
+              </div>
+              <div className="mt-3 text-xs font-bold text-ink flex items-center gap-1">مدیریت کلاس <ArrowLeft className="size-3.5" /></div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* --------------------------- حضور و غیاب (فلگ‌شیپ) ------------------------ */
+
+type AttStatus = "present" | "absent" | "excused" | "late";
+
+function TeacherAttendance() {
+  const { toast } = useToastImport();
+  const { students, courses } = useStore();
+  const [cls, setCls] = React.useState("a1");
+  const [session] = React.useState("جلسه ۲۳ — شنبه ۱ آبان");
+  const roster = (courses.find((c) => c.id === cls)?.studentIds ?? []).map((id) => students.find((s) => s.id === id)?.name ?? "").filter(Boolean);
+  const [marks, setMarks] = React.useState<Record<string, AttStatus>>({});
+  const [saved, setSaved] = React.useState(false);
+
+  const setAll = (s: AttStatus) => setMarks(Object.fromEntries(roster.map((r) => [r, s])));
+
+  const options: { k: AttStatus; l: string; icon: React.ElementType; cls: string }[] = [
+    { k: "present", l: "حاضر", icon: Check, cls: "bg-ok text-white hover:bg-ok/90" },
+    { k: "absent", l: "غایب", icon: X, cls: "bg-bad text-white hover:bg-bad/90" },
+    { k: "excused", l: "موجه", icon: MinusCircle, cls: "bg-info text-white hover:bg-info/90" },
+    { k: "late", l: "تأخیر", icon: Clock, cls: "bg-warn text-white hover:bg-warn/90" },
+  ];
+
+  return (
+    <div>
+      <PanelHeading
+        title="حضور و غیاب"
+        desc="فقط برای کلاس‌های حضوری — ثبت سریع در چند ثانیه."
+        action={
+          <Button
+            className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
+            onClick={() => {
+              setSaved(true);
+              toast({ title: "حضور و غیاب ثبت شد ✓", description: `خلاصه: ${faNum(Object.values(marks).filter((m) => m === "present").length)} حاضر، ${faNum(Object.values(marks).filter((m) => m === "absent").length)} غایب` });
+            }}
+          >
+            <Check className="size-4 me-1.5" /> ثبت و تأیید نهایی
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-4 mb-5">
+        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+          <p className="text-xs text-ink-soft mb-2">انتخاب کلاس</p>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: "a1", t: "آلمانی A1" },
+              { id: "b1", t: "آلمانی B1" },
+              { id: "konversation", t: "کلاب مکالمه" },
+            ].map((c) => (
+              <button key={c.id} onClick={() => setCls(c.id)} className={`rounded-full px-4 py-1.5 text-xs font-bold ${cls === c.id ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
+                {c.t}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+          <p className="text-xs text-ink-soft mb-2">جلسه (پیش‌فرض: امروز)</p>
+          <p className="font-bold text-ink text-sm">{session} {saved && <Badge className="bg-ok/10 text-ok hover:bg-ok/10 ms-2">ثبت‌شده</Badge>}</p>
+        </div>
+      </div>
+
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-hairline-soft">
+          <p className="text-sm font-bold text-ink">{faNum(roster.length)} دانشجو</p>
+          <Button variant="outline" className="border-ok text-ok hover:bg-ok/10 h-10" onClick={() => setAll("present")}>
+            <Check className="size-4 me-1.5" /> همه حاضر
+          </Button>
+        </div>
+        <div className="space-y-2.5">
+          {roster.map((name) => (
+            <div key={name} className={`flex flex-wrap items-center gap-3 rounded-[8px] border p-3.5 transition-colors ${marks[name] === "absent" ? "border-bad/40 bg-bad/5" : marks[name] === "present" ? "border-ok/40 bg-ok/5" : "border-hairline-soft bg-white"}`}>
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas-soft text-ink text-sm font-black-fa">{name.replace("دکتر ", "")[0]}</span>
+              <p className="text-sm font-bold text-ink flex-1 min-w-32">{name}</p>
+              <div className="flex gap-1.5 flex-wrap">
+                {options.map((o) => (
+                  <button
+                    key={o.k}
+                    onClick={() => setMarks((m) => ({ ...m, [name]: o.k }))}
+                    className={`flex items-center gap-1.5 rounded-[8px] px-3.5 py-2.5 text-xs font-bold transition-all min-h-10 ${
+                      marks[name] === o.k ? `${o.cls} shadow` : "bg-canvas-soft text-ink hover:bg-canvas-soft"
+                    }`}
+                    aria-pressed={marks[name] === o.k}
+                  >
+                    <o.icon className="size-3.5" /> {o.l}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-4 text-[11px] text-ink-soft leading-6">
+          ثبت حضور تا پایان مهلت مشخص قابل ویرایش است. برای غایبت‌ها، پیامک هوشمند به دانشجو (یا ولی) ارسال می‌شود.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------- نمره‌دهی تکالیف ----------------------------- */
+
+function TeacherAssignments() {
+  const { navigate } = useRouter();
+  const { toast } = useToastImport();
+  const { assignments, submissions, courses, gradeSubmission } = useStore();
+  const [scores, setScores] = React.useState<Record<string, string>>({});
+  const [feedbacks, setFeedbacks] = React.useState<Record<string, string>>({});
+  const [savedIds, setSavedIds] = React.useState<string[]>([]);
+
+  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
+  const mySubs = submissions.filter((s) => myAssignments.some((a) => a.id === s.assignmentId));
+  const gradeable = mySubs.filter((s) => s.status === "در انتظار بررسی");
+
+  const doGrade = (subId: string) => {
+    const sub = mySubs.find((x) => x.id === subId);
+    const a = myAssignments.find((x) => x.id === sub?.assignmentId);
+    const raw = scores[subId];
+    const num = Number(raw?.replace(/[^\d.]/g, ""));
+    if (raw === undefined || raw === "" || isNaN(num)) {
+      toast({ title: "نمره وارد نشده", description: `نمره بین ۰ تا ${a?.max ?? 10} وارد کنید.`, variant: "destructive" });
+      return;
+    }
+    gradeSubmission(subId, { score: num, feedback: feedbacks[subId] || undefined });
+    setSavedIds((ids) => [...ids, subId]);
+    toast({ title: "نمره ثبت شد ✓", description: "نمره در پنل دانشجو و پنل مدیریت قابل مشاهده است." });
+  };
+
+  return (
+    <div>
+      <PanelHeading
+        title="تکالیف و نمره‌دهی"
+        desc="بررسی پاسخ‌ها و ثبت نمره درجا — نتیجه بلافاصله در پنل دانشجو دیده می‌شود."
+        action={
+          <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => navigate("/teacher/assignments/new")}>
+            <Plus className="size-4 me-1.5" /> تعریف تکلیف جدید
+          </Button>
+        }
+      />
+
+      {/* تکالیف فعال */}
+      {myAssignments.length === 0 ? (
+        <div className="mb-6 rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+          <p className="font-bold text-ink">تکلیفی برای کلاس‌های شما تعریف نشده</p>
+          <p className="mt-1 text-sm text-ink-soft">اولین تکلیف را تعریف کنید یا منتظر تخصیص از مدیریت بمانید.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-3 mb-6">
+          {myAssignments.map((t) => {
+            const delivered = submissions.filter((s) => s.assignmentId === t.id).length;
+            const total = courses.find((c) => c.id === t.courseId)?.studentIds.length ?? 0;
+            return (
+              <button key={t.id} onClick={() => navigate(`/teacher/assignments/${t.id}`)} className="text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors">
+                <p className="font-bold text-ink text-xs leading-6">{t.title}</p>
+                <p className="text-[11px] text-ink-soft mt-1">{courses.find((c) => c.id === t.courseId)?.title} — مهلت: {t.due}</p>
+                <div className="mt-2.5">
+                  <div className="flex justify-between text-[10px] mb-1">
+                    <span className="text-ink-soft">{faNum(delivered)} از {faNum(total)} تحویل داده‌اند</span>
+                  </div>
+                  <Progress value={total ? (delivered / total) * 100 : 0} className="h-1.5 bg-canvas-soft [&>div]:bg-rd-accent" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* جدول نمره‌دهی */}
+      {gradeable.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+          <p className="font-bold text-ink">پاسخی در انتظار نمره‌دهی نیست ✓</p>
+          <p className="mt-1 text-sm text-ink-soft">به‌محض تحویل دانشجویان، پاسخ‌ها اینجا ظاهر می‌شوند.</p>
+        </div>
+      ) : (
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead>
+              <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
+                <th className="text-start p-4 font-semibold">دانشجو</th>
+                <th className="text-start p-4 font-semibold">تکلیف</th>
+                <th className="text-start p-4 font-semibold">فایل پاسخ</th>
+                <th className="text-start p-4 font-semibold">نمره (از ۱۰)</th>
+                <th className="text-start p-4 font-semibold">بازخورد</th>
+                <th className="p-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {gradeable.map((s, i) => {
+                const st = useStore.getState().students.find((x) => x.id === s.studentId);
+                const a = myAssignments.find((x) => x.id === s.assignmentId);
+                return (
+                  <tr key={s.id} className={i % 2 ? "bg-canvas-soft/50" : ""}>
+                    <td className="p-4">
+                      <button onClick={() => navigate(`/teacher/students/${s.studentId}`)} className="font-bold text-ink hover:underline">{st?.name ?? "—"}</button>
+                    </td>
+                    <td className="p-4 text-ink-soft">{a?.title}</td>
+                    <td className="p-4">
+                      <button onClick={() => navigate(`/teacher/assignments/${s.assignmentId}`)} className="flex items-center gap-1 text-info hover:underline text-xs"><FileText className="size-4" /> {s.file ?? "پاسخ متنی"}</button>
+                    </td>
+                    <td className="p-4">
+                      <Input
+                        dir="ltr"
+                        inputMode="decimal"
+                        className="w-20 h-9 text-center font-bold"
+                        value={scores[s.id] ?? ""}
+                        onChange={(e) => setScores((sc) => ({ ...sc, [s.id]: e.target.value.replace(/[^\d.]/g, "").slice(0, 4) }))}
+                        placeholder="0-10"
+                        aria-label={`نمره ${st?.name}`}
+                      />
+                    </td>
+                    <td className="p-4">
+                      <Textarea className="min-h-9 h-9 py-1.5 text-xs" placeholder="بازخورد کوتاه…" value={feedbacks[s.id] ?? ""} onChange={(e) => setFeedbacks((f) => ({ ...f, [s.id]: e.target.value }))} aria-label={`بازخورد ${st?.name}`} />
+                    </td>
+                    <td className="p-4">
+                      {savedIds.includes(s.id) ? (
+                        <Badge className="bg-ok/10 text-ok hover:bg-ok/10"><CheckCircle2 className="size-3.5 me-1" /> ثبت شد</Badge>
+                      ) : (
+                        <Button size="sm" className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => doGrade(s.id)}>
+                          ثبت
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <p className="mt-4 text-[11px] text-ink-soft">نمرات آزمون‌های موسسه توسط مدیریت ثبت می‌شود و برای شما فقط قابل مشاهده است (نیازمند تأیید نهایی).</p>
+    </div>
+  );
+}
+
+/* ------------------------------ دانشجویان -------------------------------- */
+
+function TeacherStudents() {
+  const { navigate } = useRouter();
+  const { students, courses } = useStore();
+  const [q, setQ] = React.useState("");
+  const myCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
+  const roster = rosterIds.map((id) => students.find((s) => s.id === id)!).filter(Boolean);
+  const list = roster.filter((s) => !q || s.name.includes(q));
+  return (
+    <div>
+      <PanelHeading title="لیست دانشجویان" desc="اطلاعات مالی و پرداخت دانشجویان برای شما نمایش داده نمی‌شود — برای پروفایل تحصیلی روی هر ردیف کلیک کنید." />
+      <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی نام…" className="h-11 max-w-xs mb-4" />
+      {list.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+          <p className="font-bold text-ink">دانشجویی پیدا نشد</p>
+          <p className="mt-1 text-sm text-ink-soft">دانشجویان کلاس‌های شما اینجا نمایش داده می‌شوند.</p>
+        </div>
+      ) : (
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden overflow-x-auto">
+          <table className="w-full min-w-[680px] text-sm">
+            <thead>
+              <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
+                <th className="text-start p-4 font-semibold">دانشجو</th>
+                <th className="text-start p-4 font-semibold">کلاس</th>
+                <th className="text-start p-4 font-semibold">حضور</th>
+                <th className="text-start p-4 font-semibold">میانگین نمره</th>
+                <th className="p-4"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-line">
+              {list.map((s, i) => (
+                <tr key={s.id} className={`cursor-pointer transition-colors hover:bg-canvas-soft/60 ${i % 2 ? "bg-canvas-soft/50" : ""}`} onClick={() => navigate(`/teacher/students/${s.id}`)}>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <span className="grid size-9 place-items-center rounded-full bg-canvas-soft text-ink text-xs font-black-fa">{s.name[0]}</span>
+                      <div>
+                        <p className="font-bold text-ink">{s.name}</p>
+                        <p className="text-[11px] text-ink-soft" dir="ltr">{s.phone}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4 text-ink-soft">{myCourses.filter((c) => c.studentIds.includes(s.id)).map((c) => c.title).join("، ")}</td>
+                  <td className="p-4">
+                    <span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span>
+                  </td>
+                  <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                  <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                    <Button size="sm" variant="outline" className="border-hairline text-ink" onClick={() => navigate(`/teacher/students/${s.id}`)}>پروفایل تحصیلی</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------- بازخوردها ------------------------------- */
+
+function TeacherFeedback() {
+  return (
+    <div>
+      <PanelHeading title="بازخوردها" desc="امتیاز و نظرات دانشجویان — همان گزارشی که مدیریت هم می‌بیند." />
+      <div className="grid gap-4 md:grid-cols-3 mb-6">
+        {[
+          { l: "کیفیت تدریس", v: 4.9 },
+          { l: "نظم و برنامه", v: 4.7 },
+          { l: "پاسخ‌گویی", v: 4.5 },
+        ].map((c) => (
+          <div key={c.l} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 text-center">
+            <p className="text-2xl font-black-fa text-ink">{fa(c.v)}</p>
+            <p className="text-xs text-ink-soft mt-1">{c.l} — میانگین از ۵</p>
+            <Progress value={(c.v / 5) * 100} className="h-2 mt-3 bg-canvas-soft [&>div]:bg-rd-accent" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-3">
+        {feedbackComments.map((f) => (
+          <div key={f.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-full bg-canvas-soft text-ink font-black-fa">{f.student[0]}</span>
+              <div>
+                <p className="text-sm font-bold text-ink">{f.student}</p>
+                <p className="text-[11px] text-ink-soft">{f.course}</p>
+              </div>
+              <span className="ms-auto flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className={`size-4 ${i < f.score ? "fill-brand-500 text-brand-600" : "text-navy-200"}`} />
+                ))}
+              </span>
+            </div>
+            <p className="mt-3 text-sm text-ink leading-7">{f.text}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {Object.entries(f.criteria).map(([k, v]) => (
+                <span key={k} className="rounded-full bg-canvas-soft px-2.5 py-1 text-[10px] font-bold text-ink">{k}: {fa(v)}/۵</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 rounded-[8px] bg-canvas-soft border border-hairline p-4 text-xs text-ink leading-6 flex items-start gap-2">
+        <Trophy className="size-5 shrink-0 text-ink" />
+        روند امتیاز شما در ۳ دوره اخیر صعودی بوده است. نظرات ممکن است ناشناس نمایش داده شود (تصمیم نهایی با کارفرما).
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------- پیام‌ها -------------------------------- */
+
+function TeacherMessages() {
+  const { toast } = useToastImport();
+  const [text, setText] = React.useState("");
+  const [target, setTarget] = React.useState("کل کلاس آلمانی A1");
+  return (
+    <div className="max-w-2xl">
+      <PanelHeading title="پیام‌ها" desc="ارسال پیام به کل کلاس یا یک دانشجو — دسترسی محدود به کلاس‌های خودتان." />
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-4">
+        <div>
+          <label className="text-xs font-semibold text-ink">گیرنده</label>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {["کل کلاس آلمانی A1", "کل کلاس آلمانی B1", "الهام کریمی", "نگار موسوی"].map((t) => (
+              <button key={t} onClick={() => setTarget(t)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${target === t ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-semibold text-ink">متن پیام</label>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} className="mt-1.5 min-h-28" placeholder="پیامت را بنویس…" />
+        </div>
+        <Button
+          className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
+          disabled={!text.trim()}
+          onClick={() => {
+            setText("");
+            toast({ title: "پیام ارسال شد ✓", description: `گیرنده: ${target}` });
+          }}
+        >
+          <Send className="size-4 me-1.5" /> ارسال پیام
+        </Button>
+      </div>
+      <div className="mt-4 rounded-[8px] bg-canvas-soft border border-hairline-soft p-4 text-xs text-ink-soft leading-7">
+        پیام‌های دریافتی از مدیریت:
+        <div className="mt-2 rounded-[8px] bg-white border border-hairline-soft p-3.5 text-ink">
+          <p className="font-bold text-xs">مدیریت آموزش</p>
+          <p className="mt-1 leading-6">برنامه جلسه هماهنگی پایان فصل: شنبه ساعت ۱۴ — اتاق جلسات.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* -------------------------------- پروفایل -------------------------------- */
+
+function TeacherProfile() {
+  const { toast } = useToastImport();
+  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const updateTeacher = useStore((s) => s.updateTeacher);
+  const [name, setName] = React.useState(me?.name ?? "");
+  const [title, setTitle] = React.useState(me?.title ?? "");
+  const [phone, setPhone] = React.useState(me?.phone ?? "");
+  const [bio, setBio] = React.useState(me?.bio ?? "");
+
+  return (
+    <div className="max-w-2xl">
+      <PanelHeading title="پروفایل من" desc="این اطلاعات در صفحه عمومی اساتید سایت نمایش داده می‌شود (با تأیید مدیریت)." />
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+        <div className="flex items-center gap-4">
+          <img src={me?.image ?? "/images/teachers/t1.jpg"} alt="" className="size-20 rounded-[8px] object-cover" />
+          <div>
+            <p className="font-black-fa text-ink text-lg">{name || "—"}</p>
+            <p className="text-sm text-ink-soft">{title || "—"} — {fa(me?.experience ?? 0)} سال سابقه</p>
+            <Badge className="mt-1.5 bg-ok/10 text-ok hover:bg-ok/10">رزومه عمومی: تأییدشده توسط مدیریت</Badge>
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs font-semibold text-ink">نام و نام خانوادگی</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5 h-11" />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold text-ink">عنوان تخصصی</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1.5 h-11" />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold text-ink">شماره موبایل</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" className="mt-1.5 h-11" />
+            <p className="text-[10px] text-ink mt-1">تغییر شماره با تأیید کد پیامکی انجام می‌شود.</p>
+          </div>
+          <div>
+            <Label className="text-xs font-semibold text-ink">کلاس‌های تخصیص‌یافته</Label>
+            <p className="mt-3 text-sm font-bold text-ink">{fa(me?.courseIds.length ?? 0)} کلاس فعال</p>
+          </div>
+          <div className="sm:col-span-2">
+            <Label className="text-xs font-semibold text-ink">رزومه کوتاه (نمایش عمومی)</Label>
+            <Textarea value={bio} onChange={(e) => setBio(e.target.value)} className="mt-1.5 min-h-24" />
+          </div>
+        </div>
+        <Button
+          className="w-full h-11 bg-rd-deep text-white hover:bg-navy-700 font-bold"
+          onClick={() => {
+            if (!name.trim()) {
+              toast({ title: "نام را وارد کنید", variant: "destructive" });
+              return;
+            }
+            updateTeacher(CURRENT_TEACHER_ID, { name: name.trim(), title: title.trim(), phone: phone.trim(), bio: bio.trim() });
+            toast({ title: "پروفایل ذخیره شد ✓", description: "تغییرات پس از تأیید مدیریت در سایت عمومی نمایش داده می‌شود." });
+          }}
+        >
+          <Check className="size-4 me-1.5" /> ذخیره تغییرات
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function useToastImport() {
+  return useToast();
+}

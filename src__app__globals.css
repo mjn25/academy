@@ -1,0 +1,1508 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------- Vazirmatn UI FD (self-hosted — ارقام فارسی) ---------- */
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-thin.ttf") format("truetype");
+  font-weight: 100;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-extralight.ttf") format("truetype");
+  font-weight: 200;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-light.ttf") format("truetype");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-semibold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-extrabold.ttf") format("truetype");
+  font-weight: 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Vazirmatn UI FD";
+  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-black.ttf") format("truetype");
+  font-weight: 900;
+  font-display: swap;
+}
+
+html {
+  overflow-x: clip;
+}
+
+body {
+  overflow-x: clip;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "Vazirmatn UI FD", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Vazirmatn UI FD", ui-monospace, monospace;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ---------------------------------------------------------------
+   Design System — «سرمه‌ای و زرد» (Navy & Yellow Academy)
+   برند: لوگو ELMIRA DEUTSCH — سرمه‌ای #001040 / فیروزه‌ای #00C0F0 / قرمز #F00050
+
+   نقش‌های رنگی (قانون ۶۰/۳۰/۱۰):
+   • ۶۰٪ سطح روشن: سفید و navy-50 — زمینه صفحه و کارت
+   • ۳۰٪ سرمه‌ای: متن، دکمه ثانویه، هدر و فوتر تیره، اسکلت پنل‌ها
+   • ۱۰٪ زرد: فقط تأکید — دکمه اصلی CTA، نشان‌ها، ستاره‌ها، هایلایت
+   • فیروزه‌ای (سکندری): لینک، حالت اطلاع‌رسانی، نمودار، لحظه‌های برند
+   • قرمز (سکندری): خطر، حذف، خطا، تخفیف ویژه
+   قواعد: روی زمینه زرد همیشه متن سرمه‌ای؛ متن زرد روی سفید ممنوع؛
+   در هر صفحه فقط یک دکمه اصلی زرد. کارت‌های گرد، حاشیه نازک،
+   سایه فقط برای عناصر شناور — «نرم و تمیز».
+   --------------------------------------------------------------- */
+@theme {
+  /* PRIMARY — Navy / سرمه‌ای */
+  --color-navy-950: #050d26;      /* عمیق‌ترین — فوتر و باندهای تیره */
+  --color-navy-900: #0b1633;      /* هدر تیره، سایدبار */
+  --color-navy-800: #12224a;      /* رنگ اصلی برند، دکمه، عنوان */
+  --color-navy-700: #1b3270;      /* هاور و حالت فعال */
+  --color-navy-600: #27438c;      /* تعاملی روی تیره */
+  --color-navy-500: #3556ac;      /* نمودار، تأکید متوسط */
+  --color-navy-300: #93a5ce;      /* متن سوم روی تیره */
+  --color-navy-200: #c2cde6;      /* متن دوم روی تیره */
+  --color-navy-100: #e8ecf5;      /* زمینه کارت ملایم */
+  --color-navy-50: #f4f6fb;       /* زمینه صفحات پنل */
+
+  /* PRIMARY ACCENT — Brand yellow / زرد — فقط تأکید */
+  --color-brand-600: #e5a800;     /* هاور دکمه زرد */
+  --color-brand-500: #ffc20e;     /* دکمه اصلی CTA، نشان، ستاره */
+  --color-brand-400: #ffd34d;
+  --color-brand-200: #ffe999;
+  --color-brand-100: #fff4cc;     /* هایلایت ملایم، اعلان */
+  --color-brand-50: #fffae8;
+
+  /* SECONDARY — Turquoise / فیروزه‌ای — لینک و اطلاع‌رسانی */
+  --color-turquoise-800: #005e78;
+  --color-turquoise-700: #007a99; /* متن لینک روی سفید (کنتراست امن) */
+  --color-turquoise-600: #0090b8;
+  --color-turquoise-500: #00aeda;
+  --color-turquoise-400: #00c0f0; /* فیروزه‌ای لوگو */
+  --color-turquoise-300: #4dd6f6;
+  --color-turquoise-200: #99e7fa;
+  --color-turquoise-100: #d9f5fc; /* زمینه نشان اطلاعاتی */
+  --color-turquoise-50: #edfafe;
+
+  /* SECONDARY — Crimson / قرمز — خطر و فوریت */
+  --color-crimson-700: #a80039;
+  --color-crimson-600: #d00048;   /* دکمه خطرناک */
+  --color-crimson-500: #f00050;   /* قرمز لوگو */
+  --color-crimson-400: #f43e77;
+  --color-crimson-300: #f87ca0;
+  --color-crimson-100: #fdd9e5;
+  --color-crimson-50: #fdedf2;
+
+  /* Neutral ink ladder — با ته‌رنگ سرمه‌ای */
+  --color-ink: #12224a;           /* متن اصلی، سطح اصلی دکمه ثانویه */
+  --color-ink-strong: #0b1633;    /* باندهای تیره‌تر، فوتر */
+  --color-ink-soft: #5b6475;      /* متن ثانویه */
+  --color-ink-faint: #8a94a8;     /* placeholder و متن سوم */
+
+  /* Surface tint ladder */
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #f4f6fb;   /* زمینه نرم، ردیف‌ها */
+  --color-field: #edf1f8;         /* پر فیلد، بدون حاشیه در حالت عادی */
+  --color-hairline: #d9dee8;      /* حاشیه کنترل‌ها */
+  --color-hairline-soft: #e8ecf5; /* ظریف‌ترین لبه کارت */
+  --color-line: #d9dee8;
+
+  /* Functional states */
+  --color-ok: #1e8e5a;            /* موفق، پرداخت موفق، حاضر */
+  --color-bad: #d00048;           /* خطا، مردود، غایب */
+  --color-warn: #e08a00;          /* هشدار — متمایز از زرد برند */
+  --color-info: #007a99;          /* اطلاع‌رسانی — فیروزه‌ای متن‌پسند */
+
+  /* Legacy alias — با فیروزه‌ای هم‌ارز شد */
+  --color-accent-blue: #00aeda;
+
+  /* Hero — پنل سرمه‌ای عمیق، بازسازی ۱:۱ از readme.com */
+  --color-navy-deep: #00033f;    /* پنل هیرو = blue-12 */
+  --color-hero-dot: #4da7f9;     /* دات‌های تقاطع شبکه */
+  --color-hero-sky: #54a8e8;     /* واژه تأکیدی تیتر */
+  --color-agent-blue: #4e62ff;   /* دکمه آبی نوار CTA */
+  --color-skyc: #68cdff;         /* باتن فیروزه‌ای روی بکگراند تیره */
+
+  /* readme.com — توکن‌های استخراج‌شده از باندل رسمی (primary = blue) */
+  --color-rd-accent: #f80559;        /* primary-accent — ابرو، مربع ۶px، واژه تأکیدی؛ به درخواست کاربر #f80559 (پیش‌تر #213aff و سپس #248fe8 بود) */
+  --color-rd-title: #060b75;         /* رنگ تیترها (به درخواست کاربر از صورتی به سرمه‌ای) — PageHero/RdEyebrow/واژهٔ تأکیدی h2 ها؛ آیکون‌ها صورتی می‌مانند */
+  --color-rd-deep: #00033f;          /* primary-7 — دکمه اصلی و پیل تب فعال (باتن سرمه‌ای = navy-deep) */
+  --color-rd-sky: #82cbff;           /* primary-3 — بج «جدید» روی سرمه‌ای */
+  --color-rd-sky2: #4facff;          /* primary-4 — fill-loud روی سرمه‌ای */
+  --color-rd-night: #00033f;         /* blue-12 — سطح تیره سکشن‌ها */
+  --color-rd-night-line: #021259;    /* blue-11 — خط شبکه و قاب روی تیره */
+  --color-rd-night-soft: #001361;    /* خطوط مدار هیرو روی سرمه‌ای */
+  /* نکته: تغییر accent (#248fe8 → #f80559) باید در کل پروژه اعمال شود (درخواست کاربر) */
+}
+
+:root {
+  --radius: 1.25rem;
+  --background: #ffffff;
+  --foreground: #12224a;
+  --card: #ffffff;
+  --card-foreground: #12224a;
+  --popover: #ffffff;
+  --popover-foreground: #12224a;
+  --primary: #12224a;
+  --primary-foreground: #ffffff;
+  --secondary: #e8ecf5;
+  --secondary-foreground: #12224a;
+  --muted: #f4f6fb;
+  --muted-foreground: #5b6475;
+  --accent: #fff4cc;
+  --accent-foreground: #12224a;
+  --destructive: #d00048;
+  --destructive-foreground: #ffffff;
+  --border: #d9dee8;
+  --input: #d9dee8;
+  --ring: #ffc20e;
+  --chart-1: #12224a;
+  --chart-2: #ffc20e;
+  --chart-3: #00aeda;
+  --chart-4: #f00050;
+  --chart-5: #93a5ce;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #12224a;
+  --sidebar-primary: #12224a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e8ecf5;
+  --sidebar-accent-foreground: #12224a;
+  --sidebar-border: #e8ecf5;
+  --sidebar-ring: #ffc20e;
+}
+
+.dark {
+  --background: #0b1633;
+  --foreground: #e8ecf5;
+  --card: #12224a;
+  --card-foreground: #e8ecf5;
+  --popover: #12224a;
+  --popover-foreground: #e8ecf5;
+  --primary: #ffc20e;
+  --primary-foreground: #0b1633;
+  --secondary: #1b3270;
+  --secondary-foreground: #e8ecf5;
+  --muted: #16264f;
+  --muted-foreground: #93a5ce;
+  --accent: #1b3270;
+  --accent-foreground: #ffd34d;
+  --destructive: #f00050;
+  --destructive-foreground: #ffffff;
+  --border: #27438c;
+  --input: #27438c;
+  --ring: #ffc20e;
+  --sidebar: #0b1633;
+  --sidebar-foreground: #e8ecf5;
+  --sidebar-primary: #ffc20e;
+  --sidebar-primary-foreground: #0b1633;
+  --sidebar-accent: #1b3270;
+  --sidebar-accent-foreground: #e8ecf5;
+  --sidebar-border: #1b3270;
+  --sidebar-ring: #ffc20e;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Vazirmatn UI FD", ui-sans-serif, system-ui, sans-serif;
+    line-height: 1.8;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: #ffc20e;
+    color: #0b1633;
+  }
+}
+
+@layer utilities {
+  .container-site {
+    max-width: 1200px;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  /* Signature display weight — chunky, tight leading */
+  .font-black-fa {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+  }
+  /* Custom thin scrollbar for panel lists */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #c2cde6 transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: #c2cde6;
+    border-radius: 999px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  /* iOS-style squircle icon tile — 30% corner radius motif */
+  .squircle {
+    border-radius: 30%;
+  }
+  .animate-in-up {
+    animation: in-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes in-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .pulse-ring {
+    animation: pulse-ring 2.4s ease-out infinite;
+  }
+  @keyframes pulse-ring {
+    0% {
+      box-shadow: 0 0 0 0 rgba(18, 34, 74, 0.35);
+    }
+    70% {
+      box-shadow: 0 0 0 16px rgba(18, 34, 74, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(18, 34, 74, 0);
+    }
+  }
+  /* ضربهٔ «کلیک کن» روی دکمهٔ پخش ویدئو — فشردن و رهایش فنری با فلاش هاله؛
+     حس کلیک‌خوردن می‌دهد (AC) */
+  .play-click {
+    animation: play-click 2.4s ease-in-out infinite;
+  }
+  @keyframes play-click {
+    0%,
+    38% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+    44% {
+      transform: scale(0.9);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+    52% {
+      transform: scale(1.07);
+      box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.3);
+    }
+    60%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ------------------- EDC landing — دموهای چهار مهارت ------------------- */
+
+/* ------------------------------------------------------------------------
+   شبکه مشبک برند — دقیقاً با دستور readme.com
+   کاشی SVG تکرارشونده: سلول ۵۶px، خط ۰.۵px با آفست ۰.۲۵ (خط مویی تیز)
+   نسخه روشن: خط سرمه‌ای خیلی محو روی سفید / نسخه تیره: خط روشن روی سرمه‌ای
+   ------------------------------------------------------------------------ */
+.dc-grid-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%23ffffff' stroke-opacity='0.0432' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  background-repeat: repeat;
+}
+
+.dc-grid-light {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%2312224a' stroke-opacity='0.0396' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  background-repeat: repeat;
+}
+
+/* دسکتاپ: شبکهٔ مشبک روشن به‌طور محسوس تیره‌تر (درخواست کاربر؛ ۲۰٪ در این شفافیتِ خیلی کم
+   با چشم تشخیص داده نمی‌شد — حدود ۵۰٪ تیره‌تر شد تا واقعاً دیده شود) */
+@media (min-width: 640px) {
+  .dc-grid-light {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%2312224a' stroke-opacity='0.06' stroke-width='0.5'/%3E%3C/svg%3E");
+  }
+}
+
+/* نسخهٔ پررنگ ۵۶px — سکشن «درباره ما»: شبکهٔ مربعی واضح روی کاغذ شطرنجی */
+.dc-grid-strong {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%2312224a' stroke-opacity='0.0936' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  background-repeat: repeat;
+}
+
+/* گرید × دار وبلاگ — الگوی readme.com: شبکهٔ ۵۶px به‌علاوهٔ علامت × کوچک
+   در مرکز هر خانه (تقاطع‌ها)، با همان جوهر ink در شفافیت ۱۰٪ */
+.dc-grid-cross {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Cpath d='M25 25L31 31M31 25L25 31' stroke='%2312224a' stroke-opacity='0.10' stroke-width='1' stroke-linecap='round'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%2312224a' stroke-opacity='0.055' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 56px 56px, 56px 56px;
+  background-repeat: repeat, repeat;
+}
+
+/* نسخه متراکم ۳۲px — برای بلوک‌های کوچک تزئینی و تصاویر کوچک */
+.dc-grid-dense {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32' fill='none'%3E%3Crect x='0.25' y='0.25' width='31.5' height='31.5' stroke='%23ffffff' stroke-opacity='0.10' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 32px 32px;
+  background-repeat: repeat;
+}
+
+/* ریل‌های عمودی کانتینر — دو خط مویی در لبه‌های چپ و راست کانتینر
+   (همان کاری که readme در هدر و سکشن‌ها می‌کند؛ خط‌ها از داخل هدر رد می‌شوند) */
+.mesh-rails {
+  position: relative;
+}
+.mesh-rails::before,
+.mesh-rails::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(18, 34, 74, 0.07);
+  pointer-events: none;
+}
+.mesh-rails::before {
+  inset-inline-start: 0;
+}
+.mesh-rails::after {
+  inset-inline-end: 0;
+}
+.mesh-rails-dark::before,
+.mesh-rails-dark::after {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* ------------------------------------------------------------------------
+   readme.com — عناصر ساختاری سکشن‌ها (استخراج از باندل رسمی)
+   • rd-inside  — قاب داخلی ۱px با radius والد (before:inside-border)
+   • rd-shadow  — سایه لایه‌ای بسیار محو (shadow-ui-shadow)
+   • rd-grid-dark — شبکه ۵۶px با خط #021259 روی سطح #00033f
+   • rd-band    — خط مویی تمام‌عرض مرز سکشن‌ها
+   • rd-bars    — ستون‌های اکولایزر (مثل نوار API readme) با موج دائمی
+   ------------------------------------------------------------------------ */
+.rd-inside {
+  position: relative;
+}
+.rd-inside::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--color-hairline-soft);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.rd-inside-line::before {
+  border-color: var(--color-hairline);
+}
+.rd-inside-dark::before {
+  border-color: var(--color-rd-night-line);
+}
+.rd-shadow {
+  box-shadow:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.04),
+    0px 1px 2px rgba(0, 0, 0, 0.02),
+    0px 2px 4px rgba(0, 0, 0, 0.02),
+    0px 8px 16px rgba(0, 0, 0, 0.02),
+    0px 32px 44px -12px rgba(0, 0, 0, 0.05);
+}
+/* اسلایدر موبایل — اسکرول بدون نوار اسکرول */
+.rd-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.rd-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* مستطیل محو شبکهٔ پس از هیرو (RdSection fadeTop) — دسکتاپ: سفید کامل در ۴۰٪ ارتفاع؛
+   موبایل (زیر ۶۴۰px): محو ۳۰٪ شدیدتر — سفید کامل در ۲۸٪ ارتفاع (خواستهٔ کاربر) */
+.grid-fade-rect {
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 40%);
+}
+@media (max-width: 639px) {
+  .grid-fade-rect {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 28%);
+  }
+}
+/* rd-grid-dark - grid line another 20% lighter (0.77 -> 0.616) */
+.rd-grid-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.25' y='0.25' width='55.5' height='55.5' stroke='%23021259' stroke-opacity='0.616' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  background-repeat: repeat;
+}
+/* گرید بلوپرینت پشت متن هیرو — هم‌ریتم ۵۶px با خط فیروزه‌ایِ محو (مثل grid-overlay
+   هیرو readme.com)؛ با ماسک شعاعی فقط پشت تیتر/زیرتیتر/نوار سرچ پیداست و به
+   سمت لبه‌ها محو می‌شود تا با شبکهٔ اصلی کارت یکی شود (درخواست کاربر) */
+.hero-blueprint {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56' fill='none'%3E%3Crect x='0.5' y='0.5' width='55' height='55' stroke='%2368CDFF' stroke-opacity='0.16' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 56px 56px;
+  background-repeat: repeat;
+  -webkit-mask-image: radial-gradient(64% 60% at 50% 44%, #000 22%, transparent 76%);
+  mask-image: radial-gradient(64% 60% at 50% 44%, #000 22%, transparent 76%);
+}
+@media (max-width: 639px) {
+  .hero-blueprint {
+    /* موبایل — ماسک جمع‌تر تا گرید پشت متن کوتاه‌تر هم کامل باشد */
+    -webkit-mask-image: radial-gradient(88% 54% at 50% 42%, #000 20%, transparent 78%);
+    mask-image: radial-gradient(88% 54% at 50% 42%, #000 20%, transparent 78%);
+  }
+}
+.rd-band {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 1px;
+  background: var(--color-hairline-soft);
+  pointer-events: none;
+}
+.rd-band-dark {
+  background: var(--color-rd-night-line);
+}
+.rd-overlay-pill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  transition: background-color 150ms ease;
+}
+@keyframes rd-bar {
+  0%, 100% { height: var(--h); }
+  50% { height: calc(var(--h) * 0.55); }
+}
+.rd-bar {
+  width: 3px;
+  min-width: 3px;
+  border-radius: 999px;
+  animation: rd-bar 2.6s ease-in-out infinite;
+}
+@keyframes rd-marquee-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(50%); }
+}
+
+/* هیرو — نوار «Prompt» با انیمیشن تایپ، مثل نوار عامل readme */
+@keyframes dc-type-loop {
+  0%,
+  14% {
+    width: 0;
+  }
+  60%,
+  88% {
+    width: 28ch;
+  }
+  100% {
+    width: 28ch;
+  }
+}
+.dc-type-text {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 28ch;
+  animation: dc-type-loop 8s linear infinite;
+}
+@keyframes dc-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.dc-caret {
+  animation: dc-caret-blink 1.1s steps(1) infinite;
+}
+
+/* چرخش عنوان پنل — هر چند ثانیه عنوان عوض می‌شود (فید نرم) */
+.dc-rot {
+  animation: dc-rot-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes dc-rot-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* مونواسپیس واقعی — برچسب‌های فنی هیرو (مثل readme) که فونت فارسی را دور می‌زند */
+.dc-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+/* ------------------------------------------------------------------------
+   embed آپارات — سکشن «درباره ما»: کد رسمی آپارات داخل قاب واکنش‌گرای
+   ۱۶:۹؛ اسکریپت، iframe را داخل div#78141906945 می‌سازد و آن iframe
+   روی پوستر (تصویر کامل و واضح بنیان‌گذار) می‌نشیند. تا پیش از
+   بارگذاری ویدئو، همان تصویر دیده می‌شود — بدون برش و بدون بوردر
+   ------------------------------------------------------------------------ */
+.aparat-embed {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #ffffff;
+}
+.aparat-poster {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #ffffff;
+}
+.aparat-host {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+.aparat-host iframe,
+.aparat-embed iframe {
+  position: absolute !important;
+  inset: 0;
+  z-index: 10;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  display: block;
+  border-radius: 8px;
+}
+
+/* بج چرخان «PLAY VIDEO» — متن دایره‌ای دور دکمهٔ پخش درباره ما */
+@keyframes dc-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.dc-spin-slow {
+  animation: dc-spin-slow 9s linear infinite;
+}
+
+/* Lesen — اسکرول عمودی متن آلمانی */
+@keyframes dc-scroll {
+  0%,
+  6% {
+    transform: translateY(0);
+  }
+  88%,
+  100% {
+    transform: translateY(-50%);
+  }
+}
+.dc-scroll {
+  animation: dc-scroll 16s linear infinite;
+}
+
+/* Sprechen — حباب‌های گفتگو که پشت سر هم ظاهر می‌شوند */
+@keyframes dc-pop-a {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  10%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes dc-pop-b {
+  0%,
+  14% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  22%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes dc-pop-c {
+  0%,
+  26% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+  34%,
+  78% {
+    opacity: 1;
+    transform: none;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+.dc-pop-a {
+  animation: dc-pop-a 8s ease-in-out infinite;
+}
+.dc-pop-b {
+  animation: dc-pop-b 8s ease-in-out infinite;
+}
+.dc-pop-c {
+  animation: dc-pop-c 8s ease-in-out infinite;
+}
+
+/* Schreiben — خط زدن غلط و نمایش اصلاح + Correct */
+@keyframes dc-strike {
+  0%,
+  14% {
+    transform: scaleX(0);
+  }
+  24%,
+  80% {
+    transform: scaleX(1);
+  }
+  90%,
+  100% {
+    transform: scaleX(0);
+  }
+}
+@keyframes dc-fixed {
+  0%,
+  30% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  40%,
+  80% {
+    opacity: 1;
+    transform: none;
+  }
+  90%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes dc-chip {
+  0%,
+  40% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50%,
+  80% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  90%,
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+.dc-strike {
+  transform-origin: left;
+  animation: dc-strike 8s ease-in-out infinite;
+}
+.dc-fixed {
+  animation: dc-fixed 8s ease-in-out infinite;
+}
+.dc-chip {
+  animation: dc-chip 8s ease-in-out infinite;
+}
+
+/* Hören — موج صوتی */
+@keyframes dc-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.dc-wave {
+  transform-origin: center;
+  animation: dc-wave 1s ease-in-out infinite;
+}
+
+/* حس لمس کردن — دکمهٔ آیکونی «مشاهده بیشتر» سکشن ۰۱ (درباره ما):
+   فقط فشردن و رهایش فنری دکمه — بدون شدو و هاله و بدون بوب فلش
+   (هم‌الگوی انیمیشن play-click سایت؛ احترام به prefers-reduced-motion
+    به‌صورت سراسری در globals.css برقرار است) */
+@keyframes dc-tap {
+  0%,
+  36% {
+    transform: scale(1);
+  }
+  44% {
+    transform: scale(0.88);
+  }
+  54% {
+    transform: scale(1.08);
+  }
+  62% {
+    transform: scale(0.98);
+  }
+  70%,
+  100% {
+    transform: scale(1);
+  }
+}
+.dc-tap {
+  animation: dc-tap 2.2s ease-in-out infinite;
+}
+
+/* ------------------- EDC — تیکر چانک‌ها (مارکی) و تایپ خالی ------------------- */
+
+@keyframes dc-ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.dc-ticker-track {
+  animation: dc-ticker 42s linear infinite;
+}
+
+/* وردمارک خالی (outline) برای فوتر */
+.dc-outline-text {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(147, 165, 206, 0.3);
+}
+
+/* ------------------------------------------------------------------------
+   جلوه‌های متحرک هیرو — بازسازی ticker های canvas هیرو readme.com
+   فاز ورود: متن‌ها blur-in → canvas شبکه سلول‌به‌سلول از مرکز روشن می‌شود →
+   تزئینات با تأخیر موجی pop می‌شوند، وایرفرم‌ها خودشان کشیده می‌شوند،
+   قاب قرص دو-بخشی رسم می‌شود → جرقهٔ چرخان دور قاب می‌دود (حلقهٔ بی‌پایان)
+   ------------------------------------------------------------------------ */
+
+/* ورود نرم متن‌ها — قبل از روشن‌شدن شبکه، مثل فریم‌های اول readme */
+.dc-enter {
+  opacity: 0;
+  animation: dc-blur-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both;
+}
+@keyframes dc-blur-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* پاپ تزئینات با اورشوت فنری — وقتی موج روشن‌شدن به سلولشان می‌رسد
+   (scale به‌صورت پراپرتی مستقل است تا با translate/scale کلاس‌ها تداخل نکند؛
+   مقصد با --fx-end قابل بازنویسی است — برای عناصر آینه‌ای) */
+.dc-fx {
+  opacity: 0;
+}
+.fx-run .dc-fx {
+  animation: dc-pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) var(--fx-delay, 0ms) both;
+}
+@keyframes dc-pop-in {
+  from {
+    opacity: 0;
+    scale: var(--fx-start, 0.55);
+  }
+  to {
+    opacity: 1;
+    scale: var(--fx-end, 1);
+  }
+}
+
+/* رسم خودکار خطوط وایرفریم — stroke دور تا دور با pathLength (ticker tG) */
+.dc-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.fx-run .dc-draw {
+  animation: dc-draw-in 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) var(--fx-delay, 0ms) both;
+}
+@keyframes dc-draw-in {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* جرقهٔ چرخان دور قاب قرص دو-بخشی — هر ۲.۴s یک دور (ticker rn) */
+.dc-traveler {
+  stroke-dasharray: 10 90;
+  stroke-dashoffset: 100;
+  opacity: 0;
+}
+.fx-run .dc-traveler {
+  animation:
+    dc-dash-travel 2.4s linear 2.3s infinite,
+    dc-fade-in 0.4s ease 2.1s both;
+}
+@keyframes dc-dash-travel {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes dc-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* فلش حاشیهٔ قرص هم‌گام با جرقه */
+.fx-run .dc-seg-flash {
+  animation: dc-seg-flash 2.4s linear 2.3s infinite;
+}
+@keyframes dc-seg-flash {
+  0%,
+  32%,
+  100% {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  10% {
+    border-color: rgba(104, 205, 255, 0.75);
+  }
+}
+
+/* اشعهٔ گلیت مورب روی کارت‌های وایرفریم — دوره‌ای و محو (ticker tK) */
+.dc-glint {
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.16) 45%,
+    rgba(104, 205, 255, 0.22) 55%,
+    transparent
+  );
+}
+.fx-run .dc-glint {
+  animation: dc-glint-sweep var(--glint-period, 9s) ease-in-out var(--glint-delay, 0s) infinite;
+}
+@keyframes dc-glint-sweep {
+  0%,
+  62% {
+    transform: translateX(-160%) skewX(-14deg);
+    opacity: 0;
+  }
+  68% {
+    opacity: 1;
+  }
+  84%,
+  100% {
+    transform: translateX(480%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+
+/* محو شدن قاب رسم‌شدهٔ ورودی پس از settle */
+.fx-run .dc-draw-fade {
+  animation:
+    dc-draw-in 0.9s cubic-bezier(0.25, 0.1, 0.25, 1) var(--fx-delay, 0ms) both,
+    dc-fade-out 0.7s ease calc(var(--fx-delay, 0ms) + 1.7s) both;
+}
+@keyframes dc-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* گلیت معکوس — از راست به چپ (بعد از نسخهٔ پایه باشد تا selector برنده شود) */
+.fx-run .dc-glint-r {
+  animation: dc-glint-sweep-r var(--glint-period, 9s) ease-in-out var(--glint-delay, 0s) infinite;
+}
+@keyframes dc-glint-sweep-r {
+  0%,
+  62% {
+    transform: translateX(480%) skewX(14deg);
+    opacity: 0;
+  }
+  68% {
+    opacity: 1;
+  }
+  84%,
+  100% {
+    transform: translateX(-160%) skewX(14deg);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------------
+   پالس‌های افقی مدار — رگهٔ نوری که روی خط افقی می‌دود (چپ↔راست):
+   .dc-runner داخل ریل overflow-hidden قرار می‌گیرد و با translateX عبور می‌کند
+   ------------------------------------------------------------------------ */
+.dc-runner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 64px;
+  height: 2px;
+  border-radius: 999px;
+  opacity: 0;
+}
+.fx-run .dc-runner-ltr {
+  animation: dc-run-ltr var(--run-period, 5s) linear var(--run-delay, 0s) infinite;
+}
+.fx-run .dc-runner-rtl {
+  animation: dc-run-rtl var(--run-period, 5s) linear var(--run-delay, 0s) infinite;
+}
+@keyframes dc-run-ltr {
+  0% {
+    transform: translateX(-64px);
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(var(--run-w, 600px));
+    opacity: 0;
+  }
+}
+@keyframes dc-run-rtl {
+  0% {
+    transform: translateX(var(--run-w, 600px));
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-64px);
+    opacity: 0;
+  }
+}
+
+/* پالس‌های عمودی مدار — بالا↔پایین روی خطوط عمودی شبکهٔ مدار */
+.fx-run .dc-runner-vdown {
+  animation: dc-run-vdown var(--run-period, 5s) linear var(--run-delay, 0s) infinite;
+}
+.fx-run .dc-runner-vup {
+  animation: dc-run-vup var(--run-period, 5s) linear var(--run-delay, 0s) infinite;
+}
+@keyframes dc-run-vdown {
+  0% {
+    transform: translateY(-64px);
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(var(--run-h, 214px));
+    opacity: 0;
+  }
+}
+@keyframes dc-run-vup {
+  0% {
+    transform: translateY(var(--run-h, 214px));
+    opacity: 0;
+  }
+  10%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-64px);
+    opacity: 0;
+  }
+}
+
+/* ------------------------------------------------------------------------
+   جرقهٔ دنباله‌دار مدار — قطعهٔ نور که روی مسیر می‌دود: با pathLength=۱۰۰۰
+   نرمال شده؛ dasharray «۷۰ ۹۳۰» یعنی قطعهٔ ۷٪ از مسیر که با dashoffset
+   از ۱۰۰۰ به ۰ کل مسیر را طی می‌کند (linear، بی‌پایان)
+   ------------------------------------------------------------------------ */
+.dc-comet {
+  stroke-dasharray: 70 930;
+  stroke-dashoffset: 1000;
+  opacity: 0;
+}
+.fx-run .dc-comet {
+  animation: dc-comet-run var(--comet-period, 10s) linear var(--comet-delay, 0s) infinite;
+}
+@keyframes dc-comet-run {
+  0% {
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  6%,
+  90% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+/* ------------------------------------------------------------------------
+   علامت‌های + شبکه — چشمک یک‌درمیان چپ/راست: گروه چپ (--blink-delay: 0s)
+   و گروه راست (--blink-delay: 1.1s) با دورهٔ ۲.۲s مثل ticker eM readme
+   ------------------------------------------------------------------------ */
+.dc-plus-blink {
+  animation: dc-plus-blink 2.2s ease-in-out var(--blink-delay, 0s) infinite;
+}
+@keyframes dc-plus-blink {
+  0%,
+  64%,
+  100% {
+    color: rgba(255, 255, 255, 0.12);
+  }
+  72%,
+  86% {
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   گره‌های مدار — همان ticker eM readme: دایرهٔ ۷px محل اتصال مسیرها که
+   با هر «فعال‌سازی» چشمک می‌زند (۰.۲s روشن، ۰.۶s ماندن، خاموش)؛
+   چپ و راست یک‌درمیان هر ۲.۲s — هم‌ریتم با فلش قرص دو-بخشی
+   ------------------------------------------------------------------------ */
+.dc-junction {
+  opacity: 0;
+}
+.fx-run .dc-junction {
+  animation: dc-junction-blink 4.4s ease-in-out var(--blink-delay, 0ms) infinite;
+}
+@keyframes dc-junction-blink {
+  0%,
+  18%,
+  40%,
+  100% {
+    opacity: 0;
+  }
+  23% {
+    opacity: 1;
+  }
+  33% {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------------------
+   پرش فنری علامت + به گوشهٔ کارت — همان ticker eN readme: علامت از مرکز
+   کارت با دو پرش (نیمهٔ راه → اورشوت → جای نهایی) بیرون می‌پرد
+   (--flyx/--flyy = بردار از گوشهٔ مقصد تا مرکز کارت)
+   ------------------------------------------------------------------------ */
+.dc-plus-fly {
+  opacity: 0;
+}
+.fx-run .dc-plus-fly {
+  animation: dc-plus-fly-in 0.72s cubic-bezier(0.34, 1.4, 0.64, 1) var(--fx-delay, 0ms) both;
+}
+@keyframes dc-plus-fly-in {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--flyx, 60px) * 0.9), calc(var(--flyy, 60px) * 0.9)) scale(0.3);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(calc(var(--flyx, 60px) * 0.45), calc(var(--flyy, 60px) * 0.45)) scale(0.75);
+  }
+  72% {
+    transform: translate(calc(var(--flyx, 60px) * -0.08), calc(var(--flyy, 60px) * -0.08)) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   نبض نرم «فعال‌سازی کارت» — حلقهٔ فعال‌سازی متناوب readme: قاب کارت‌ها
+   هر چند ثانیه یک نفس کوتاه روشن‌تر می‌شوند (چپ/راست متناوب)؛
+   با dc-fx ترکیب می‌شود تا پاپ ورود از بین نرود */
+.dc-heartbeat {
+  animation: dc-heartbeat 8.8s ease-in-out var(--hb-delay, 0ms) infinite;
+}
+.fx-run .dc-heartbeat.dc-fx {
+  animation:
+    dc-pop-in 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) var(--fx-delay, 0ms) both,
+    dc-heartbeat 8.8s ease-in-out var(--hb-delay, 0ms) infinite;
+}
+@keyframes dc-heartbeat {
+  0%,
+  18%,
+  30%,
+  100% {
+    border-color: var(--hb-rest, rgba(255, 255, 255, 0.12));
+  }
+  22% {
+    border-color: var(--hb-loud, rgba(104, 205, 255, 0.4));
+  }
+}
+
+/* ------------------------------------------------------------------------
+   نوارهای شیمر — همان ticker t2 readme: اسکلت‌بارهایی که پهنایشان پیوسته
+   ±۳px نفس می‌کشد (linear، رفت‌وبرگشتی)
+   ------------------------------------------------------------------------ */
+.dc-breathe {
+  animation: dc-breathe 0.72s linear var(--br-delay, 0ms) infinite alternate;
+}
+@keyframes dc-breathe {
+  from {
+    transform: scaleX(0.9);
+  }
+  to {
+    transform: scaleX(1.1);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   ذرات جرقه — همان AIHoverStars readme: نقطه‌های ریز از مرکز به بیرون
+   پرتاب می‌شوند و محو می‌شوند؛ موج هر ۳.۶s با تأخیر پلکانی
+   ------------------------------------------------------------------------ */
+.dc-star {
+  opacity: 0;
+}
+.fx-run .dc-star {
+  animation: dc-star-fly 3.6s ease-out calc(var(--star-delay, 0ms) + 2.6s) infinite;
+}
+@keyframes dc-star-fly {
+  0%,
+  55%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--dx, 0px) * 0.2), calc(-50% + var(--dy, 0px) * 0.2)) scale(1);
+  }
+  82% {
+    opacity: 0.9;
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(0.9);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   درخشش برش بالا (پرنده) — همان ticker rn readme: هر ۲.۴s یک قطره نور
+   مورب از روی منحنی برش عبور می‌کند و خود خط برش یک لحظه فلش می‌زند
+   ------------------------------------------------------------------------ */
+.dc-notch-curve {
+  opacity: 0.35;
+}
+.fx-run .dc-notch-curve {
+  animation: dc-notch-flash 2.4s ease-in-out 2.6s infinite;
+}
+@keyframes dc-notch-flash {
+  0%,
+  30%,
+  100% {
+    opacity: 0.35;
+  }
+  12% {
+    opacity: 0.9;
+  }
+}
+.dc-notch-streak {
+  opacity: 0;
+}
+.fx-run .dc-notch-streak {
+  animation: dc-notch-streak 2.4s ease-in-out 2.6s infinite;
+}
+@keyframes dc-notch-streak {
+  0%,
+  40%,
+  100% {
+    opacity: 0;
+    transform: translate(-46px, 30px) rotate(45deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(0px, -2px) rotate(45deg);
+  }
+  62% {
+    opacity: 0;
+    transform: translate(46px, -30px) rotate(45deg);
+  }
+}
+
+/* ------------------------------------------------------------------------
+   شکل‌های متحرک دوره‌ای هیرو — چرخهٔ پاپ: محو → ورود فنری با اورشوت →
+   چند ثانیه ماندن → محو → انتظار تا دورهٔ بعد؛ هر شکل با تأخیر مستقل،
+   همیشه چند شکل پایدار روی پنل و هر چند ثانیه یک پاپ تازه
+   ------------------------------------------------------------------------ */
+.dc-vign {
+  opacity: 0;
+}
+.fx-run .dc-vign {
+  animation: dc-vign-cycle var(--vign-period, 14s) var(--vign-delay, 0s) infinite;
+}
+@keyframes dc-vign-cycle {
+  0% {
+    opacity: 0;
+    transform: translateY(7px) scale(0.45);
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  5% {
+    opacity: 1;
+    transform: translateY(0) scale(1.14);
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  8% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation-timing-function: linear;
+  }
+  27% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    animation-timing-function: ease-in;
+  }
+  31%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.82);
+  }
+}
+
+/* جرقهٔ همراه پاپ — هم‌دوره با شکل، از مرکز به بیرون پرتاب و محو */
+.dc-vign-spark {
+  opacity: 0;
+}
+.fx-run .dc-vign-spark {
+  animation: dc-vign-spark-fly var(--vign-period, 14s) var(--vign-delay, 0s) infinite;
+}
+@keyframes dc-vign-spark-fly {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+    animation-timing-function: ease-out;
+  }
+  9% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--sx, 20px) * 0.35), calc(-50% + var(--sy, 16px) * 0.35)) scale(1);
+  }
+  22% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--sx, 20px)), calc(-50% + var(--sy, 16px))) scale(0.7);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+}
+
+/* حرکت داخلی شکل‌ها هنگام دیده‌شدن — چرخ‌دنده می‌چرخد، اکولایزر موج می‌زند،
+   ستاره می‌درخشد (با کلاس مستقل تا با چرخهٔ پاپ تداخل نکند) */
+.dc-vign-spin {
+  animation: dc-vign-rot 3.4s linear infinite;
+}
+@keyframes dc-vign-rot {
+  to {
+    transform: rotate(1turn);
+  }
+}
+.dc-vign-bar {
+  animation: dc-vign-bar 1.1s ease-in-out var(--bar-delay, 0s) infinite alternate;
+  transform-origin: center bottom;
+}
+@keyframes dc-vign-bar {
+  from {
+    transform: scaleY(0.45);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.dc-vign-tw {
+  animation: dc-vign-tw 2.3s ease-in-out infinite;
+}
+@keyframes dc-vign-tw {
+  0%,
+  100% {
+    transform: scale(0.82) rotate(-8deg);
+  }
+  50% {
+    transform: scale(1.12) rotate(8deg);
+  }
+}
+
+/* احترام به کاهش‌حرکت: همه‌چیز بدون انیمیشن و کاملاً نمایان */
+@media (prefers-reduced-motion: reduce) {
+  .dc-enter,
+  .fx-run .dc-fx,
+  .fx-run .dc-vign {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .fx-run .dc-vign-spark {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .fx-run .dc-glint,
+  .fx-run .dc-glint-r,
+  .fx-run .dc-runner-ltr,
+  .fx-run .dc-runner-rtl,
+  .fx-run .dc-traveler,
+  .fx-run .dc-seg-flash,
+  .fx-run .dc-junction,
+  .fx-run .dc-plus-fly,
+  .fx-run .dc-star,
+  .fx-run .dc-notch-curve,
+  .fx-run .dc-notch-streak,
+  .dc-plus-blink,
+  .dc-heartbeat {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .dc-runner,
+  .dc-traveler,
+  .fx-run .dc-junction {
+    opacity: 0 !important;
+  }
+  .fx-run .dc-star {
+    opacity: 0 !important;
+  }
+  .dc-breathe {
+    animation: none !important;
+    transform: none !important;
+  }
+  .fx-run .dc-draw,
+  .fx-run .dc-draw-fade {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 0 !important;
+  }
+}
+
+/* محوِ تدریجی خط‌های پایانی محتوا در سفید — الگوی نمونهٔ «متلاشی» کاربر:
+   خط اول کامل، خط‌های بعدی هرکدام کمرنگ‌تر تا تقریباً نامرئی (فقط موبایل، زیر sm) */
+@media (max-width: 639.98px) {
+  .dissolve-bottom {
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 92px), transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 92px), transparent 100%);
+  }
+}
+
+/* نسخه: بوب فلش حذف شد */
+
+/* شبکه مشبک: خانوادهٔ استاندارد ۳۰٪ کمرنگ‌تر شد (۰.۹× سپس ۰.۸×) */
+
+/* fade-rect: mobile stop 28% */
+
+/* v34: جرقهٔ آبی گردان دور قرص اعلان هیرو (v33، فقط موبایل) به درخواست کاربر کلاً حذف شد —
+   کلیدهای edc-spark-orbit/edc-spark-ring/edc-spark-deco و تزئین conic پاک شدند */
