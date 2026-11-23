@@ -239,7 +239,7 @@ export function ShopProductPage({ id }: { id: string }) {
               </div>
               <div className="relative overflow-hidden rounded-[8px] bg-canvas-soft/50 py-4">
                 {/* تصویر ۵۰٪ کوچک‌تر از پروفایل دوره — وسط‌چین با عرض نصف کارت */}
-                <div className="relative mx-auto w-full max-w-[50%] max-sm:max-w-[72%]">
+                <div className="relative mx-auto w-full max-w-[72%] max-sm:max-w-[92%]">
                   <img src={p.image} alt={p.title} className="aspect-[4/3] w-full rounded-[8px] object-cover" />
                   {off > 0 && (
                     <span className="absolute start-3 top-3 rounded-full bg-brand-500 px-2 py-0.5 text-[9.5px] font-extrabold text-navy-900">
