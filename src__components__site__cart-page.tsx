@@ -77,7 +77,7 @@ function orderMessage(o: PlacedOrder) {
       (o.discount ? `تخفیف‌ها (${o.discountCode}): −${formatToman(o.discount)} تومان\n` : "") +
       (o.shipping ? `هزینه ارسال: ${formatToman(o.shipping)} تومان\n` : "") +
       `مبلغ کل: ${formatToman(o.total)} تومان\n` +
-      `روش پرداخت: آنلاین\nنام: ${o.name}\nموبایل: ${o.phone}` +
+      `روش پرداخت: آنلاین (نمایشی؛ پرداخت واقعی انجام نشده)\nنام: ${o.name}\nموبایل: ${o.phone}` +
       (o.addressTitle ? `\nعنوان آدرس: ${o.addressTitle}` : "") +
       (place ? `\nاستان/شهر: ${place}` : "") +
       (o.address ? `\nآدرس ارسال: ${o.address}` : "") +
