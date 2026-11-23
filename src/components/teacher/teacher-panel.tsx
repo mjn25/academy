@@ -211,7 +211,7 @@ type AttStatus = "present" | "absent" | "excused" | "late";
 
 function TeacherAttendance() {
   const currentTeacherId = useCurrentTeacherId();
-  const { toast } = useToastImport();
+  const { toast } = useToast();
   const { students, courses } = useStore();
   const myCourses = React.useMemo(
     () => courses.filter((c) => c.teacherId === currentTeacherId && c.type === "offline" && c.status === "فعال"),
@@ -378,7 +378,7 @@ function TeacherAttendance() {
 function TeacherAssignments() {
   const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
-  const { toast } = useToastImport();
+  const { toast } = useToast();
   const { assignments, submissions, courses, gradeSubmission } = useStore();
   const [scores, setScores] = React.useState<Record<string, string>>({});
   const [feedbacks, setFeedbacks] = React.useState<Record<string, string>>({});
@@ -673,7 +673,7 @@ function TeacherMessages() {
 
 function TeacherProfile() {
   const currentTeacherId = useCurrentTeacherId();
-  const { toast } = useToastImport();
+  const { toast } = useToast();
   const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
   const updateTeacher = useStore((s) => s.updateTeacher);
   const [name, setName] = React.useState(me?.name ?? "");
