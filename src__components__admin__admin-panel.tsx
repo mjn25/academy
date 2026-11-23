@@ -156,7 +156,7 @@ function AdminClasses() {
   return (
     <div>
       <PanelHeading
-        title="کلاس‌ها و دوره‌ها"
+        title="کلاس‌ها"
         desc="مدیریت کلاس‌ها، ظرفیت، شهریه و تخصیص استاد — برای جزئیات روی هر ردیف کلیک کنید."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => { setForm({ title: "", type: "offline", capacity: "", price: "", teacherId: "" }); setOpen(true); }}>
