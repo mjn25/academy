@@ -141,6 +141,7 @@ function AdminClassDetail({ id }: { id?: string }) {
             ))}
           </div>
         </div>
+      </div>
 
       {/* لیست دانشجویان */}
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden">
