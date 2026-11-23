@@ -543,7 +543,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   }
 
   const selectedCourses = courses.filter((c) => courseIds.includes(c.id));
-  const selectableCourses = courses.filter((c) => !courseIds.includes(c.id));
+  const selectableCourses = courses.filter((c) => !courseIds.includes(c.id) && (!c.capacity || c.studentIds.length < c.capacity));
   const totalFee = selectedCourses.reduce((sum, c) => sum + c.price, 0);
 
   /** افزودن دوره انتخاب‌شده — جمع شهریه در جدول پایین به‌روز می‌شود */
@@ -573,7 +573,14 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
       toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
-    /* مانده حساب خودکار = جمع شهریه دوره‌های انتخابی */
+    const fullCourse = courseIds
+      .map((courseId) => courses.find((course) => course.id === courseId))
+      .find((course) => course && course.capacity && course.studentIds.length >= course.capacity && !existing?.courseIds.includes(course.id));
+    if (fullCourse) {
+      toast({ title: "ظرفیت دوره تکمیل شده", description: `ظرفیت «${fullCourse.title}» تکمیل است؛ آن را از انتخاب‌ها بردارید یا ابتدا ظرفیت دوره را افزایش دهید.`, variant: "destructive" });
+      return;
+    }
+    /* مانده حساب با تغییر دوره‌ها به‌صورت افزایشی/کاهشی اصلاح می‌شود؛ پرداخت‌های قبلی حفظ می‌شوند. */
     const patch = {
       name: name.trim(),
       phone: normalizedPhone,
@@ -659,7 +666,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
                 <SelectTrigger className="h-11 bg-white"><SelectValue placeholder="یک دوره انتخاب کنید…" /></SelectTrigger>
                 <SelectContent>
                   {selectableCourses.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-ink-soft">همه دوره‌ها اضافه شده‌اند</div>
+                    <div className="px-3 py-2 text-xs text-ink-soft">دوره دیگری با ظرفیت خالی وجود ندارد.</div>
                   ) : (
                     selectableCourses.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.title} — {faPrice(c.price)}</SelectItem>
