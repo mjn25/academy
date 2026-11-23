@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
+import { PanelShell, PageHeader, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter, Link } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
 import { useStore, CURRENT_STUDENT_ID } from "@/lib/store";
