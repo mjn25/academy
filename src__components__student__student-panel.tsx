@@ -17,15 +17,12 @@ import { useCurrentStudentId } from "@/lib/current-user";
 import { useAuth, normalizePhone } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import {
-  videos,
-  assignments as assignmentsData,
   grades as gradesData,
   studentSchedule,
   notificationsStudent,
   courses,
   type Video,
   type QuizQuestion,
-  teachersById,
 } from "@/lib/data";
 import {
   LayoutDashboard,
