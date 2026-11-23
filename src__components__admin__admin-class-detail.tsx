@@ -38,7 +38,7 @@ export function AdminClassPanel({ id }: { id?: string }) {
 function AdminClassDetail({ id }: { id?: string }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { courses, teachers, students, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
+  const { courses, teachers, students, assignments, submissions, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
   const c = courses.find((x) => x.id === id);
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -104,7 +104,7 @@ function AdminClassDetail({ id }: { id?: string }) {
             {teacher ? (
               <>
                 <p className="font-bold text-ink">{teacher.name}</p>
-                <p className="text-[11px] text-ink font-semibold">{teacher.title} — امتیاز {fa(teacher.rating)} از ۵</p>
+                <p className="text-[11px] text-ink font-semibold">{teacher.title}</p>
               </>
             ) : (
               <p className="font-bold text-bad text-sm">بدون استاد — دوره نمی‌تواند فعال شود</p>
@@ -160,14 +160,22 @@ function AdminClassDetail({ id }: { id?: string }) {
               <thead>
                 <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                   <th className="text-start p-4 font-semibold">دانشجو</th>
-                  <th className="text-start p-4 font-semibold">حضور</th>
-                  <th className="text-start p-4 font-semibold">میانگین</th>
+                  <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
+                  <th className="text-start p-4 font-semibold">میانگین نمره</th>
                   <th className="text-start p-4 font-semibold">وضعیت</th>
                   <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {roster.map((s, i) => (
+                {roster.map((s, i) => {
+                  const assignmentIds = assignments.filter((assignment) => assignment.courseId === c.id).map((assignment) => assignment.id);
+                  const studentSubs = submissions.filter((submission) => submission.studentId === s.id && assignmentIds.includes(submission.assignmentId));
+                  const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+                  const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+                    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+                  }, 0) / gradedSubs.length : null;
+                  return (
                   <tr key={s.id} className={`hover:bg-canvas-soft/60 transition-colors ${i % 2 ? "bg-canvas-soft/50" : ""}`}>
                     <td className="p-4">
                       <button onClick={() => navigate(`/admin/students/${s.id}`)} className="flex items-center gap-3 text-start hover:underline">
@@ -178,8 +186,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                         </span>
                       </button>
                     </td>
-                    <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{s.attendance ? `${fa(s.attendance)}٪` : "—"}</span></td>
-                    <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                    <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                    <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                     <td className="p-4"><StatusBadge status={s.status} /></td>
                     <td className="p-4">
                       <div className="flex gap-1.5 justify-end">
@@ -206,7 +214,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
