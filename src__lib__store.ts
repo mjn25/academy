@@ -282,7 +282,7 @@ const seedPayments: StorePayment[] = [
 
 const seedActivity: ActivityItem[] = [
   { id: "ac1", text: "تکلیف «متن معرفی خود — Vorstellung» برای دورهٔ آلمانی A1 ایجاد شد", actor: teacherNameOf("a1"), role: "teacher", time: "۲ ساعت پیش", href: "/admin/classes" },
-  { id: "ac2", text: "پاسخ تکلیف معرفی خود تحویل شد", actor: "سارا محمدی", role: "student", time: "۳ ساعت پیش", href: "/admin/assignments/a1" },
+  { id: "ac2", text: "پاسخ تکلیف معرفی خود تحویل شد", actor: "سارا محمدی", role: "student", time: "۳ ساعت پیش", href: "/admin/classes" },
   { id: "ac3", text: "پیش‌فاکتور PF-1042 صادر و لینک پرداخت ارسال شد", actor: "المیرا معرفت‌پور", role: "admin", time: "دیروز", href: "/admin/students" },
   { id: "ac4", text: "نمرهٔ تکلیف ایمیل رسمی برای ۲ دانشجو ثبت شد", actor: teacherNameOf("b1"), role: "teacher", time: "دیروز", href: "/admin/classes" },
 ];
@@ -558,7 +558,7 @@ export const useStore = create<AppState>()(
           actor: a.createdByName,
           role: a.createdByRole,
           time: "همین حالا",
-          href: `/admin/assignments/${id}`,
+          href: `/admin/classes/${a.courseId}`,
         },
         ...st.activity,
       ],
@@ -599,7 +599,7 @@ export const useStore = create<AppState>()(
             actor: m.uploadedByName,
             role: m.uploadedByRole,
             time: "همین حالا",
-            href: m.uploadedByRole === "student" ? `/student/assignments/${m.assignmentId}` : m.uploadedByRole === "teacher" ? `/teacher/assignments/${m.assignmentId}` : `/admin/assignments/${m.assignmentId}`,
+            href: m.uploadedByRole === "student" ? `/student/assignments/${m.assignmentId}` : m.uploadedByRole === "teacher" ? `/teacher/assignments/${m.assignmentId}` : `/admin/classes/${asg?.courseId ?? ""}`,
           },
           ...st.activity,
         ],
@@ -625,7 +625,7 @@ export const useStore = create<AppState>()(
               : x
           ),
           activity: [
-            { id: nid("ac"), text: `پاسخ تکلیف «${asg?.title ?? s.assignmentId}» به‌روزرسانی شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/assignments/${s.assignmentId}` },
+            { id: nid("ac"), text: `پاسخ تکلیف «${asg?.title ?? s.assignmentId}» به‌روزرسانی شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/classes/${asg?.courseId ?? ""}` },
             ...st.activity,
           ],
         };
@@ -664,7 +664,7 @@ export const useStore = create<AppState>()(
             actor: g.byName ?? "المیرا معرفت‌پور",
             role: g.byRole ?? "teacher",
             time: "همین حالا",
-            href: `/admin/assignments/${sub?.assignmentId}`,
+            href: `/admin/classes/${asg?.courseId ?? ""}`,
           },
           ...st.activity,
         ],
