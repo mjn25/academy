@@ -334,7 +334,7 @@ function AdminStudents() {
     <div>
       <PanelHeading
         title="مدیریت دانشجویان"
-        desc="پرونده هر دانشجو: کلاس‌ها، پرداخت‌ها، حضور و نمرات — برای مشاهده پرونده روی هر ردیف کلیک کنید."
+        desc="پرونده هر دانشجو: کلاس‌ها، پرداخت‌ها، پاسخ‌ها و نمرات — برای مشاهده پرونده روی هر ردیف کلیک کنید."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => navigate("/admin/students/new")}>
             <Plus className="size-4 me-1.5" /> ثبت‌نام دستی
@@ -411,7 +411,8 @@ function AdminStudents() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -429,7 +430,7 @@ function AdminTeachers() {
     <div>
       <PanelHeading
         title="مدیریت اساتید"
-        desc="پرونده کامل هر استاد: دوره‌ها، دانشجویان، تکالیف و بازخوردها."
+        desc="پرونده هر استاد: دوره‌های تخصیص‌یافته، دانشجویان و تکالیف."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => navigate("/admin/teachers/new")}>
             <Plus className="size-4 me-1.5" /> استاد جدید
