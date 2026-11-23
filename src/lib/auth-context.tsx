@@ -66,6 +66,25 @@ const AuthContext = React.createContext<AuthCtx>({
 });
 
 const KEY = "edc-auth-user";
+const DEMO_STUDENT_PHONE = "09114006060";
+
+function ensureStudentAccount(phone: string, name = "دانش‌آموز") {
+  const normalized = normalizePhone(phone);
+  if (!normalized || normalized === DEMO_STUDENT_PHONE) return;
+  const state = useStore.getState();
+  const exists = state.students.some((student) => normalizePhone(student.phone) === normalized);
+  if (!exists) {
+    state.addStudent({
+      name,
+      phone: normalized,
+      email: "",
+      status: "فعال",
+      balance: 0,
+      courseIds: [],
+      createdBy: "self",
+    });
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AuthUser | null>(null);
@@ -75,7 +94,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         const parsed = JSON.parse(raw) as AuthUser;
         /* سازگاری با حساب‌های قدیمی دمو — بدون نقش: دانش‌آموز تازه‌وارد */
-        setUser(parsed.role ? parsed : { ...parsed, role: "student", full: false, phone: parsed.phone ?? "" });
+        const restored = parsed.role ? parsed : { ...parsed, role: "student" as const, full: false, phone: parsed.phone ?? "" };
+        ensureStudentAccount(restored.phone, restored.name);
+        setUser(restored);
       }
     } catch {
       /* localStorage در دسترس نیست — مهم نیست */
@@ -88,7 +109,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const account = DEMO_ACCOUNTS[normalized];
     const state = useStore.getState();
     const teacher = state.teachers.find((item) => normalizePhone(item.phone) === normalized);
-    const student = state.students.find((item) => normalizePhone(item.phone) === normalized);
+    let student = state.students.find((item) => normalizePhone(item.phone) === normalized);
+    if (!account && !teacher && !student) {
+      ensureStudentAccount(normalized);
+      student = useStore.getState().students.find((item) => normalizePhone(item.phone) === normalized);
+    }
     const u: AuthUser = account
       ? { ...account, phone: normalized }
       : teacher
