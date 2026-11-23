@@ -568,7 +568,14 @@ function AdminShop() {
                   <td className="p-4"><StatusBadge status={o.payment === "پرداخت‌شده" ? "پرداخت‌شده" : "در انتظار"} /></td>
                   <td className="p-4">
                     <StatusBadge status={o.shipping} />
-                    {o.tracking && <p className="text-[10px] text-ink-soft mt-1" dir="ltr">{o.tracking}</p>}
+                    <Input
+                      value={o.tracking ?? ""}
+                      onChange={(event) => setOrders((current) => current.map((item) => item.id === o.id ? { ...item, tracking: event.target.value } : item))}
+                      placeholder="شماره مرسوله"
+                      aria-label={`شماره مرسوله سفارش ${o.id}`}
+                      dir="ltr"
+                      className="mt-2 h-8 w-36 text-xs"
+                    />
                   </td>
                   <td className="p-4">
                     {nextShip[o.shipping] ? (
