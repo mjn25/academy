@@ -214,7 +214,7 @@ function TeacherAttendance() {
   const { toast } = useToastImport();
   const { students, courses } = useStore();
   const myCourses = React.useMemo(
-    () => courses.filter((c) => c.teacherId === currentTeacherId && c.type === "offline"),
+    () => courses.filter((c) => c.teacherId === currentTeacherId && c.type === "offline" && c.status === "فعال"),
     [courses],
   );
   const [cls, setCls] = React.useState(myCourses[0]?.id ?? "");
@@ -247,7 +247,7 @@ function TeacherAttendance() {
       setMarks({});
       setSaved(false);
     }
-  }, [activeCourse?.id]);
+  }, [activeCourse?.id, students]);
 
   const setAll = (status: AttStatus) => {
     setMarks(Object.fromEntries(roster.map((student) => [student.id, status])));
