@@ -94,9 +94,9 @@ function AdminDashboard() {
       </div>
 
       {/* Bento داشبورد */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* هشدارها */}
-        <div className="md:col-span-2 rounded-[8px] border border-warn/30 bg-warn/5 p-5">
+        <div className="sm:col-span-2 xl:col-span-2 rounded-[8px] border border-warn/30 bg-warn/5 p-5">
           <p className="font-bold text-ink text-sm flex items-center gap-1.5 mb-3"><TriangleAlert className="size-4 text-warn" /> هشدارها و اقدامات</p>
           <div className="space-y-2.5">
             {[
@@ -116,7 +116,7 @@ function AdminDashboard() {
         </div>
 
         {/* فعالیت زنده سه پنل */}
-        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Zap className="size-4 text-ink" /> فعالیت زنده هر سه پنل</p>
             <span className="text-[10px] rounded-full bg-ok/10 text-ok px-2 py-0.5 font-bold">اتصال کامل</span>
