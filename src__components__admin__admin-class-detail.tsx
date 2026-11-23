@@ -75,7 +75,7 @@ function AdminClassDetail({ id }: { id?: string }) {
   return (
     <div>
       <PageHeader
-        crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "کلاس‌ها و دوره‌ها", href: "/admin/classes" }, { label: c.title }]}
+        crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "کلاس‌ها", href: "/admin/classes" }, { label: c.title }]}
         title={c.title}
         desc={`${c.language} — سطح ${c.level} — ${c.type === "online" ? "آنلاین" : "حضوری"}`}
         actions={
