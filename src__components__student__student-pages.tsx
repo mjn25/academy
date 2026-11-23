@@ -239,7 +239,7 @@ export function StudentProfileEdit() {
           <span className="grid size-14 shrink-0 place-items-center rounded-[8px] bg-rd-deep text-white text-xl font-black-fa sm:size-16 sm:text-2xl">{(name || "س")[0]}</span>
           <div className="min-w-0 flex-1">
             <p className="break-words font-black-fa text-ink">{name || "—"}</p>
-            <p className="text-xs text-ink-soft mt-0.5">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
+            <p className="text-xs text-ink-soft mt-0.5">اطلاعات آموزشی بر اساس دوره‌های ثبت‌شده نمایش داده می‌شود</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
