@@ -72,7 +72,7 @@ function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* کارت‌های آماری */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={UserCheck} label="ثبت‌نام جدید (این هفته)" value="۱۸ نفر" trend="+۲۳٪" />
         <StatCard icon={Users} label="دانشجویان فعال" value={`${faNum(students.filter((s) => s.status === "فعال").length)} نفر`} tint="yellow" />
         <StatCard icon={FileText} label="تکالیف فعال" value={`${faNum(assignments.length)} تکلیف — ${faNum(submissions.length)} پاسخ`} />
@@ -80,7 +80,7 @@ function AdminDashboard() {
       </div>
 
       {/* دسترسی سریع */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {[
           { t: "ثبت‌نام دستی دانشجو", d: "پرداخت حضوری / نقدی", href: "/admin/students/new", icon: Plus },
           { t: "افزودن استاد", d: "ساخت حساب کاربری استاد", href: "/admin/teachers/new", icon: GraduationCap },
@@ -323,7 +323,7 @@ function AdminStudents() {
         </Select>
       </div>
       {list.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">دانشجویی پیدا نشد</p>
           <p className="mt-1 text-sm text-ink-soft">جستجو یا فیلتر را تغییر دهید.</p>
         </div>
