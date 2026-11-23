@@ -286,14 +286,14 @@ function AdminClasses() {
                   toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
                   return;
                 }
-                const capacity = form.type === "online" || !form.capacity ? undefined : Number(form.capacity);
+                const capacity = form.type === "online" ? undefined : Number(form.capacity);
                 const price = form.price ? Number(form.price) : 0;
                 if (!Number.isFinite(price) || price < 0) {
                   toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
                   return;
                 }
-                if (capacity !== undefined && (!Number.isInteger(capacity) || capacity < 1)) {
-                  toast({ title: "ظرفیت معتبر نیست", description: "ظرفیت باید یک عدد صحیح بزرگ‌تر از صفر باشد.", variant: "destructive" });
+                if (form.type === "offline" && (!Number.isInteger(capacity) || (capacity ?? 0) < 1)) {
+                  toast({ title: "ظرفیت کلاس الزامی است", description: "برای کلاس حضوری ظرفیت را به‌صورت عدد صحیح بزرگ‌تر از صفر وارد کنید.", variant: "destructive" });
                   return;
                 }
                 const selectedTeacher = teachers.find((teacher) => teacher.id === form.teacherId);
