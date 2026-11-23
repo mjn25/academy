@@ -14,7 +14,7 @@ import { useRouter } from "@/lib/app-context";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { useCurrentStudentId } from "@/lib/current-user";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, normalizePhone } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import {
   videos,
@@ -63,6 +63,7 @@ import {
   CITIES_BY_PROVINCE,
   IRAN_PROVINCES,
   addAddress,
+  addressStorageKey,
   addrOneLine,
   loadAddresses,
   removeAddress,
@@ -1155,6 +1156,7 @@ function StudentProfile() {
   const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
+  const addressKey = addressStorageKey(me?.phone);
   const [addrCount, setAddrCount] = React.useState(0);
   const [orderCount, setOrderCount] = React.useState(0);
 
@@ -1167,7 +1169,7 @@ function StudentProfile() {
     } catch {
       setOrderCount(0);
     }
-  }, []);
+  }, [addressKey, me?.phone]);
   return (
     <div className="max-w-2xl">
       <PanelHeading title="پروفایل من" desc="اطلاعات شخصی و تنظیمات حساب." />
@@ -1220,6 +1222,8 @@ function StudentProfile() {
 
 function StudentAddresses() {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const addressKey = addressStorageKey(user?.phone);
   const [list, setList] = React.useState<SavedAddress[]>([]);
   const [showForm, setShowForm] = React.useState(false);
   const [fTitle, setFTitle] = React.useState("");
@@ -1229,7 +1233,7 @@ function StudentAddresses() {
   const [fPostal, setFPostal] = React.useState("");
   const [fNote, setFNote] = React.useState("");
 
-  React.useEffect(() => setList(loadAddresses()), []);
+  React.useEffect(() => setList(loadAddresses(addressKey)), [addressKey]);
 
   const save = () => {
     if (!fTitle.trim()) {
@@ -1247,7 +1251,7 @@ function StudentAddresses() {
       line: fLine.trim(),
       postal: fPostal.trim() || undefined,
       note: fNote.trim() || undefined,
-    });
+    }, addressKey);
     setList(next);
     setFTitle("");
     setFLine("");
@@ -1300,7 +1304,7 @@ function StudentAddresses() {
                   title="حذف آدرس"
                   aria-label={`حذف آدرس ${a.title}`}
                   onClick={() => {
-                    setList(removeAddress(a.id));
+                    setList(removeAddress(a.id, addressKey));
                     toast({ title: "آدرس حذف شد" });
                   }}
                   className="grid size-9 shrink-0 place-items-center rounded-full border border-hairline-soft text-ink-soft transition-colors hover:border-bad/30 hover:bg-bad/10 hover:text-bad"
@@ -1427,16 +1431,18 @@ type PlacedOrder = {
 };
 
 function StudentOrders() {
+  const currentStudentId = useCurrentStudentId();
+  const me = useStore((state) => state.students.find((student) => student.id === currentStudentId));
   const [orders, setOrders] = React.useState<PlacedOrder[]>([]);
   React.useEffect(() => {
     try {
       const raw = window.localStorage.getItem("edc-orders");
       const list = raw ? (JSON.parse(raw) as PlacedOrder[]) : [];
-      setOrders(Array.isArray(list) ? [...list].reverse() : []);
+      setOrders(Array.isArray(list) ? [...list].filter((order) => normalizePhone(order.phone) === normalizePhone(me?.phone ?? "")).reverse() : []);
     } catch {
       setOrders([]);
     }
-  }, []);
+  }, [me?.phone]);
 
   return (
     <div className="max-w-2xl">
