@@ -48,7 +48,7 @@ function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
             EDC SHOP
           </span>
         </div>
-        <h3 className="mt-2 text-[15px] font-black-fa leading-6 text-ink sm:mt-3 max-sm:text-[14px] max-sm:leading-5">
+        <h3 className="mt-2 min-h-[2.5rem] line-clamp-2 text-[14px] font-black-fa leading-5 text-ink sm:mt-3 sm:min-h-[3rem] sm:text-[15px] sm:leading-6">
           {p.title}
         </h3>
         <p className="mt-1 line-clamp-2 text-[13px] leading-6 text-ink-soft max-sm:text-[12px] max-sm:leading-5">
