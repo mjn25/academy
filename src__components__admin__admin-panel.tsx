@@ -229,7 +229,8 @@ function AdminClasses() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -325,7 +326,7 @@ function AdminClasses() {
 
 function AdminStudents() {
   const { navigate } = useRouter();
-  const { students } = useStore();
+  const { students, assignments, submissions } = useStore();
   const [q, setQ] = React.useState("");
   const [filter, setFilter] = React.useState("all");
   const list = students.filter((s) => (!q || s.name.includes(q)) && (filter === "all" || s.status === filter));
@@ -368,15 +369,22 @@ function AdminStudents() {
             <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
               <th className="text-start p-4 font-semibold">دانشجو</th>
               <th className="text-start p-4 font-semibold">دوره‌ها</th>
-              <th className="text-start p-4 font-semibold">حضور</th>
-              <th className="text-start p-4 font-semibold">میانگین</th>
+              <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
+              <th className="text-start p-4 font-semibold">میانگین نمره</th>
               <th className="text-start p-4 font-semibold">مانده حساب</th>
               <th className="text-start p-4 font-semibold">وضعیت</th>
               <th className="p-4"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {list.map((s, i) => (
+            {list.map((s, i) => {
+              const studentSubs = submissions.filter((submission) => submission.studentId === s.id);
+              const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+              const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                const assignment = assignments.find((item) => item.id === submission.assignmentId);
+                return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+              }, 0) / gradedSubs.length : null;
+              return (
               <tr
                 key={s.id}
                 className={`cursor-pointer transition-colors hover:bg-canvas-soft/60 ${i % 2 ? "bg-canvas-soft/50" : ""}`}
@@ -392,8 +400,8 @@ function AdminStudents() {
                   </div>
                 </td>
                 <td className="p-4 text-ink-soft">{s.courseIds.length ? faNum(s.courseIds.length) : "—"} دوره</td>
-                <td className="p-4 font-bold text-ink">{s.attendance ? `${fa(s.attendance)}٪` : "—"}</td>
-                <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                 <td className={`p-4 font-bold ${s.balance > 0 ? "text-bad" : "text-ok"}`}>{s.balance ? faPrice(s.balance) : "تسویه"}</td>
                 <td className="p-4"><StatusBadge status={s.status} /></td>
                 <td className="p-4" onClick={(e) => e.stopPropagation()}>
