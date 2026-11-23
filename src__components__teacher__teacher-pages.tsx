@@ -354,7 +354,10 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
   const sharedAssignmentIds = assignments.filter((assignment) => sharedCourseIds.includes(assignment.courseId)).map((assignment) => assignment.id);
   const mySubs = submissions.filter((submission) => submission.studentId === s.id && sharedAssignmentIds.includes(submission.assignmentId));
   const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
-  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => sum + (submission.score ?? 0), 0) / gradedSubs.length : null;
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+  }, 0) / gradedSubs.length : null;
 
   return (
     <div>
