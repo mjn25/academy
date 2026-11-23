@@ -22,7 +22,6 @@ import { StudentPagesPanel } from "@/components/student/student-pages";
 import { TeacherPanel } from "@/components/teacher/teacher-panel";
 import { TeacherPagesPanel } from "@/components/teacher/teacher-pages";
 import { AdminPanel } from "@/components/admin/admin-panel";
-import { AdminAssignmentsPanel } from "@/components/admin/admin-assignments";
 import { AdminPeoplePanel } from "@/components/admin/admin-people";
 import { AdminClassPanel } from "@/components/admin/admin-class-detail";
 
@@ -89,13 +88,7 @@ function RouterSwitch({ ready }: { ready: boolean }) {
   if (path.startsWith("/admin")) {
     const rest = path.replace("/admin", "");
     let el: React.ReactNode;
-    if (rest === "/assignments" || rest === "/assignments/") {
-      el = <AdminAssignmentsPanel mode="list" />;
-    } else if (rest === "/assignments/new") {
-      el = <AdminAssignmentsPanel mode="new" />;
-    } else if (rest.startsWith("/assignments/")) {
-      el = <AdminAssignmentsPanel mode="detail" id={rest.split("/")[2]} />;
-    } else if (rest === "/students/new") {
+    if (rest === "/students/new") {
       el = <AdminPeoplePanel mode="student-new" />;
     } else if (rest.startsWith("/students/")) {
       const tail = rest.replace("/students/", "");
