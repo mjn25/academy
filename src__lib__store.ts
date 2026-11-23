@@ -126,6 +126,18 @@ export interface StorePayment {
   date: string;
 }
 
+export interface StoreMessage {
+  id: string;
+  courseId: string;
+  fromId: string;
+  fromRole: "teacher" | "student";
+  fromName: string;
+  toId: string;
+  toRole: "teacher" | "student";
+  text: string;
+  sentAt: string;
+}
+
 export interface ActivityItem {
   id: string;
   text: string;
@@ -300,6 +312,10 @@ interface AppState {
   invoices: StoreInvoice[];
   payments: StorePayment[];
   activity: ActivityItem[];
+  messages: StoreMessage[];
+
+  /* پیام‌ها */
+  sendMessage: (message: Omit<StoreMessage, "id" | "sentAt">) => void;
 
   /* کاربران */
   addStudent: (s: Partial<StoreStudent> & { name: string }) => string;
@@ -351,6 +367,12 @@ export const useStore = create<AppState>()(
   invoices: seedInvoices,
   payments: seedPayments,
   activity: seedActivity,
+  messages: [],
+
+  sendMessage: (message) =>
+    set((st) => ({
+      messages: [...st.messages, { ...message, id: nid("msg"), sentAt: new Date().toISOString() }],
+    })),
 
   addStudent: (s) => {
     const id = nid("st");
