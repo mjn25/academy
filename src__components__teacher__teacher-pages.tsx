@@ -21,7 +21,7 @@ import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection, StudentMaterialsCell } from "@/components/panels/assignment-materials";
 import { grades as gradesData, studentSchedule } from "@/lib/data";
 import {
-  LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, FolderOpen, Users,
+  LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, Users,
   MessageSquare, UserCircle, FileText, CheckCircle2, Clock, ArrowLeft, Plus, Send,
   CalendarDays, TrendingUp, PhoneCall,
 } from "lucide-react";
@@ -32,7 +32,6 @@ const nav: PanelNavItem[] = [
   { key: "attendance", label: "حضور و غیاب", icon: UserCheck, href: "/teacher/attendance" },
   { key: "assignments", label: "تکالیف و نمره‌دهی", icon: ClipboardList, href: "/teacher/assignments" },
   { key: "students", label: "دانشجویان", icon: Users, href: "/teacher/students" },
-  { key: "content", label: "محتوای کلاس", icon: FolderOpen, href: "/teacher/content" },
   { key: "feedback", label: "بازخوردها", icon: Star, href: "/teacher/feedback" },
   { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/teacher/messages" },
   { key: "profile", label: "پروفایل", icon: UserCircle, href: "/teacher/profile" },
