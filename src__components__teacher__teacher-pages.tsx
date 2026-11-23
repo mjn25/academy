@@ -382,7 +382,7 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard icon={BookOpenCheck} label="کلاس‌های مشترک با شما" value={`${faNum(sharedCourses.length)} کلاس`} />
         <StatCard icon={FileText} label="پاسخ‌های ثبت‌شده" value={`${faNum(mySubs.length)} پاسخ`} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1))} tint="green" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪"} tint="green" />
       </div>
 
       {/* کلاس‌های مشترک */}
