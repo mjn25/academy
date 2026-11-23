@@ -859,7 +859,7 @@ function StudentProfile() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {[
-            { l: "شماره موبایل", v: me?.phone ?? "—", hint: "تغییر با تأیید کد پیامکی" },
+            { l: "شماره موبایل", v: me?.phone ?? "—", hint: "تغییر شماره در نسخه فعلی فعال نیست." },
             { l: "ایمیل", v: me?.email || "—", hint: "" },
             { l: "زبان در حال یادگیری", v: "آلمانی", hint: "" },
             { l: "عضویت از", v: me?.joinedAt ?? "شهریور ۱۴۰۴", hint: "" },
