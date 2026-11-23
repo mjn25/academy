@@ -28,6 +28,7 @@ export interface StoreStudent {
   attendance: number;
   avg: number;
   joinedAt: string;
+  createdAt?: string;
 }
 
 export interface StoreTeacher {
@@ -44,6 +45,7 @@ export interface StoreTeacher {
   languages: string[];
   status: "فعال" | "غیرفعال";
   courseIds: string[];
+  createdAt?: string;
 }
 
 export interface StoreCourse {
@@ -86,6 +88,7 @@ export interface StoreSubmission {
   status: "در انتظار بررسی" | "نمره‌داده‌شده";
   score?: number;
   feedback?: string;
+  gradedAt?: string;
 }
 
 /** فایل‌های پیوست تکلیف — تمرین‌ها و ویدئوهایی که هر سه نقش آپلود می‌کنند */
@@ -313,9 +316,11 @@ interface AppState {
   payments: StorePayment[];
   activity: ActivityItem[];
   messages: StoreMessage[];
+  notificationReadIds: Record<string, string[]>;
 
-  /* پیام‌ها */
+  /* پیام‌ها و اعلان‌ها */
   sendMessage: (message: Omit<StoreMessage, "id" | "sentAt">) => void;
+  markNotificationsRead: (userKey: string, ids: string[]) => void;
 
   /* کاربران */
   addStudent: (s: Partial<StoreStudent> & { name: string }) => string;
@@ -368,10 +373,19 @@ export const useStore = create<AppState>()(
   payments: seedPayments,
   activity: seedActivity,
   messages: [],
+  notificationReadIds: {},
 
   sendMessage: (message) =>
     set((st) => ({
       messages: [...st.messages, { ...message, id: nid("msg"), sentAt: new Date().toISOString() }],
+    })),
+
+  markNotificationsRead: (userKey, ids) =>
+    set((st) => ({
+      notificationReadIds: {
+        ...st.notificationReadIds,
+        [userKey]: Array.from(new Set([...(st.notificationReadIds[userKey] ?? []), ...ids])),
+      },
     })),
 
   addStudent: (s) => {
@@ -390,6 +404,7 @@ export const useStore = create<AppState>()(
           attendance: s.attendance ?? 100,
           avg: s.avg ?? 0,
           joinedAt: s.joinedAt ?? "آبان ۱۴۰۴",
+          createdAt: new Date().toISOString(),
         },
       ],
       activity: [
@@ -435,6 +450,7 @@ export const useStore = create<AppState>()(
           languages: t.languages ?? ["آلمانی"],
           status: t.status ?? "فعال",
           courseIds: t.courseIds ?? [],
+          createdAt: new Date().toISOString(),
         },
       ],
       activity: [
@@ -571,7 +587,7 @@ export const useStore = create<AppState>()(
     set((st) => ({
       assignments: [
         ...st.assignments,
-        { ...a, id, createdAt: "۱۴۰۴/۰۸/۰۴", due: a.due || "—" },
+        { ...a, id, createdAt: new Date().toISOString(), due: a.due || "—" },
       ],
       activity: [
         {
@@ -643,7 +659,7 @@ export const useStore = create<AppState>()(
         return {
           submissions: st.submissions.map((x) =>
             x.id === existing.id
-              ? { ...x, text: s.text ?? x.text, file: s.file ?? x.file, submittedAt: "همین حالا", status: "در انتظار بررسی" as const }
+              ? { ...x, text: s.text ?? x.text, file: s.file ?? x.file, submittedAt: new Date().toISOString(), status: "در انتظار بررسی" as const }
               : x
           ),
           activity: [
@@ -661,7 +677,7 @@ export const useStore = create<AppState>()(
             studentId: s.studentId,
             text: s.text,
             file: s.file,
-            submittedAt: "همین حالا",
+            submittedAt: new Date().toISOString(),
             late: s.late ?? false,
             status: "در انتظار بررسی",
           },
@@ -678,7 +694,7 @@ export const useStore = create<AppState>()(
       const sub = st.submissions.find((x) => x.id === id);
       const asg = st.assignments.find((a) => a.id === sub?.assignmentId);
       return {
-        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback, status: "نمره‌داده‌شده" as const } : x)),
+        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback, gradedAt: new Date().toISOString(), status: "نمره‌داده‌شده" as const } : x)),
         activity: [
           {
             id: nid("ac"),
