@@ -619,8 +619,10 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
             </Select>
           </div>
         </div>
+        </section>
 
-        {/* ثبت‌نام در دوره‌ها — بخش مستقل و شفاف: انتخاب، افزودن، جدول جمع شهریه */}
+        {/* ثبت‌نام در دوره‌ها — بخش دوم فرایند */}
+        <section>
         <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
           <p className="flex items-center gap-2 text-sm font-black-fa text-ink">
             <BookOpenCheck className="size-4 text-rd-accent" />
