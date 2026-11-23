@@ -20,7 +20,6 @@ import { useStore } from "@/lib/store";
 import { useCurrentTeacherId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection, StudentMaterialsCell } from "@/components/panels/assignment-materials";
-import { studentSchedule } from "@/lib/data";
 import {
   LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, Users,
   MessageSquare, UserCircle, FileText, CheckCircle2, Clock, ArrowLeft, Plus, Send,
@@ -538,13 +537,20 @@ export function TeacherClassDetail({ id }: { id?: string }) {
             <thead>
               <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                 <th className="text-start p-4 font-semibold">دانشجو</th>
-                <th className="text-start p-4 font-semibold">حضور</th>
+                <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
                 <th className="text-start p-4 font-semibold">میانگین نمره</th>
                 <th className="p-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {roster.map((s, i) => (
+              {roster.map((s, i) => {
+                const studentSubs = submissions.filter((submission) => submission.studentId === s.id && courseAssignments.some((assignment) => assignment.id === submission.assignmentId));
+                const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+                const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                  const assignment = courseAssignments.find((item) => item.id === submission.assignmentId);
+                  return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+                }, 0) / gradedSubs.length : null;
+                return (
                 <tr key={s.id} className={`hover:bg-canvas-soft/60 transition-colors ${i % 2 ? "bg-canvas-soft/50" : ""}`}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -555,19 +561,20 @@ export function TeacherClassDetail({ id }: { id?: string }) {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span></td>
-                  <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                  <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                  <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                   <td className="p-4 text-end">
                     <Button size="sm" variant="outline" className="h-8 border-hairline text-ink" onClick={() => navigate(`/teacher/students/${s.id}`)}>پروفایل تحصیلی</Button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
       <p className="mt-4 text-[11px] text-ink-soft leading-6">
-        برنامه این کلاس در تقویم هفتگی دانشجویان: {studentSchedule.filter((x) => x.course.includes(c.title.slice(0, 6))).map((x) => `${x.day} ${x.time}`).join("، ") || "—"}
+        برنامه این کلاس: {c.schedule || "زمان‌بندی در اطلاعات دوره ثبت نشده است"}
       </p>
     </div>
   );
