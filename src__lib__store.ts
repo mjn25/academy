@@ -495,6 +495,11 @@ export const useStore = create<AppState>()(
           sessions: c.sessions ?? 16,
         },
       ],
+      teachers: c.teacherId
+        ? st.teachers.map((teacher) => teacher.id === c.teacherId && !teacher.courseIds.includes(id)
+            ? { ...teacher, courseIds: [...teacher.courseIds, id] }
+            : teacher)
+        : st.teachers,
       activity: [
         { id: nid("ac"), text: `دوره جدید «${c.title}» ساخته شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/classes/${id}` },
         ...st.activity,
