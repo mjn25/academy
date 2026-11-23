@@ -16,7 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter, Link } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
-import { useStore, CURRENT_TEACHER_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentTeacherId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection, StudentMaterialsCell } from "@/components/panels/assignment-materials";
 import { grades as gradesData, studentSchedule } from "@/lib/data";
@@ -38,8 +39,9 @@ const nav: PanelNavItem[] = [
 ];
 
 export function TeacherPagesPanel({ mode, id }: { mode: string; id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { courses } = useStore();
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
   const titles: Record<string, string> = {
     "class": "جزئیات کلاس",
     "assignment": "نمره‌دهی تکلیف",
@@ -58,8 +60,9 @@ export function TeacherPagesPanel({ mode, id }: { mode: string; id?: string }) {
 
 /** کلاس‌های استاد فعلی */
 function useMyCourses() {
+  const currentTeacherId = useCurrentTeacherId();
   const courses = useStore((s) => s.courses);
-  return courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  return courses.filter((c) => c.teacherId === currentTeacherId);
 }
 
 /* ========================= جزئیات تکلیف + نمره‌دهی ========================= */
@@ -215,6 +218,7 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
 /* ========================== تعریف تکلیف جدید (استاد) ========================== */
 
 export function TeacherAssignmentNew() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { addAssignment } = useStore();
@@ -224,7 +228,7 @@ export function TeacherAssignmentNew() {
   const [desc, setDesc] = React.useState("");
   const [due, setDue] = React.useState("");
   const [max, setMax] = React.useState("10");
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
 
   const save = () => {
     if (!courseId || !title.trim()) {
@@ -314,6 +318,7 @@ export function TeacherAssignmentNew() {
 /* ========================== پروفایل تحصیلی دانشجو ========================== */
 
 export function TeacherStudentProfile({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { students, courses, submissions, assignments } = useStore();
   const s = students.find((x) => x.id === id);
@@ -327,7 +332,7 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
     );
   }
 
-  const sharedCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID && s.courseIds.includes(c.id));
+  const sharedCourses = courses.filter((c) => c.teacherId === currentTeacherId && s.courseIds.includes(c.id));
   const mySubs = submissions.filter((x) => x.studentId === s.id);
 
   return (
@@ -418,6 +423,7 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
 /* ============================== جزئیات کلاس ============================== */
 
 export function TeacherClassDetail({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { courses, students, assignments, submissions } = useStore();
   const c = courses.find((x) => x.id === id);
@@ -433,7 +439,7 @@ export function TeacherClassDetail({ id }: { id?: string }) {
 
   const roster = c.studentIds.map((sid) => students.find((s) => s.id === sid)).filter(Boolean) as typeof students;
   const courseAssignments = assignments.filter((a) => a.courseId === c.id);
-  const isMine = c.teacherId === CURRENT_TEACHER_ID;
+  const isMine = c.teacherId === currentTeacherId;
 
   return (
     <div>
