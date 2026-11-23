@@ -199,8 +199,8 @@ function StudentDashboard() {
         <StatCard icon={Award} label="نمره‌های ثبت‌شده" value={faNum(graded.length) + " مورد"} tint="green" />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+        <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-ink">کلاس‌های من</p>
             <Button size="sm" variant="ghost" onClick={() => navigate("/student/classes")}>همه کلاس‌ها</Button>
@@ -228,7 +228,7 @@ function StudentDashboard() {
           )}
         </section>
 
-        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-ink">کارهای بعدی</p>
             <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(toDo.length)} مورد</Badge>
@@ -254,7 +254,7 @@ function StudentDashboard() {
           {awaitingGrade > 0 && <p className="mt-3 rounded-[8px] bg-info/5 p-3 text-xs text-ink-soft">{faNum(awaitingGrade)} پاسخ در انتظار بررسی استاد است.</p>}
         </section>
 
-        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 xl:col-span-2">
+        <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5 xl:col-span-2">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-ink">آخرین نمره‌ها</p>
             <Button size="sm" variant="ghost" onClick={() => navigate("/student/grades")}>مشاهده کارنامه</Button>
@@ -447,7 +447,7 @@ function StudentSchedule() {
   return (
     <div className="space-y-5">
       <PanelHeading title="برنامه هفتگی" desc="زمان‌بندی اعلام‌شده کلاس‌ها و مهلت تکالیف دوره‌های شما." />
-      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+      <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
         <h3 className="mb-3 text-sm font-bold text-ink">کلاس‌های من</h3>
         {myCourses.length ? (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -463,7 +463,7 @@ function StudentSchedule() {
           <p className="rounded-[8px] bg-canvas-soft p-4 text-center text-xs text-ink-soft">هنوز دوره‌ای برای این حساب ثبت نشده است.</p>
         )}
       </section>
-      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+      <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
         <h3 className="mb-3 text-sm font-bold text-ink">مهلت تکالیف</h3>
         {myAssignments.length ? (
           <div className="space-y-2">

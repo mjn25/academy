@@ -105,8 +105,8 @@ function TeacherDashboard() {
         <StatCard icon={ClipboardList} label="پاسخ‌های منتظر بررسی" value={faNum(pendingCount) + " مورد"} tint="red" />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+      <div className="grid min-w-0 gap-4 xl:grid-cols-2">
+        <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-ink">کلاس‌های تخصیص‌یافته</p>
             <Button size="sm" variant="ghost" onClick={() => navigate("/teacher/classes")}>همه کلاس‌ها</Button>
@@ -136,7 +136,7 @@ function TeacherDashboard() {
           )}
         </section>
 
-        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <section className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="mb-3 flex items-center justify-between gap-2">
             <p className="text-sm font-bold text-ink">پاسخ‌های منتظر نمره‌دهی</p>
             <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(pendingCount)} مورد</Badge>

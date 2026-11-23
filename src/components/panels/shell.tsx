@@ -272,7 +272,7 @@ export function PanelShell({
 
         {extraTop}
 
-        <main className="flex-1 p-4 lg:p-6 max-w-[1200px] w-full mx-auto">{children}</main>
+        <main className="flex-1 min-w-0 p-4 lg:p-6 max-w-[1200px] w-full mx-auto">{children}</main>
       </div>
 
       {/* منوی کامل موبایل — از سمت راست باز می‌شود، هم‌سمت سایدبار دسکتاپ (فیکس RTL: قبلاً end-0 بود و در فارسی به چپ باز می‌شد) */}
