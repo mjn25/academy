@@ -679,55 +679,67 @@ function StudentGrades() {
 /* ----------------------------- گزارش پیشرفت ------------------------------ */
 
 function StudentProgress() {
-  const trend = [
-    { m: "مرداد", نمره: 62 },
-    { m: "شهریور", نمره: 68 },
-    { m: "مهر", نمره: 74 },
-    { m: "آبان", نمره: 81 },
-  ];
+  const currentStudentId = useCurrentStudentId();
+  const { assignments, submissions, courses } = useStore();
+  const student = useStore((state) => state.students.find((item) => item.id === currentStudentId));
+  const graded = submissions
+    .filter((submission) => submission.studentId === currentStudentId && submission.status === "نمره‌داده‌شده" && typeof submission.score === "number")
+    .map((submission) => {
+      const assignment = assignments.find((item) => item.id === submission.assignmentId);
+      return assignment ? { submission, assignment } : null;
+    })
+    .filter((item): item is { submission: (typeof submissions)[number]; assignment: (typeof assignments)[number] } => !!item)
+    .sort((a, b) => Date.parse(a.submission.gradedAt ?? a.submission.submittedAt ?? "") - Date.parse(b.submission.gradedAt ?? b.submission.submittedAt ?? ""));
+  const average = graded.length ? graded.reduce((sum, item) => sum + ((item.submission.score ?? 0) / Math.max(1, item.assignment.max)) * 100, 0) / graded.length : null;
+  const chartData = graded.map((item) => ({
+    date: new Intl.DateTimeFormat("fa-IR", { month: "short", day: "numeric" }).format(new Date(item.submission.gradedAt ?? item.submission.submittedAt)),
+    score: Math.round(((item.submission.score ?? 0) / Math.max(1, item.assignment.max)) * 100),
+  }));
+  const myCourses = courses.filter((course) => student?.courseIds.includes(course.id));
 
   return (
     <div className="space-y-6">
-      <PanelHeading title="گزارش پیشرفت" desc="روند نمرات و میزان تکمیل دوره‌ها." />
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard icon={TrendingUp} label="روند نمرات (۳ ماه اخیر)" value="+۱۹٪" trend="صعودی" />
-        <StatCard icon={CheckCircle2} label="تکمیل ویدئوها (آلمانی A1)" value="۶۲٪" tint="yellow" />
-        <StatCard icon={UserCircle} label="حضور کلاس‌های حضوری" value="۹۲٪" tint="green" />
+      <PanelHeading title="گزارش پیشرفت" desc="خلاصه‌ای از عملکرد ثبت‌شده شما در تکالیف و کلاس‌ها." />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard icon={TrendingUp} label="میانگین نمرات ثبت‌شده" value={average === null ? "—" : fa(average.toFixed(1)) + "٪"} />
+        <StatCard icon={CheckCircle2} label="تکالیف نمره‌داده‌شده" value={faNum(graded.length) + " مورد"} tint="yellow" />
+        <StatCard icon={UserCircle} label="میزان حضور ثبت‌شده" value={student ? fa(student.attendance) + "٪" : "—"} tint="green" />
       </div>
-
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
-        <p className="font-bold text-ink text-sm mb-4">روند نمره کل</p>
-        <div className="h-64" dir="ltr">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trend} margin={{ top: 8, left: 8, right: 8, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#D9DEE8" vertical={false} />
-              <XAxis dataKey="m" tick={{ fontSize: 12, fontFamily: "IRANSans" }} stroke="#5B6475" />
-              <YAxis tick={{ fontSize: 12, fontFamily: "IRANSans" }} stroke="#5B6475" domain={[50, 100]} />
-              <RTooltip contentStyle={{ fontFamily: "IRANSans", borderRadius: 8, border: "1px solid #D9DEE8" }} />
-              <Line type="monotone" dataKey="نمره" stroke="#f80559" strokeWidth={3} dot={{ r: 5, fill: "#f80559" }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
-        <div className="flex items-center justify-between mb-4">
-          <p className="font-bold text-ink text-sm">کارنامه دوره آلمانی A1</p>
-          <Button size="sm" variant="outline" className="border-hairline text-ink"><Download className="size-4 me-1" /> دانلود PDF</Button>
-        </div>
-        {[
-          { l: "میانگین آزمون‌های ویدئو", v: "۸۵٪" },
-          { l: "ویدئوهای تکمیل‌شده", v: "۳ از ۵" },
-          { l: "تکالیف تحویل‌شده", v: "۲ از ۳" },
-          { l: "نقاط ضعف شناسایی‌شده", v: "حرف تعریف اسم‌ها (der/die/das)" },
-          { l: "وضعیت قبولی", v: "در جریان — ۲ فصل مانده" },
-        ].map((r) => (
-          <div key={r.l} className="flex justify-between py-2.5 border-b border-hairline-soft last:border-0 text-sm">
-            <span className="text-ink-soft">{r.l}</span>
-            <span className="font-bold text-ink">{r.v}</span>
+      {chartData.length >= 2 ? (
+        <section className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
+          <p className="mb-4 text-sm font-bold text-ink">روند نمره پاسخ‌های بررسی‌شده</p>
+          <div className="h-64" dir="ltr">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 8, left: 8, right: 8, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#D9DEE8" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 12, fontFamily: "IRANSans" }} stroke="#5B6475" />
+                <YAxis tick={{ fontSize: 12, fontFamily: "IRANSans" }} stroke="#5B6475" domain={[0, 100]} />
+                <RTooltip contentStyle={{ fontFamily: "IRANSans", borderRadius: 8, border: "1px solid #D9DEE8" }} />
+                <Line type="monotone" dataKey="score" name="نمره" stroke="#f80559" strokeWidth={3} dot={{ r: 5, fill: "#f80559" }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-        ))}
-      </div>
+        </section>
+      ) : (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-8 text-center">
+          <TrendingUp className="mx-auto size-8 text-ink-faint" />
+          <p className="mt-3 text-sm font-bold text-ink">داده کافی برای نمودار پیشرفت وجود ندارد</p>
+          <p className="mt-1 text-xs leading-6 text-ink-soft">با ثبت و بررسی چند تکلیف، روند نمره‌ها در این بخش نمایش داده می‌شود.</p>
+        </div>
+      )}
+      <section className="rounded-[8px] border border-hairline-soft bg-white p-5">
+        <h3 className="mb-3 text-sm font-bold text-ink">وضعیت دوره‌ها</h3>
+        {myCourses.length ? (
+          <div className="space-y-2">
+            {myCourses.map((course) => (
+              <div key={course.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[8px] bg-canvas-soft/60 p-3">
+                <span className="text-xs font-bold text-ink">{course.title}</span>
+                <span className="text-[11px] text-ink-soft">{faNum(submissions.filter((submission) => submission.studentId === currentStudentId && assignments.find((assignment) => assignment.id === submission.assignmentId)?.courseId === course.id).length)} پاسخ ثبت‌شده</span>
+              </div>
+            ))}
+          </div>
+        ) : <p className="text-xs text-ink-soft">دوره‌ای برای نمایش ثبت نشده است.</p>}
+      </section>
     </div>
   );
 }
