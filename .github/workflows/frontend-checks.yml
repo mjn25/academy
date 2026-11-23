@@ -33,7 +33,7 @@ jobs:
       - name: Install Playwright and Chromium
         run: |
           bun add --no-save playwright
-          bunx playwright install --with-deps chromium
+          bunx playwright install chromium
       - name: Start production server
         run: |
           bun run start > /tmp/academy-server.log 2>&1 &
