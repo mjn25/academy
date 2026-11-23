@@ -354,15 +354,15 @@ export function PanelSearch({ role }: { role: "admin" | "teacher" | "student" })
               </CommandItem>
             ))}
           </CommandGroup>
-          {role !== "student" ? (
+          {role === "teacher" ? (
             <CommandGroup heading="تکالیف">
               {assignments.slice(0, 5).map((a) => (
-                <CommandItem key={a.id} onSelect={() => run(role === "admin" ? `/admin/assignments/${a.id}` : `/teacher/assignments/${a.id}`)}>
+                <CommandItem key={a.id} onSelect={() => run(`/teacher/assignments/${a.id}`)}>
                   <FileText className="size-4 me-2 text-ink-soft" /> {a.title}
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : (
+          ) : role === "student" ? (
             <CommandGroup heading="تکالیف من">
               {assignments.slice(0, 5).map((a) => (
                 <CommandItem key={a.id} onSelect={() => run(`/student/assignments/${a.id}`)}>
@@ -370,7 +370,7 @@ export function PanelSearch({ role }: { role: "admin" | "teacher" | "student" })
                 </CommandItem>
               ))}
             </CommandGroup>
-          )}
+          ) : null}
         </CommandList>
       </CommandDialog>
     </>
