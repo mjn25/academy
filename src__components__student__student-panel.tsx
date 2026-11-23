@@ -577,45 +577,46 @@ function isPastDue(due: string): boolean {
 /* --------------------------- فایل‌های آموزشی ----------------------------- */
 
 function StudentFiles() {
-  const [cat, setCat] = React.useState("همه");
-  const files = [
-    { t: "جزوه کامل چانک‌های A1", c: "آلمانی A1 — فصل ۲", k: "PDF", d: true },
-    { t: "ویدئوی جلسه ۱۸ کیفیت بالا", c: "آلمانی A1 — فصل ۳", k: "ویدئو", d: false },
-    { t: "فایل صوتی تمرین شنیداری", c: "آلمانی A1 — فصل ۳", k: "صوت", d: true },
-    { t: "کاربرگ رول‌پلی خرید", c: "آلمانی B1 — فصل ۱", k: "PDF", d: true },
-    { t: "بانک چانک‌های اداری", c: "آلمانی B1 — فصل ۳", k: "PDF", d: true },
-  ];
-  const cats = ["همه", ...Array.from(new Set(files.map((f) => f.k)))];
-  const list = cat === "همه" ? files : files.filter((f) => f.k === cat);
+  const currentStudentId = useCurrentStudentId();
+  const { navigate } = useRouter();
+  const { materials, assignments, courses } = useStore();
+  const student = useStore((state) => state.students.find((item) => item.id === currentStudentId));
+  const courseIds = student?.courseIds ?? [];
+  const visibleMaterials = materials.filter((material) => {
+    const assignment = assignments.find((item) => item.id === material.assignmentId);
+    return !!assignment && courseIds.includes(assignment.courseId) && (!material.studentId || material.studentId === currentStudentId);
+  });
 
   return (
     <div>
-      <PanelHeading title="فایل‌های آموزشی" desc="کتابخانه فایل‌ها بر اساس دوره و فصل." />
-      <div className="flex gap-2 mb-5 flex-wrap">
-        {cats.map((c) => (
-          <button key={c} onClick={() => setCat(c)} className={`rounded-full px-4 py-1.5 text-xs font-bold ${cat === c ? "bg-rd-deep text-white" : "bg-white border border-hairline-soft text-ink"}`}>
-            {c}
-          </button>
-        ))}
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {list.map((f, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-[8px] rd-inside border border-hairline-soft bg-white p-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink">
-              {f.k === "ویدئو" ? <VideoIcon className="size-5" /> : f.k === "صوت" ? <Play className="size-5" /> : <FileText className="size-5" />}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-ink truncate">{f.t}</p>
-              <p className="text-[11px] text-ink-soft mt-0.5">{f.c}</p>
-            </div>
-            {f.d ? (
-              <Button size="sm" variant="outline" className="border-hairline text-ink shrink-0"><Download className="size-4" /></Button>
-            ) : (
-              <Button size="sm" className="bg-rd-deep text-white hover:bg-navy-700 shrink-0"><Play className="size-4" /></Button>
-            )}
-          </div>
-        ))}
-      </div>
+      <PanelHeading title="فایل‌های آموزشی" desc="فایل‌هایی که استاد یا مدیریت در تکالیف دوره‌های شما ثبت کرده‌اند." />
+      {visibleMaterials.length ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {visibleMaterials.map((material) => {
+            const assignment = assignments.find((item) => item.id === material.assignmentId);
+            const course = courses.find((item) => item.id === assignment?.courseId);
+            return (
+              <button key={material.id} onClick={() => navigate("/student/assignments/" + material.assignmentId)} className="flex min-w-0 items-center gap-3 rounded-[8px] rd-inside border border-hairline-soft bg-white p-4 text-start transition-colors hover:border-navy-deep">
+                <span className="grid size-11 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink">
+                  {material.kind === "video" ? <VideoIcon className="size-5" /> : <FileText className="size-5" />}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-ink">{material.name}</span>
+                  <span className="mt-1 block truncate text-[11px] text-ink-soft">{course?.title ?? "دوره"} · {assignment?.title ?? "تکلیف"}</span>
+                  {material.size && <span className="mt-1 block text-[10px] text-ink-faint">{material.size}</span>}
+                </span>
+                <ArrowLeft className="size-4 shrink-0 text-ink-soft" />
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-8 text-center">
+          <FolderOpen className="mx-auto size-8 text-ink-faint" />
+          <p className="mt-3 text-sm font-bold text-ink">فایلی برای نمایش وجود ندارد</p>
+          <p className="mt-1 text-xs leading-6 text-ink-soft">فایل‌های پیوست تکالیف دوره‌های شما پس از ثبت در این بخش دیده می‌شوند.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -623,41 +624,54 @@ function StudentFiles() {
 /* -------------------------------- نمرات ---------------------------------- */
 
 function StudentGrades() {
+  const currentStudentId = useCurrentStudentId();
+  const { assignments, submissions, courses } = useStore();
+  const graded = submissions.filter((submission) => submission.studentId === currentStudentId && submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const courseGroups = courses.map((course) => {
+    const rows = graded
+      .filter((submission) => assignments.find((assignment) => assignment.id === submission.assignmentId)?.courseId === course.id)
+      .map((submission) => ({ submission, assignment: assignments.find((assignment) => assignment.id === submission.assignmentId)! }));
+    return { course, rows };
+  }).filter((group) => group.rows.length > 0);
+
   return (
-    <div className="space-y-6">
-      <PanelHeading title="نمرات" desc="نمرات تکالیف و آزمون‌ها به تفکیک کلاس." />
-      {Object.entries(gradesData).map(([courseId, rows]) => {
-        const course = courses.find((c) => c.id === courseId);
-        const avg = Math.round(rows.reduce((s, r) => s + (r.score / r.max) * 100, 0) / rows.length);
+    <div className="space-y-5">
+      <PanelHeading title="نمرات" desc="نمره‌ها و بازخوردهایی که برای پاسخ‌های شما ثبت شده‌اند." />
+      {courseGroups.length ? courseGroups.map(({ course, rows }) => {
+        const average = rows.reduce((sum, row) => sum + ((row.submission.score ?? 0) / Math.max(1, row.assignment.max)) * 100, 0) / rows.length;
         return (
-          <div key={courseId} className="rounded-[8px] rd-inside border border-hairline-soft bg-white overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-4 bg-canvas-soft border-b border-hairline-soft">
-              <p className="font-bold text-ink text-sm">{course?.title ?? courseId}</p>
-              <Badge className="bg-rd-deep text-white hover:bg-rd-deep">میانگین: {fa(avg)}٪</Badge>
+          <section key={course.id} className="rounded-[8px] rd-inside border border-hairline-soft bg-white overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-hairline-soft bg-canvas-soft px-5 py-4">
+              <p className="text-sm font-bold text-ink">{course.title}</p>
+              <Badge className="bg-rd-deep text-white hover:bg-rd-deep">میانگین {fa(average.toFixed(1))}٪</Badge>
             </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-ink-soft text-xs border-b border-hairline-soft">
-                  <th className="text-start p-3.5 font-semibold">مورد</th>
-                  <th className="text-start p-3.5 font-semibold">نوع</th>
-                  <th className="text-start p-3.5 font-semibold">نمره</th>
-                  <th className="text-start p-3.5 font-semibold">بازخورد</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
-                {rows.map((g, i) => (
-                  <tr key={i} className={i % 2 ? "bg-canvas-soft/50" : ""}>
-                    <td className="p-3.5 font-bold text-ink">{g.item}</td>
-                    <td className="p-3.5 text-ink-soft">{g.type}</td>
-                    <td className="p-3.5 font-black-fa text-ink">{fa(g.score)}/{fa(g.max)}</td>
-                    <td className="p-3.5 text-xs text-ink-soft">{g.feedback ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead><tr className="border-b border-hairline-soft text-xs text-ink-soft">
+                  <th className="p-3.5 text-start font-semibold">تکلیف</th>
+                  <th className="p-3.5 text-start font-semibold">نمره</th>
+                  <th className="p-3.5 text-start font-semibold">بازخورد</th>
+                </tr></thead>
+                <tbody className="divide-y divide-line">
+                  {rows.map(({ submission, assignment }) => (
+                    <tr key={submission.id}>
+                      <td className="p-3.5 font-bold text-ink">{assignment.title}</td>
+                      <td className="p-3.5 font-black-fa text-ink">{fa(submission.score ?? 0)} / {fa(assignment.max)}</td>
+                      <td className="p-3.5 text-xs leading-6 text-ink-soft">{submission.feedback || "بازخوردی ثبت نشده"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         );
-      })}
+      }) : (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-8 text-center">
+          <Award className="mx-auto size-8 text-ink-faint" />
+          <p className="mt-3 text-sm font-bold text-ink">هنوز نمره‌ای ثبت نشده است</p>
+          <p className="mt-1 text-xs text-ink-soft">پس از بررسی پاسخ‌ها توسط استاد، نمره‌ها در این بخش نمایش داده می‌شوند.</p>
+        </div>
+      )}
     </div>
   );
 }
