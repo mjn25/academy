@@ -1150,27 +1150,30 @@ function StudentMessages() {
 function StudentProfile() {
   const { navigate } = useRouter();
   const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
-  const addrCount = loadAddresses().length;
-  const orderCount = React.useMemo(() => {
+  const [addrCount, setAddrCount] = React.useState(0);
+  const [orderCount, setOrderCount] = React.useState(0);
+
+  React.useEffect(() => {
+    setAddrCount(loadAddresses().length);
     try {
       const raw = window.localStorage.getItem("edc-orders");
       const list = raw ? (JSON.parse(raw) as unknown[]) : [];
-      return Array.isArray(list) ? list.length : 0;
+      setOrderCount(Array.isArray(list) ? list.length : 0);
     } catch {
-      return 0;
+      setOrderCount(0);
     }
   }, []);
   return (
     <div className="max-w-2xl">
       <PanelHeading title="پروفایل من" desc="اطلاعات شخصی و تنظیمات حساب." />
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-6 space-y-5">
-        <div className="flex items-center gap-4">
-          <span className="grid size-20 place-items-center rounded-[8px] bg-rd-deep text-white text-2xl font-black-fa">{(me?.name ?? "س")[0]}</span>
-          <div>
+      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <span className="grid size-16 shrink-0 place-items-center rounded-[8px] bg-rd-deep text-white text-xl font-black-fa sm:size-20 sm:text-2xl">{(me?.name ?? "س")[0]}</span>
+          <div className="min-w-0 flex-1">
             <p className="font-black-fa text-ink text-[16px]">{me?.name ?? "سارا محمدی"}</p>
-            <p className="text-sm text-ink-soft">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
+            <p className="text-sm leading-6 text-ink-soft">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
           </div>
-          <Button className="ms-auto bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/profile/edit")}>
+          <Button className="w-full shrink-0 bg-rd-deep text-white hover:bg-navy-700 sm:ms-auto sm:w-auto" onClick={() => navigate("/student/profile/edit")}>
             <UserCircle className="size-4 me-1.5" /> ویرایش اطلاعات
           </Button>
         </div>
@@ -1183,9 +1186,9 @@ function StudentProfile() {
             { l: "دوره‌های من", v: `${me ? fa(me.courseIds.length) : "۰"} دوره فعال`, hint: "" },
             { l: "میانگین نمره", v: me?.avg ? fa(me.avg.toFixed(1)) : "—", hint: "" },
           ].map((f) => (
-            <div key={f.l} className="rounded-[8px] bg-canvas-soft p-4">
+            <div key={f.l} className="min-w-0 rounded-[8px] bg-canvas-soft p-3.5 sm:p-4">
               <p className="text-xs text-ink-soft">{f.l}</p>
-              <p className="font-bold text-ink mt-1">{f.v}</p>
+              <p className="mt-1 break-words font-bold text-ink">{f.v}</p>
               {f.hint && <p className="text-[10px] text-ink mt-1">{f.hint}</p>}
             </div>
           ))}
