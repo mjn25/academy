@@ -97,9 +97,9 @@ function TeacherDashboard() {
         <StatCard icon={Star} label="میانگین امتیاز شما" value="۴.۹ از ۵" tint="green" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* کلاس‌های امروز */}
-        <div className="md:col-span-2 md:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
+        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 xl:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
           <div>
             <p className="text-xs font-bold text-ink-soft mb-4 flex items-center gap-1.5"><Clock className="size-4" /> کلاس‌های امروز</p>
             <div className="space-y-3">
@@ -126,7 +126,7 @@ function TeacherDashboard() {
         </div>
 
         {/* تکالیف منتظر نمره */}
-        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm">تکالیف منتظر نمره‌دهی</p>
             <Badge className="bg-bad/10 text-bad hover:bg-bad/10">{faNum(pendingSubs.length)} مورد</Badge>
@@ -147,7 +147,7 @@ function TeacherDashboard() {
         </div>
 
         {/* آخرین بازخوردها */}
-        <div className="md:col-span-2 rounded-[8px] border border-hairline-soft bg-canvas-soft p-5">
+        <div className="sm:col-span-2 xl:col-span-2 rounded-[8px] border border-hairline-soft bg-canvas-soft p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Star className="size-4 fill-brand-500 text-brand-600" /> آخرین بازخوردها</p>
             <button onClick={() => navigate("/teacher/feedback")} className="text-[11px] font-bold text-ink">مشاهده همه</button>
@@ -245,8 +245,8 @@ function TeacherAttendance() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4 mb-5">
-        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-5">
+        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
           <p className="text-xs text-ink-soft mb-2">انتخاب کلاس</p>
           <div className="flex flex-wrap gap-2">
             {[
@@ -260,7 +260,7 @@ function TeacherAttendance() {
             ))}
           </div>
         </div>
-        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
           <p className="text-xs text-ink-soft mb-2">جلسه (پیش‌فرض: امروز)</p>
           <p className="font-bold text-ink text-sm">{session} {saved && <Badge className="bg-ok/10 text-ok hover:bg-ok/10 ms-2">ثبت‌شده</Badge>}</p>
         </div>
