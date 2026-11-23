@@ -84,7 +84,7 @@ export function TeacherPanel({ section }: { section: string }) {
 function TeacherDashboard() {
   const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
-  const { assignments, submissions, courses, students } = useStore();
+  const { assignments, submissions, courses } = useStore();
   const myCourses = courses.filter((course) => course.teacherId === currentTeacherId);
   const myCourseIds = myCourses.map((course) => course.id);
   const myAssignments = assignments.filter((assignment) => myCourseIds.includes(assignment.courseId));
