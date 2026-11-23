@@ -703,8 +703,8 @@ function TeacherProfile() {
           </div>
           <div>
             <Label className="text-xs font-semibold text-ink">شماره موبایل</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" className="mt-1.5 h-11" />
-            <p className="text-[10px] text-ink mt-1">تغییر شماره با تأیید کد پیامکی انجام می‌شود.</p>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" disabled className="mt-1.5 h-11 disabled:cursor-not-allowed disabled:opacity-60" />
+            <p className="text-[10px] text-ink mt-1">برای تغییر شماره باید تأیید پیامکی انجام شود؛ این امکان در نسخه فعلی فعال نیست.</p>
           </div>
           <div>
             <Label className="text-xs font-semibold text-ink">کلاس‌های تخصیص‌یافته</Label>
