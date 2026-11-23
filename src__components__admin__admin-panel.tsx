@@ -59,7 +59,12 @@ export function AdminPanel({ section }: { section: string }) {
 
 function AdminDashboard() {
   const { navigate } = useRouter();
-  const { students, teachers, courses, activity } = useStore();
+  const { students, teachers, courses, activity, assignments, submissions } = useStore();
+  const now = Date.now();
+  const newStudentsThisWeek = students.filter((student) => student.createdAt && now - Date.parse(student.createdAt) <= 7 * 24 * 60 * 60 * 1000).length;
+  const pendingGrades = submissions.filter((submission) => submission.status === "در انتظار بررسی" && assignments.some((assignment) => assignment.id === submission.assignmentId)).length;
+  const capacityWarnings = courses.filter((course) => course.capacity && course.studentIds.length / course.capacity >= 0.8);
+  const unassignedCourses = courses.filter((course) => !course.teacherId && course.status === "فعال");
 
   const roleBadge: Record<string, { label: string; cls: string }> = {
     admin: { label: "مدیریت", cls: "bg-navy-deep text-white" },
@@ -72,9 +77,9 @@ function AdminDashboard() {
     <div className="space-y-6">
       {/* کارت‌های آماری */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard icon={UserCheck} label="ثبت‌نام جدید (این هفته)" value="۱۸ نفر" trend="+۲۳٪" />
+        <StatCard icon={UserCheck} label="ثبت‌نام جدید (۷ روز اخیر)" value={`${faNum(newStudentsThisWeek)} نفر`} />
         <StatCard icon={Users} label="دانشجویان فعال" value={`${faNum(students.filter((s) => s.status === "فعال").length)} نفر`} tint="yellow" />
-        <StatCard icon={BookOpenCheck} label="کلاس‌های در حال برگزاری" value={`${faNum(courses.filter((c) => c.status === "فعال").length)} کلاس`} />
+        <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(courses.filter((c) => c.status === "فعال").length)} دوره`} />
       </div>
 
       {/* دسترسی سریع */}
@@ -98,18 +103,33 @@ function AdminDashboard() {
           <p className="font-bold text-ink text-sm flex items-center gap-1.5 mb-3"><TriangleAlert className="size-4 text-warn" /> هشدارها و اقدامات</p>
           <div className="space-y-2.5">
             {[
-              { t: "ظرفیت کلاس آلمانی A1 رو به پرشدن است", d: "۱۲ از ۱۵ نفر ثبت‌نام کرده‌اند", href: "/admin/classes/a1" },
-              { t: "۳ سفارش فروشگاه در انتظار ارسال", d: "از دیروز بدون تحویل به پست", href: "/admin/shop" },
-              { t: "پرداخت ناموفق — آرش نوروزی", d: "پیش‌فاکتور PF-1043 منقضی شد", href: "/admin/students/st4" },
+              ...capacityWarnings.map((course) => ({
+                t: `ظرفیت «${course.title}» رو به تکمیل است`,
+                d: `${faNum(course.studentIds.length)} از ${faNum(course.capacity ?? 0)} نفر ثبت‌نام کرده‌اند`,
+                href: `/admin/classes/${course.id}`,
+              })),
+              ...unassignedCourses.map((course) => ({
+                t: `برای «${course.title}» استادی تعیین نشده`,
+                d: "تخصیص استاد را بررسی کنید",
+                href: `/admin/classes/${course.id}`,
+              })),
+              ...(pendingGrades > 0 ? [{
+                t: `${faNum(pendingGrades)} پاسخ در انتظار نمره‌دهی است`,
+                d: "وضعیت تکالیف و پاسخ‌ها را بررسی کنید",
+                href: "/admin/classes",
+              }] : []),
             ].map((w) => (
               <div key={w.t} className="flex flex-wrap items-center gap-2 rounded-[8px] bg-white border border-warn/20 px-3.5 py-2.5">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-ink">{w.t}</p>
                   <p className="text-[11px] text-ink-soft">{w.d}</p>
                 </div>
-                <Button size="sm" variant="outline" className="h-8 border-warn/40 text-warn text-[11px]" onClick={() => navigate(w.href)}>اقدام</Button>
+                <Button size="sm" variant="outline" className="h-8 border-warn/40 text-warn text-[11px]" onClick={() => navigate(w.href)}>بررسی</Button>
               </div>
             ))}
+            {capacityWarnings.length === 0 && unassignedCourses.length === 0 && pendingGrades === 0 && (
+              <p className="rounded-[8px] bg-white px-3.5 py-4 text-center text-xs text-ink-soft">موردی برای پیگیری ثبت نشده است.</p>
+            )}
           </div>
         </div>
 
