@@ -3,9 +3,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
@@ -17,7 +15,6 @@ import { useCurrentStudentId } from "@/lib/current-user";
 import { useAuth, normalizePhone } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import {
-  notificationsStudent,
 } from "@/lib/data";
 import {
   LayoutDashboard,
@@ -823,6 +820,15 @@ function StudentProfile() {
   const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
+  const { assignments, submissions } = useStore();
+  const gradedSubmissions = submissions.filter((submission) => submission.studentId === currentStudentId && submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const gradedRows = gradedSubmissions.map((submission) => ({
+    submission,
+    assignment: assignments.find((assignment) => assignment.id === submission.assignmentId),
+  })).filter((row) => !!row.assignment);
+  const averageScore = gradedRows.length
+    ? gradedRows.reduce((sum, row) => sum + ((row.submission.score ?? 0) / Math.max(1, row.assignment!.max)) * 100, 0) / gradedRows.length
+    : null;
   const addressKey = addressStorageKey(me?.phone);
   const [addrCount, setAddrCount] = React.useState(0);
   const [orderCount, setOrderCount] = React.useState(0);
@@ -845,7 +851,7 @@ function StudentProfile() {
           <span className="grid size-16 shrink-0 place-items-center rounded-[8px] bg-rd-deep text-white text-xl font-black-fa sm:size-20 sm:text-2xl">{(me?.name ?? "س")[0]}</span>
           <div className="min-w-0 flex-1">
             <p className="font-black-fa text-ink text-[16px]">{me?.name ?? "سارا محمدی"}</p>
-            <p className="text-sm leading-6 text-ink-soft">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
+            <p className="text-sm leading-6 text-ink-soft">اطلاعات دوره‌ها و عملکرد از کلاس‌های ثبت‌شده نمایش داده می‌شود</p>
           </div>
           <Button className="w-full shrink-0 bg-rd-deep text-white hover:bg-navy-700 sm:ms-auto sm:w-auto" onClick={() => navigate("/student/profile/edit")}>
             <UserCircle className="size-4 me-1.5" /> ویرایش اطلاعات
@@ -858,7 +864,7 @@ function StudentProfile() {
             { l: "زبان در حال یادگیری", v: "آلمانی", hint: "" },
             { l: "عضویت از", v: me?.joinedAt ?? "شهریور ۱۴۰۴", hint: "" },
             { l: "دوره‌های من", v: `${me ? fa(me.courseIds.length) : "۰"} دوره فعال`, hint: "" },
-            { l: "میانگین نمره", v: me?.avg ? fa(me.avg.toFixed(1)) : "—", hint: "" },
+            { l: "میانگین نمره", v: averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪", hint: "" },
           ].map((f) => (
             <div key={f.l} className="min-w-0 rounded-[8px] bg-canvas-soft p-3.5 sm:p-4">
               <p className="text-xs text-ink-soft">{f.l}</p>
