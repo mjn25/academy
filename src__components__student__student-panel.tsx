@@ -703,7 +703,7 @@ function StudentProgress() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard icon={TrendingUp} label="میانگین نمرات ثبت‌شده" value={average === null ? "—" : fa(average.toFixed(1)) + "٪"} />
         <StatCard icon={CheckCircle2} label="تکالیف نمره‌داده‌شده" value={faNum(graded.length) + " مورد"} tint="yellow" />
-        <StatCard icon={UserCircle} label="میزان حضور ثبت‌شده" value={student ? fa(student.attendance) + "٪" : "—"} tint="green" />
+        <StatCard icon={BookOpenCheck} label="دوره‌های فعال من" value={faNum(myCourses.length) + " دوره"} tint="green" />
       </div>
       {chartData.length >= 2 ? (
         <section className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
