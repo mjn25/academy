@@ -511,9 +511,11 @@ function TeacherAssignments() {
 function TeacherStudents() {
   const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
-  const { students, courses } = useStore();
+  const { students, courses, assignments, submissions } = useStore();
   const [q, setQ] = React.useState("");
   const myCourses = courses.filter((c) => c.teacherId === currentTeacherId);
+  const myCourseIds = myCourses.map((course) => course.id);
+  const myAssignmentIds = assignments.filter((assignment) => myCourseIds.includes(assignment.courseId)).map((assignment) => assignment.id);
   const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
   const roster = rosterIds.map((id) => students.find((s) => s.id === id)!).filter(Boolean);
   const list = roster.filter((s) => !q || s.name.includes(q));
@@ -533,13 +535,20 @@ function TeacherStudents() {
               <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                 <th className="text-start p-4 font-semibold">دانشجو</th>
                 <th className="text-start p-4 font-semibold">کلاس</th>
-                <th className="text-start p-4 font-semibold">حضور</th>
+                <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
                 <th className="text-start p-4 font-semibold">میانگین نمره</th>
                 <th className="p-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {list.map((s, i) => (
+              {list.map((s, i) => {
+                const studentSubs = submissions.filter((submission) => submission.studentId === s.id && myAssignmentIds.includes(submission.assignmentId));
+                const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+                const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                  const assignment = assignments.find((item) => item.id === submission.assignmentId);
+                  return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+                }, 0) / gradedSubs.length : null;
+                return (
                 <tr key={s.id} className={`cursor-pointer transition-colors hover:bg-canvas-soft/60 ${i % 2 ? "bg-canvas-soft/50" : ""}`} onClick={() => navigate(`/teacher/students/${s.id}`)}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -551,15 +560,14 @@ function TeacherStudents() {
                     </div>
                   </td>
                   <td className="p-4 text-ink-soft">{myCourses.filter((c) => c.studentIds.includes(s.id)).map((c) => c.title).join("، ")}</td>
-                  <td className="p-4">
-                    <span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span>
-                  </td>
-                  <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                  <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                  <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                   <td className="p-4" onClick={(e) => e.stopPropagation()}>
                     <Button size="sm" variant="outline" className="border-hairline text-ink" onClick={() => navigate(`/teacher/students/${s.id}`)}>پروفایل تحصیلی</Button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
