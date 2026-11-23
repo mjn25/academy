@@ -900,7 +900,7 @@ function StudentAssignments() {
   const { assignments, courses, submissions } = useStore();
   const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const myCourseIds = me?.courseIds ?? [];
-  const list = assignments.filter((a) => myCourseIds.includes(a.courseId));
+  const list = assignments.filter((a) => myCourseIds.includes(a.courseId)).sort((a, b) => (faDateVal(a.due) ?? Number.MAX_SAFE_INTEGER) - (faDateVal(b.due) ?? Number.MAX_SAFE_INTEGER));
 
   return (
     <div>
@@ -962,12 +962,23 @@ function faDateVal(due: string): number | null {
   return m ? Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]) : null;
 }
 
-/** تشخیص گذشته بودن مهلت شمسی (دمو بر مبنای آبان ۱۴۰۴) */
+/** تشخیص مهلت گذشته با تاریخ شمسی روز؛ بدون تاریخ ثابت دمو */
 function isPastDue(due: string): boolean {
-  const m = due.replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d))).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
-  if (!m) return false;
-  const v = Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
-  return v < 14040804;
+  const match = due.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!match) return false;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+    }).formatToParts(new Date());
+    const value = (type: string) => Number(parts.find((part) => part.type === type)?.value ?? 0);
+    const today = value("year") * 10000 + value("month") * 100 + value("day");
+    const deadline = Number(match[1]) * 10000 + Number(match[2]) * 100 + Number(match[3]);
+    return deadline < today;
+  } catch {
+    return false;
+  }
 }
 
 /* --------------------------- فایل‌های آموزشی ----------------------------- */
