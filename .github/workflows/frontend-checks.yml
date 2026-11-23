@@ -1,0 +1,30 @@
+name: Frontend checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [frontend-ux-responsive-checkout]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: TypeScript, lint and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: TypeScript check
+        run: bunx tsc --noEmit
+      - name: ESLint
+        run: bun run lint
+      - name: Production build
+        run: bun run build
