@@ -732,7 +732,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
 export function AdminTeacherProfile({ id }: { id?: string }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { teachers, courses, students, assignments, updateTeacher, setCourseTeacher } = useStore();
+  const { teachers, courses, students, assignments, submissions, updateTeacher, setCourseTeacher } = useStore();
   const t = teachers.find((x) => x.id === id);
 
   const [assignOpen, setAssignOpen] = React.useState(false);
@@ -792,7 +792,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
             <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-soft">
               <span className="flex items-center gap-1" dir="ltr"><PhoneCall className="size-3.5" /> {t.phone}</span>
               <span className="flex items-center gap-1" dir="ltr"><Mail className="size-3.5" /> {t.email}</span>
-              <span className="flex items-center gap-1"><Star className="size-3.5 fill-brand-500 text-brand-600" /> امتیاز {fa(t.rating)} از ۵</span>
+              
             </div>
           </div>
         </div>
@@ -846,7 +846,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                   <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                     <th className="text-start p-4 font-semibold">دانشجو</th>
                     <th className="text-start p-4 font-semibold">دوره</th>
-                    <th className="text-start p-4 font-semibold">حضور</th>
+                    <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
                     <th className="p-4"></th>
                   </tr>
                 </thead>
@@ -855,11 +855,13 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                     const s = students.find((x) => x.id === sid);
                     if (!s) return null;
                     const cs = courses.filter((c) => c.teacherId === t.id && c.studentIds.includes(sid));
+                    const assignmentIds = assignments.filter((assignment) => cs.some((course) => course.id === assignment.courseId)).map((assignment) => assignment.id);
+                    const responseCount = submissions.filter((submission) => submission.studentId === sid && assignmentIds.includes(submission.assignmentId)).length;
                     return (
                       <tr key={sid} className="hover:bg-canvas-soft/60 transition-colors">
                         <td className="p-4 font-bold text-ink">{s.name}</td>
                         <td className="p-4 text-ink-soft">{cs.map((c) => c.title).join("، ")}</td>
-                        <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span></td>
+                        <td className="p-4 text-ink-soft">{faNum(responseCount)} پاسخ</td>
                         <td className="p-4 text-end">
                           <Button size="sm" variant="outline" className="h-8 border-hairline text-ink" onClick={() => navigate(`/admin/students/${sid}`)}>پرونده</Button>
                         </td>
