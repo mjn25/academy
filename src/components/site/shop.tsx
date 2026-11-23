@@ -15,6 +15,18 @@ function productWaLink(title: string) {
   return `https://wa.me/989120000000?text=${text}`;
 }
 
+/* سرتیتر سکشن — هم‌الگوی CourseHead پروفایل دوره */
+function ProductHead({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="rd-inside grid size-10 shrink-0 place-items-center rounded-[8px] bg-white text-rd-accent">
+        <span className="[&_svg]:size-4">{icon}</span>
+      </span>
+      <h2 className="font-black-fa text-[16px] text-ink">{title}</h2>
+    </div>
+  );
+}
+
 /* کارت محصول فروشگاه — هم‌الگوی کارت دوره‌ها (درخواست کاربر): RdCard با قاب چهارمربعی،
    تصویر ۱۶:۹، چیپ مونو برچسب، عنوان، توضیح دومخط، چیپ‌ها، RdLabel و قیمت + دکمهٔ جزئیات */
 function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
@@ -158,16 +170,6 @@ export function ShopProductPage({ id }: { id: string }) {
     add({ type: "book", id: p.id, title: p.title, price: p.price, image: p.image }, qty);
     toast({ title: "به سبد خرید اضافه شد ✔", description: p.title });
   };
-
-  /* سرتیتر سکشن — هم‌الگوی CourseHead پروفایل دوره */
-  const ProductHead = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-    <div className="flex items-center gap-3">
-      <span className="rd-inside grid size-10 shrink-0 place-items-center rounded-[8px] bg-white text-rd-accent">
-        <span className="[&_svg]:size-4">{icon}</span>
-      </span>
-      <h2 className="font-black-fa text-[16px] text-ink">{title}</h2>
-    </div>
-  );
 
   /* استپر تعداد — الگوی استپر فروشگاه‌ها: + راست، عدد وسط، − چپ (RTL) */
   const qtyStepper = (
