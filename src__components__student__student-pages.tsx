@@ -76,8 +76,11 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
   const { toast } = useToast();
   const { assignments, courses, submissions, submitAnswer, teachers, materials, students } = useStore();
   const a = assignments.find((x) => x.id === id);
+  const existingSubmission = a
+    ? submissions.find((submission) => submission.assignmentId === a.id && submission.studentId === currentStudentId)
+    : undefined;
 
-  const [text, setText] = React.useState("");
+  const [text, setText] = React.useState(existingSubmission?.text ?? "");
 
   if (!a) {
     return (
@@ -99,7 +102,7 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     );
   }
   const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === currentStudentId);
-  const mySub = submissions.find((submission) => submission.assignmentId === a.id && submission.studentId === currentStudentId);
+  const mySub = existingSubmission;
   const teacher = teachers.find((t) => t.id === course.teacherId);
   const isLate = isPersianDeadlinePast(a.due);
   const canSubmit = !mySub || mySub.status !== "نمره‌داده‌شده";
