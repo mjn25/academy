@@ -451,16 +451,14 @@ function AdminTeachers() {
               <div className="min-w-0">
                 <p className="font-bold text-ink text-sm truncate">{t.name}</p>
                 <p className="text-[11px] text-ink font-semibold">{t.title}</p>
-                <p className="text-[11px] text-ink-soft mt-0.5">امتیاز {fa(t.rating)} — {faNum(courses.filter((c) => c.teacherId === t.id).length)} دوره</p>
+                <p className="text-[11px] text-ink-soft mt-0.5">{faNum(courses.filter((c) => c.teacherId === t.id).length)} دوره تخصیص‌یافته</p>
               </div>
             </button>
             <div className="mt-4 flex gap-2">
               <Button size="sm" variant="outline" className="flex-1 h-9 border-hairline text-ink" onClick={() => navigate(`/admin/teachers/${t.id}`)}>پرونده و تخصیص کلاس</Button>
               <Button size="sm" variant="outline" className="flex-1 h-9 border-hairline text-ink" onClick={() => navigate(`/admin/teachers/${t.id}/edit`)}>ویرایش</Button>
             </div>
-            <p className="mt-3 text-[10px] text-ink-soft">
-              تداخل زمانی کلاس‌های حضوری: <span className="text-ok font-bold">ندارد</span>
-            </p>
+            <p className="mt-3 text-[10px] text-ink-soft">وضعیت حساب: <span className={t.status === "فعال" ? "font-bold text-ok" : "font-bold text-bad"}>{t.status}</span></p>
           </div>
         ))}
       </div>
