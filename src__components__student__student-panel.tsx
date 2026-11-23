@@ -296,47 +296,57 @@ function StudentDashboard() {
 
 function StudentClasses() {
   const { navigate } = useRouter();
-  const myCourses = ["toefl", "ielts", "general", "conversation"].map((id) => courses.find((c) => c.id === id)!).filter(Boolean);
-  const progress: Record<string, number> = { toefl: 62, ielts: 58, general: 80, conversation: 25 };
-  const statusOf = (c: string) => (progress[c] >= 100 ? "تمام‌شده" : "فعال");
+  const currentStudentId = useCurrentStudentId();
+  const { courses: allCourses, teachers, students } = useStore();
+  const me = students.find((student) => student.id === currentStudentId);
+  const myCourses = allCourses.filter((course) => (me?.courseIds ?? []).includes(course.id));
 
   return (
     <div>
-      <PanelHeading title="کلاس‌های من" desc="دوره‌های حضوری و آنلاین‌ات با درصد پیشرفت." />
-      <div className="grid gap-4 sm:grid-cols-2">
-        {myCourses.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => navigate(`/student/class/${c.id}`)}
-            className="group text-start rounded-[8px] rd-inside border border-hairline-soft bg-white overflow-hidden transition-all hover:-translate-y-0.5"
-          >
-            <div className="flex gap-4 p-4">
-              <img src={c.image} alt="" className="size-24 rounded-[8px] object-cover shrink-0" loading="lazy" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <Badge className={c.type === "online" ? "bg-rd-deep text-white hover:bg-rd-deep text-[10px]" : "bg-canvas-soft text-ink hover:bg-canvas-soft text-[10px]"}>
-                    {c.type === "online" ? "آنلاین ویدئویی" : "حضوری"}
-                  </Badge>
-                  <Badge variant="secondary" className="bg-ok/10 text-ok hover:bg-ok/10 text-[10px]">{statusOf(c.id)}</Badge>
-                </div>
-                <h3 className="mt-1.5 font-bold text-ink text-sm leading-6 truncate">{c.title}</h3>
-                <p className="text-[11px] text-ink-soft mt-0.5">{teachersById[c.teacherId]?.name}</p>
-                <div className="mt-2">
-                  <div className="flex justify-between text-[10px] mb-1">
-                    <span className="text-ink-soft">پیشرفت</span>
-                    <span className="font-bold text-ink">{fa(progress[c.id])}٪</span>
+      <PanelHeading title="کلاس‌های من" desc="دوره‌هایی که در آن‌ها ثبت‌نام کرده‌ای." />
+      {myCourses.length ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {myCourses.map((course) => {
+            const teacher = teachers.find((item) => item.id === course.teacherId);
+            const enrolled = course.studentIds.length;
+            return (
+              <button
+                key={course.id}
+                onClick={() => navigate("/student/class/" + course.id)}
+                className="group flex min-w-0 flex-col overflow-hidden rounded-[8px] rd-inside border border-hairline-soft bg-white text-start transition-colors hover:border-navy-deep"
+              >
+                <div className="flex flex-1 items-start gap-3 p-4 sm:gap-4">
+                  <span className="grid size-12 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-rd-accent sm:size-14">
+                    <BookOpenCheck className="size-6" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge className={course.type === "online" ? "bg-rd-deep text-white hover:bg-rd-deep text-[10px]" : "bg-canvas-soft text-ink hover:bg-canvas-soft text-[10px]"}>
+                        {course.type === "online" ? "آنلاین" : "حضوری"}
+                      </Badge>
+                      <StatusBadge status={course.status} />
+                    </div>
+                    <h3 className="mt-2 truncate text-sm font-bold text-ink">{course.title}</h3>
+                    <p className="mt-1 text-[11px] text-ink-soft">{teacher?.name ?? "استاد تعیین نشده"} · سطح {course.level}</p>
+                    <p className="mt-1 text-[11px] text-ink-faint">{course.schedule || (course.type === "online" ? "برنامه آنلاین" : "زمان‌بندی اعلام نشده")} · {faNum(enrolled)} دانشجو</p>
                   </div>
-                  <Progress value={progress[c.id]} className="h-1.5 bg-canvas-soft [&>div]:bg-rd-accent" />
                 </div>
-              </div>
-            </div>
-            <div className="px-4 py-2.5 bg-canvas-soft/70 flex justify-between items-center">
-              <span className="text-[11px] text-ink-soft">{c.type === "online" ? `${faNum(c.durationHours)} ساعت ویدئو + آزمون` : `${faNum(c.sessions)} جلسه حضوری`}</span>
-              <span className="text-xs font-bold text-ink flex items-center gap-1">ادامه یادگیری <ArrowLeft className="size-3.5" /></span>
-            </div>
-          </button>
-        ))}
-      </div>
+                <div className="flex items-center justify-between border-t border-hairline-soft bg-canvas-soft/50 px-4 py-3">
+                  <span className="text-[11px] text-ink-soft">مشاهده جزئیات کلاس</span>
+                  <span className="flex items-center gap-1 text-xs font-bold text-ink">ورود به کلاس <ArrowLeft className="size-3.5" /></span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="rd-inside rounded-[8px] border border-dashed border-hairline-soft bg-white p-7 text-center sm:p-10">
+          <BookOpenCheck className="mx-auto size-9 text-ink-faint" />
+          <p className="mt-3 text-sm font-bold text-ink">هنوز در دوره‌ای ثبت‌نام نکرده‌ای</p>
+          <p className="mx-auto mt-1 max-w-md text-xs leading-6 text-ink-soft">بعد از ثبت‌نام توسط مدیریت، دوره‌ها و اطلاعات کلاس‌ها در این صفحه نمایش داده می‌شوند.</p>
+          <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/courses")}>مشاهده دوره‌ها</Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -556,7 +566,7 @@ function QuizEngine({
 /* -------------------------- جزئیات کلاس (فلگ‌شیپ) ------------------------- */
 
 function StudentClassDetail({ classId }: { classId?: string }) {
-  const course = courses.find((c) => c.id === (classId ?? "toefl")) ?? courses[1];
+  const course = classId ? courses.find((c) => c.id === classId) : undefined;
   const { navigate } = useRouter();
   const [watchedMap, setWatchedMap] = React.useState<Record<string, number>>({ v1: 100, v2: 100, v3: 45, v4: 0, v5: 0 });
   const [quizOpen, setQuizOpen] = React.useState<Video | null>(null);
@@ -582,6 +592,17 @@ function StudentClassDetail({ classId }: { classId?: string }) {
     });
     if (playing && watchedMap[playing] >= 100) setPlaying(null);
   }, [watchedMap, playing]);
+
+  if (!course) {
+    return (
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 sm:p-10 text-center">
+        <BookOpenCheck className="mx-auto size-9 text-ink-faint" />
+        <h2 className="mt-3 text-sm font-bold text-ink">محتوای آموزشی این کلاس هنوز آماده نیست</h2>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-ink-soft">اطلاعات ثبت‌نام شما در فهرست کلاس‌ها نمایش داده می‌شود؛ اما محتوای جلسات و فایل‌های این دوره هنوز در نسخه فعلی تعریف نشده است.</p>
+        <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/classes")}>بازگشت به کلاس‌ها</Button>
+      </div>
+    );
+  }
 
   const isOnline = course.type === "online";
   const overall = Math.round(Object.values(watchedMap).reduce((a, b) => a + b, 0) / Object.keys(watchedMap).length);
