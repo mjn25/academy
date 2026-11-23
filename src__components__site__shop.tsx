@@ -198,9 +198,17 @@ export function ShopProductPage({ id }: { id: string }) {
           گرید محتوا + کارت قیمت چسبان، تصویر ۵۰٪ کوچک‌تر، سکشن «معرفی کتاب» و تعداد به سبد */}
       <RdSection id="shop-product" fadeTop>
         <RdBand className="top-0" />
-        <h1 className="sr-only">{p.title}</h1>
-        {/* پدینگ پایین موبایل/تبلت جای نوار ثابت پایین را نگه می‌دارد */}
+        {/* معرفی فشرده محصول برای روشن‌شدن هویت و کاربرد آن از ابتدای صفحه */}
         <RdWrap pb="pb-[110px] lg:pb-[62px] xl:pb-[79px]">
+        <section className="mb-5 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+          <span className="inline-flex rounded-full bg-canvas-soft px-3 py-1 text-[11px] font-bold text-rd-accent">{p.tag}</span>
+          <h1 className="mt-3 font-black-fa text-[19px] leading-8 text-ink sm:text-[24px]">{p.title}</h1>
+          <p className="mt-1.5 max-w-4xl text-[12.5px] leading-7 text-ink-soft sm:text-[13px]">{p.desc}</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-ink-soft">
+            <span className="rounded-full bg-canvas-soft px-3 py-1">ارسال سراسری</span>
+            <span className="rounded-full bg-canvas-soft px-3 py-1">افزودن به سبد خرید</span>
+          </div>
+        </section>
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
           <div className="min-w-0 space-y-5">
             {/* کارت رسانه محصول — هم‌الگوی کارت ویدئوی پروفایل دوره؛ تصویر ۵۰٪ کوچک‌تر (وسط‌چین) */}
