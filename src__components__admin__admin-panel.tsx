@@ -322,8 +322,9 @@ function AdminStudents() {
       </div>
       {list.length === 0 ? (
         <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
-          <p className="font-bold text-ink">دانشجویی پیدا نشد</p>
-          <p className="mt-1 text-sm text-ink-soft">جستجو یا فیلتر را تغییر دهید.</p>
+          <p className="font-bold text-ink">{students.length === 0 ? "هنوز دانشجویی ثبت نشده" : "دانشجویی پیدا نشد"}</p>
+          <p className="mt-1 text-sm text-ink-soft">{students.length === 0 ? "برای شروع، پرونده دانشجو را بسازید و در صورت نیاز دوره‌هایش را انتخاب کنید." : "عبارت جستجو یا وضعیت انتخاب‌شده را تغییر دهید."}</p>
+          {students.length === 0 && <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/admin/students/new")}>ثبت‌نام دانشجو</Button>}
         </div>
       ) : (
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden overflow-x-auto">
@@ -392,6 +393,13 @@ function AdminTeachers() {
           </Button>
         }
       />
+      {teachers.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
+          <p className="font-bold text-ink">هنوز استادی اضافه نشده</p>
+          <p className="mt-1 text-sm text-ink-soft">ابتدا مشخصات استاد را ثبت کنید؛ سپس می‌توانید دوره‌های بدون استاد را به او تخصیص دهید.</p>
+          <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/admin/teachers/new")}>افزودن استاد</Button>
+        </div>
+      ) : (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {teachers.map((t) => (
           <div key={t.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 hover:border-hairline transition-colors">
@@ -413,6 +421,7 @@ function AdminTeachers() {
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
