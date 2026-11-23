@@ -645,7 +645,7 @@ export const useStore = create<AppState>()(
           },
         ],
         activity: [
-          { id: nid("ac"), text: `پاسخ جدید برای تکلیف «${asg?.title ?? s.assignmentId}» تحویل شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/assignments/${s.assignmentId}` },
+          { id: nid("ac"), text: `پاسخ جدید برای تکلیف «${asg?.title ?? s.assignmentId}» تحویل شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/classes/${asg?.courseId ?? ""}` },
           ...st.activity,
         ],
       };
