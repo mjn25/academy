@@ -21,7 +21,7 @@ import { AssignmentMaterialsSection } from "@/components/panels/assignment-mater
 import {
   LayoutDashboard, BookOpenCheck, CalendarDays, ClipboardList, FolderOpen, Star, TrendingUp,
   MessageSquare, ShoppingBag, UserCircle, FileText, Clock, Send, CheckCircle2, ArrowLeft,
-  PhoneCall, Mail, Info, Paperclip,
+  PhoneCall, Mail, Info, Paperclip, MapPin,
 } from "lucide-react";
 
 const nav: PanelNavItem[] = [
@@ -33,7 +33,8 @@ const nav: PanelNavItem[] = [
   { key: "grades", label: "نمرات", icon: Star, href: "/student/grades" },
   { key: "progress", label: "گزارش پیشرفت", icon: TrendingUp, href: "/student/progress" },
   { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/student/messages" },
-  { key: "orders", label: "سفارش‌ها", icon: ShoppingBag, href: "/student/orders" },
+  { key: "addresses", label: "آدرس‌های من", icon: MapPin, href: "/student/addresses" },
+  { key: "orders", label: "سفارش‌های من", icon: ShoppingBag, href: "/student/orders" },
   { key: "profile", label: "پروفایل", icon: UserCircle, href: "/student/profile" },
 ];
 
