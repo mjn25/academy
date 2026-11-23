@@ -146,7 +146,7 @@ function AdminClassDetail({ id }: { id?: string }) {
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <p className="font-bold text-ink text-sm flex items-center gap-2"><Users className="size-4 text-ink" /> لیست دانشجویان ({faNum(roster.length)})</p>
-          <Button size="sm" disabled={!hasCapacity || notInCourse.length === 0} className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}
+          <Button size="sm" disabled={!hasCapacity || notInCourse.length === 0} className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}>
             <UserPlus className="size-4 me-1" /> افزودن دانشجو به دوره
           </Button>
         </div>
@@ -280,8 +280,9 @@ function AdminClassDetail({ id }: { id?: string }) {
               <Select value={pickTeacher} onValueChange={setPickTeacher}>
                 <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب استاد…" /></SelectTrigger>
                 <SelectContent>
-                  {teachers.filter((t) => t.status === "فعال").map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name} — {t.title}</SelectItem>
+                  <SelectItem value="__none__">بدون استاد</SelectItem>
+                  {teachers.filter((t) => t.status === "فعال" || t.id === c.teacherId).map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} — {t.title}{t.status !== "فعال" ? " (غیرفعال)" : ""}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -289,9 +290,14 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button
               className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
               onClick={() => {
-                setCourseTeacher(c.id, pickTeacher || null);
+                const nextTeacherId = pickTeacher === "__none__" || !pickTeacher ? null : pickTeacher;
+                if (nextTeacherId && teachers.find((item) => item.id === nextTeacherId)?.status !== "فعال") {
+                  toast({ title: "استاد انتخاب‌شده غیرفعال است", description: "برای تخصیص جدید، یک استاد فعال انتخاب کنید.", variant: "destructive" });
+                  return;
+                }
+                setCourseTeacher(c.id, nextTeacherId);
                 setTeacherOpen(false);
-                toast({ title: "استاد تخصیص یافت ✓", description: "در پرونده استاد و داشبورد او نمایش داده می‌شود." });
+                toast({ title: nextTeacherId ? "استاد تخصیص یافت ✓" : "استاد از دوره برداشته شد", description: "اطلاعات دوره و پرونده استاد هم‌زمان به‌روزرسانی شد." });
               }}
             >
               تأیید تخصیص
