@@ -625,45 +625,72 @@ function TeacherFeedback() {
 /* -------------------------------- پیام‌ها -------------------------------- */
 
 function TeacherMessages() {
-  const { toast } = useToastImport();
+  const currentTeacherId = useCurrentTeacherId();
+  const { courses, students, teachers, messages, sendMessage } = useStore();
+  const myCourses = courses.filter((course) => course.teacherId === currentTeacherId);
+  const myStudentIds = Array.from(new Set(myCourses.flatMap((course) => course.studentIds)));
+  const myStudents = students.filter((student) => myStudentIds.includes(student.id));
+  const [target, setTarget] = React.useState("");
   const [text, setText] = React.useState("");
-  const [target, setTarget] = React.useState("کل کلاس آلمانی A1");
+  const me = teachers.find((teacher) => teacher.id === currentTeacherId);
+  const visibleMessages = messages
+    .filter((message) =>
+      (message.fromRole === "teacher" && message.fromId === currentTeacherId) ||
+      (message.toRole === "teacher" && message.toId === currentTeacherId)
+    )
+    .sort((a, b) => a.sentAt.localeCompare(b.sentAt));
+  const send = () => {
+    const [kind, id] = target.split(":");
+    const course = myCourses.find((item) => item.id === id);
+    const student = myStudents.find((item) => item.id === id);
+    if (!text.trim() || !kind || (kind === "course" && !course) || (kind === "student" && !student)) return;
+    sendMessage({
+      courseId: kind === "course" ? course!.id : (myCourses.find((item) => item.studentIds.includes(student!.id))?.id ?? ""),
+      fromId: currentTeacherId,
+      fromRole: "teacher",
+      fromName: me?.name ?? "استاد",
+      toId: kind === "student" ? student!.id : "",
+      toRole: "student",
+      text: text.trim(),
+    });
+    setText("");
+  };
   return (
-    <div className="max-w-2xl">
-      <PanelHeading title="پیام‌ها" desc="ارسال پیام به کل کلاس یا یک دانشجو — دسترسی محدود به کلاس‌های خودتان." />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold text-ink">گیرنده</label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {["کل کلاس آلمانی A1", "کل کلاس آلمانی B1", "الهام کریمی", "نگار موسوی"].map((t) => (
-              <button key={t} onClick={() => setTarget(t)} className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${target === t ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
-                {t}
-              </button>
+    <div className="max-w-3xl">
+      <PanelHeading title="پیام‌ها" desc="پیام‌ها در همین مرورگر ذخیره می‌شوند و در پنل طرف مقابل هم قابل مشاهده‌اند." />
+      {myCourses.length === 0 ? (
+        <EmptyState title="کلاسی برای ارسال پیام ندارید" desc="بعد از تخصیص دوره، می‌توانید به دانشجویان همان کلاس پیام بدهید." />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 space-y-3 max-h-[520px] overflow-y-auto scroll-thin">
+            {visibleMessages.length === 0 ? (
+              <p className="py-8 text-center text-sm text-ink-soft">هنوز پیامی در گفتگوهای شما ثبت نشده است.</p>
+            ) : visibleMessages.map((message) => (
+              <div key={message.id} className={message.fromRole === "teacher" ? "flex justify-start" : "flex justify-end"}>
+                <div className={`max-w-[88%] rounded-[8px] p-3.5 text-sm leading-7 ${message.fromRole === "teacher" ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
+                  <p className={`mb-1 text-[11px] font-bold ${message.fromRole === "teacher" ? "text-white/70" : "text-ink-soft"}`}>{message.fromName}</p>
+                  <p>{message.text}</p>
+                  <p className="mt-2 text-[10px] opacity-60" dir="ltr">{new Date(message.sentAt).toLocaleString("fa-IR")}</p>
+                </div>
+              </div>
             ))}
           </div>
+          <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 flex flex-col">
+            <p className="font-bold text-ink text-sm mb-3">پیام جدید</p>
+            <label className="text-xs font-semibold text-ink mb-1.5" htmlFor="teacher-message-target">گیرنده</label>
+            <select id="teacher-message-target" value={target} onChange={(event) => setTarget(event.target.value)} className="mb-3 h-10 w-full rounded-[8px] border border-input bg-white px-3 text-xs">
+              <option value="">انتخاب کلاس یا دانشجو</option>
+              {myCourses.map((course) => <option key={course.id} value={`course:${course.id}`}>کل کلاس: {course.title}</option>)}
+              {myStudents.map((student) => <option key={student.id} value={`student:${student.id}`}>{student.name}</option>)}
+            </select>
+            <Textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="پیامت را بنویس…" className="min-h-32" />
+            <Button className="mt-3 bg-rd-deep text-white hover:bg-navy-700 font-bold" disabled={!target || !text.trim()} onClick={send}>
+              <Send className="size-4 me-1.5" /> ارسال پیام
+            </Button>
+          </div>
         </div>
-        <div>
-          <label className="text-xs font-semibold text-ink">متن پیام</label>
-          <Textarea value={text} onChange={(e) => setText(e.target.value)} className="mt-1.5 min-h-28" placeholder="پیامت را بنویس…" />
-        </div>
-        <Button
-          className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
-          disabled={!text.trim()}
-          onClick={() => {
-            setText("");
-            toast({ title: "پیام ارسال شد ✓", description: `گیرنده: ${target}` });
-          }}
-        >
-          <Send className="size-4 me-1.5" /> ارسال پیام
-        </Button>
-      </div>
-      <div className="mt-4 rounded-[8px] bg-canvas-soft border border-hairline-soft p-4 text-xs text-ink-soft leading-7">
-        پیام‌های دریافتی از مدیریت:
-        <div className="mt-2 rounded-[8px] bg-white border border-hairline-soft p-3.5 text-ink">
-          <p className="font-bold text-xs">مدیریت آموزش</p>
-          <p className="mt-1 leading-6">برنامه جلسه هماهنگی پایان فصل: شنبه ساعت ۱۴ — اتاق جلسات.</p>
-        </div>
-      </div>
+      )}
+      <p className="mt-3 text-xs leading-6 text-ink-soft">این پیام‌رسان نسخه نمایشی فرانت‌اند است؛ داده‌ها فقط در localStorage همین مرورگر ذخیره می‌شوند و به سرور یا دستگاه دیگر ارسال نمی‌شوند.</p>
     </div>
   );
 }
