@@ -53,11 +53,28 @@ export function StudentPagesPanel({ mode, id }: { mode: string; id?: string }) {
 
 /* ======================= جزئیات تکلیف + ارسال پاسخ ======================= */
 
+/** بررسی مهلت بر اساس تقویم شمسی دستگاه، بدون تاریخ ثابت دمو */
+function isPersianDeadlinePast(value: string): boolean {
+  const match = value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!match) return value.includes("گذشته");
+  try {
+    const parts = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {
+      year: "numeric", month: "numeric", day: "numeric",
+    }).formatToParts(new Date());
+    const part = (type: string) => Number(parts.find((item) => item.type === type)?.value ?? 0);
+    const today = part("year") * 10000 + part("month") * 100 + part("day");
+    const deadline = Number(match[1]) * 10000 + Number(match[2]) * 100 + Number(match[3]);
+    return deadline < today;
+  } catch {
+    return false;
+  }
+}
+
 export function StudentAssignmentDetail({ id }: { id?: string }) {
   const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { assignments, courses, submissions, submitAnswer, teachers, materials } = useStore();
+  const { assignments, courses, submissions, submitAnswer, teachers, materials, students } = useStore();
   const a = assignments.find((x) => x.id === id);
 
   const [text, setText] = React.useState("");
@@ -71,11 +88,20 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     );
   }
 
-  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === currentStudentId);
-  const mySub = submissions.find((s) => s.assignmentId === a.id && s.studentId === currentStudentId);
   const course = courses.find((c) => c.id === a.courseId);
-  const teacher = teachers.find((t) => t.id === course?.teacherId);
-  const isLate = a.due.includes("گذشته");
+  const myCourseIds = students.find((student) => student.id === currentStudentId)?.courseIds ?? [];
+  if (!course || !myCourseIds.includes(a.courseId)) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل دانشجو", href: "/student" }, { label: "تکالیف", href: "/student/assignments" }]} title="دسترسی به تکلیف ممکن نیست" />
+        <EmptyState title="این تکلیف برای شما نیست" desc="فقط تکالیف دوره‌هایی را می‌توانید ببینید که در آن‌ها ثبت‌نام کرده‌اید." action={<Button className="bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/assignments")}>بازگشت به تکالیف</Button>} />
+      </div>
+    );
+  }
+  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === currentStudentId);
+  const mySub = submissions.find((submission) => submission.assignmentId === a.id && submission.studentId === currentStudentId);
+  const teacher = teachers.find((t) => t.id === course.teacherId);
+  const isLate = isPersianDeadlinePast(a.due);
   const canSubmit = !mySub || mySub.status !== "نمره‌داده‌شده";
 
   const doSubmit = () => {
