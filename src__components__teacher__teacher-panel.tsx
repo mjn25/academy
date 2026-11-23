@@ -620,7 +620,7 @@ function TeacherProfile() {
             <Badge className="mt-1.5 bg-ok/10 text-ok hover:bg-ok/10">رزومه عمومی: تأییدشده توسط مدیریت</Badge>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           <div>
             <Label className="text-xs font-semibold text-ink">نام و نام خانوادگی</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1.5 h-11" />
