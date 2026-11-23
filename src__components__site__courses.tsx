@@ -279,7 +279,7 @@ function CourseTabBar({ c }: { c: SiteCourse }) {
       aria-label="بخش‌های صفحه دوره"
       /* فیکس باگ استیکی: کلاس rd-inside با position:relative استایلِ sticky را خنثی می‌کرد
           (نوار هنگام اسکرول فیکس نمی‌شد) — جای آن بوردر مستقیم هم‌شکل همان قاب */
-      className="sticky top-[68px] z-40 rounded-[8px] border border-hairline-soft bg-white px-2 py-1.5"
+      className="sticky top-[68px] z-40 mb-5 rounded-[8px] border border-hairline-soft bg-white px-2 py-1.5"
     >
       <div className="flex gap-1 overflow-x-auto">
         {tabs.map((t) => (
@@ -412,7 +412,7 @@ export function CoursePage({ slug }: { slug: string }) {
             <span className="inline-flex items-center gap-1.5"><Users className="size-3.5 text-rd-accent" /> {faNum(c.sessions)} جلسه</span>
           </div>
         </section>
-        <div className="mb-5"><CourseTabBar c={c} /></div>
+        <CourseTabBar c={c} />
         {/* گرید محتوا و کارت قیمت چسبان */}
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
           <div className="min-w-0 space-y-5">
