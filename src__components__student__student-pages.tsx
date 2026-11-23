@@ -204,7 +204,7 @@ export function StudentProfileEdit() {
         title="ویرایش پروفایل"
         desc="اطلاعات حساب کاربری خود را به‌روزرسانی کنید."
       />
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
         <div className="flex items-center gap-4">
           <span className="grid size-16 place-items-center rounded-[8px] bg-rd-deep text-white text-2xl font-black-fa">{(name || "س")[0]}</span>
           <div>
@@ -227,7 +227,7 @@ export function StudentProfileEdit() {
             <Input value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" className="mt-1.5 h-11" />
           </div>
         </div>
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button
             className="flex-1 h-11 bg-rd-deep text-white hover:bg-navy-700 font-bold"
             onClick={() => {
