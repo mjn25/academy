@@ -223,7 +223,7 @@ export function CoursesIndex() {
       <RdSection id="courses-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-<div className="sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی دوره‌ها">
+<div className="rd-no-scrollbar sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی دوره‌ها">
             {catTabs.map((t) => {
               const on = cat === t.id;
               const count =
@@ -234,6 +234,7 @@ export function CoursesIndex() {
                   type="button"
                   role="tab"
                   aria-selected={on}
+                  aria-controls="course-list"
                   onClick={() => setCat(t.id)}
                   className={`inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-[12px] transition-colors sm:h-10 sm:px-5 sm:text-[13px] ${
                     on
