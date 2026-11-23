@@ -126,7 +126,7 @@ function CourseCard({ c, n }: { c: SiteCourse; n: string }) {
             {c.trackLabel}
           </span>
         </div>
-        <h3 className="mt-2 text-[15px] font-black-fa leading-6 text-ink sm:mt-3 sm:truncate max-sm:line-clamp-2 max-sm:text-[14px] max-sm:leading-5">
+        <h3 className="mt-2 min-h-[2.5rem] line-clamp-2 text-[14px] font-black-fa leading-5 text-ink sm:mt-3 sm:min-h-[3rem] sm:text-[15px] sm:leading-6">
           {c.title}
         </h3>
         <p className="mt-1 line-clamp-2 text-[13px] leading-6 text-ink-soft max-sm:text-[12px] max-sm:leading-5">
@@ -223,7 +223,7 @@ export function CoursesIndex() {
       <RdSection id="courses-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-<div className="rd-no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" role="tablist" aria-label="کتگوری دوره‌ها">
+<div className="sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی دوره‌ها">
             {catTabs.map((t) => {
               const on = cat === t.id;
               const count =
@@ -255,7 +255,7 @@ export function CoursesIndex() {
           </div>
 
           {/* فهرست واحد دوره‌ها — کارت‌ها دقیقاً با الگوی کارت صفحهٔ اصلی؛ همهٔ ۸ کارت در یک صفحه */}
-          <div className="mt-3.5 grid gap-3.5 sm:mt-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
+          <div id="course-list" className="mt-3.5 grid gap-4 sm:mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
             {pageItems.map((c, i) => (
               <CourseCard key={c.slug} c={c} n={String(i + 1).padStart(2, "0")} />
             ))}
