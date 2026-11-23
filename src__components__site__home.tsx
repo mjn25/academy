@@ -453,7 +453,7 @@ function Hero() {
                 «فاصله باتن بالا و باتنهای پایین هم نسبت به متون 15درصد کمتر بشن.فقط دسکتاپ»)
                 — گپ ۴۸→۴۰٫۸px؛ قرص ۷٫۲px پایین‌تر: تاپ ۱۶۹→۱۷۶٫۲px (موبایل دست‌نخورده) */}
             <AnchorLink id="courses" className="inline-flex h-[32px] shrink-0 items-center gap-[10px] whitespace-nowrap rounded-full border border-white/20 bg-[#00033F] pe-[10px] ps-[12px] text-[12.5px] text-[#E4E9F7] transition-opacity hover:opacity-90 min-[901px]:absolute min-[901px]:left-1/2 min-[901px]:top-[176.2px] min-[901px]:-translate-x-1/2">
-                <b className="rounded-full bg-[#00C0F0] px-[9px] py-px text-[11px] font-extrabold leading-[1.4] text-[#00033F]">
+                <b className="rounded-full bg-[#4FACFF] px-[9px] py-px text-[11px] font-extrabold leading-[1.4] text-[#00033F]">
                   جدید
                 </b>
                 <span>ثبت‌نام دوره‌های کلینیک شروع شد</span>
@@ -480,7 +480,7 @@ function Hero() {
                 v42: لاین‌هیت دسکتاپ ۵۷٫۳→۵۶٫۳px (درخواست صریح کاربر «در دسکتاپ
                 lineheight:56.3px»؛ موبایل همان ۱٫۶۸۵) — بلوک ۲×۵۶٫۳=۱۱۲٫۶px؛ تاپ ۲۴۹ ثابت */}
             <h1 className="mt-[22px] text-[clamp(24.05px,6.59vw,35.6px)] font-extrabold leading-[1.685] min-[901px]:absolute min-[901px]:inset-x-0 min-[901px]:top-[249px] min-[901px]:m-0 min-[901px]:text-[38.1px] min-[901px]:leading-[56.3px]">
-              آلمانی را <em className="not-italic text-[#4DD6F6] min-[901px]:text-[#99E7FA]">از صفر شروع کن؛</em>
+              آلمانی را <em className="not-italic text-[#72BDFF] min-[901px]:text-[#7DBBEE]">از صفر شروع کن؛</em>
               <br />
               برای زندگی، تحصیل و کار
             </h1>
@@ -536,7 +536,7 @@ function Hero() {
               <SiteLink
                 href="/courses"
                 ariaLabel="مشاهدهٔ همهٔ دوره‌ها"
-                className="flex h-[35.7px] min-[901px]:h-[42px] px-[8px] flex-1 basis-0 items-center justify-center gap-[8px] whitespace-nowrap rounded-full bg-white text-[14px] font-normal leading-[20px] text-[#00033F] transition-all duration-150 hover:bg-[#E9F1FC] active:scale-[0.985] active:bg-[#DFEAF9] active:duration-50 focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#00AEDA] motion-reduce:transition-none min-[561px]:w-[176px] min-[561px]:flex-none min-[561px]:basis-auto"
+                className="flex h-[35.7px] min-[901px]:h-[42px] px-[8px] flex-1 basis-0 items-center justify-center gap-[8px] whitespace-nowrap rounded-full bg-white text-[14px] font-normal leading-[20px] text-[#00033F] transition-all duration-150 hover:bg-[#E9F1FC] active:scale-[0.985] active:bg-[#DFEAF9] active:duration-50 focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#228DFF] motion-reduce:transition-none min-[561px]:w-[176px] min-[561px]:flex-none min-[561px]:basis-auto"
               >
                 <BookOpen strokeWidth={2} aria-hidden="true" className="hidden size-[14px] shrink-0 min-[901px]:block" />
                 مشاهدهٔ دوره‌ها
@@ -544,7 +544,7 @@ function Hero() {
               <AnchorLink
                 id="placement"
                 ariaLabel="تعیین سطح رایگان"
-                className="flex h-[35.7px] min-[901px]:h-[42px] px-[8px] flex-1 basis-0 items-center justify-center gap-[8px] whitespace-nowrap rounded-full text-[14px] font-normal leading-[20px] text-[#A9B4D0] ring-1 ring-inset ring-white/[0.24] transition-all duration-150 hover:text-white hover:ring-[#00C0F0]/60 active:scale-[0.985] active:duration-50 focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#00AEDA] motion-reduce:transition-none min-[561px]:w-[176px] min-[561px]:flex-none min-[561px]:basis-auto"
+                className="flex h-[35.7px] min-[901px]:h-[42px] px-[8px] flex-1 basis-0 items-center justify-center gap-[8px] whitespace-nowrap rounded-full text-[14px] font-normal leading-[20px] text-[#A9B4D0] ring-1 ring-inset ring-white/[0.24] transition-all duration-150 hover:text-white hover:ring-[#4FACFF]/60 active:scale-[0.985] active:duration-50 focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#228DFF] motion-reduce:transition-none min-[561px]:w-[176px] min-[561px]:flex-none min-[561px]:basis-auto"
               >
                 <ClipboardList strokeWidth={2} aria-hidden="true" className="hidden size-[14px] shrink-0 min-[901px]:block" />
                 تعیین سطح رایگان
@@ -1212,7 +1212,7 @@ const PANEL_NAV = [
 ];
 
 /** رنگ آیتم‌های پنل — چهار رنگ هویتی: سرمه‌ای، فیروزه‌ای، صورتی و زرد */
-const PANEL_COLORS = ["#12224a", "#00c0f0", "#f80559", "#ffc20e"];
+const PANEL_COLORS = ["#12224a", "#4facff", "#f80559", "#ffc20e"];
 
 /** دادهٔ واقعی زبانه‌های پنل — آمار با آیکون، تایم‌لاین هفته، برنامهٔ پیش رو، دوره‌ها، تکالیف، آزمون‌ها، مهارت‌ها */
 const PANEL_STATS = [
@@ -1301,14 +1301,14 @@ function PanelView({ active }: { active: number }) {
             {PANEL_WEEK.map((d, i) => (
               <div key={i} className="flex flex-1 flex-col items-center gap-1">
                 <span
-                  className={`dc-mono text-[8px] leading-none ${d.today ? "font-bold text-[#00c0f0]" : "text-white/35"}`}
+                  className={`dc-mono text-[8px] leading-none ${d.today ? "font-bold text-[#4facff]" : "text-white/35"}`}
                   dir="ltr"
                 >
                   {d.t}
                 </span>
                 <span
                   aria-hidden="true"
-                  className={`w-full rounded-[3px] ${d.today ? "bg-[#00c0f0]" : "bg-white/20"}`}
+                  className={`w-full rounded-[3px] ${d.today ? "bg-[#4facff]" : "bg-white/20"}`}
                   style={{ height: `${Math.max(4, (d.h / 2.8) * 20)}px` }}
                 />
                 <span className={`text-[9px] leading-none ${d.today ? "font-bold text-white" : "text-white/40"}`}>
@@ -1379,11 +1379,11 @@ function PanelView({ active }: { active: number }) {
         </div>
         {/* ادامهٔ یادگیری — جلسهٔ بعدی با نوار پیشرفت فصل */}
         <div className="mt-2 flex items-center gap-2.5 rounded-[8px] bg-white/[0.05] px-3 py-2.5">
-          <Play className="size-3.5 shrink-0 text-[#00c0f0]" />
+          <Play className="size-3.5 shrink-0 text-[#4facff]" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[11px] font-bold text-white">ادامهٔ یادگیری — فصل ۶: مکالمهٔ روزمره</p>
             <div className="mt-1 h-1 overflow-hidden rounded-full bg-white/10">
-              <span className="block h-full w-[64%] rounded-full bg-[#00c0f0]" />
+              <span className="block h-full w-[64%] rounded-full bg-[#4facff]" />
             </div>
           </div>
           <span className="shrink-0 rounded-full bg-white/[0.07] px-2 py-1 text-[10px] font-bold text-white">۲۴ دقیقه</span>
@@ -1455,7 +1455,7 @@ function PanelView({ active }: { active: number }) {
         </div>
         {/* شمارش معکوس آزمون بعدی */}
         <div className="mt-2 flex items-center gap-2 rounded-[8px] bg-white/[0.05] px-3 py-2">
-          <Clock className="size-3.5 shrink-0 text-[#00c0f0]" />
+          <Clock className="size-3.5 shrink-0 text-[#4facff]" />
           <span className="min-w-0 flex-1 truncate text-[11px] text-white/60">آزمون بعدی: آزمون آزمایشی Goethe B1</span>
           <span className="shrink-0 text-[10px] font-bold text-white">۱۸ روز مانده</span>
         </div>
@@ -1931,7 +1931,7 @@ function Process() {
         <div className="mt-5 text-center">
           <AnchorLink
             id="placement"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-6 text-[13px] font-extrabold text-navy-deep transition-all duration-150 hover:bg-[#E9F1FC] active:scale-[0.985] active:bg-[#DFEAF9] focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#00AEDA] motion-reduce:transition-none"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-6 text-[13px] font-extrabold text-navy-deep transition-all duration-150 hover:bg-[#E9F1FC] active:scale-[0.985] active:bg-[#DFEAF9] focus-visible:outline-none focus-visible:shadow-[0_0_0_1.25px_#00033F,0_0_0_3.25px_#228DFF] motion-reduce:transition-none"
           >
             شروع با تعیین سطح رایگان
             <ArrowLeft className="size-4" />
