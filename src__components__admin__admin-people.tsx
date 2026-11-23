@@ -86,7 +86,10 @@ export function AdminStudentProfile({ id }: { id?: string }) {
   const myCourses = courses.filter((c) => s.courseIds.includes(c.id));
   const mySubs = submissions.filter((x) => x.studentId === s.id);
   const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
-  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => sum + (submission.score ?? 0), 0) / gradedSubs.length : null;
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+  }, 0) / gradedSubs.length : null;
   const myInvoices = invoices.filter((i) => i.studentId === s.id);
   const myPayments = payments.filter((p) => p.studentId === s.id);
   const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id) && (!c.capacity || c.studentIds.length < c.capacity));
