@@ -12,7 +12,8 @@ import { LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer
 import { PanelShell, PanelHeading, StatCard, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
 import { useToast } from "@/hooks/use-toast";
-import { useStore, CURRENT_STUDENT_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentStudentId } from "@/lib/current-user";
 import { useAuth } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import {
@@ -104,7 +105,8 @@ const titles: Record<string, string> = {
 };
 
 export function StudentPanel({ section, param }: { section: string; param?: string }) {
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const currentStudentId = useCurrentStudentId();
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const { user } = useAuth();
   /* آدرس‌ها و سفارش‌ها به حساب وابسته‌اند نه دوره — برای هر حسابی فعال‌اند */
   const isAccountPage = section === "addresses" || section === "orders";
@@ -167,14 +169,15 @@ function StudentEmptyPanel({ section }: { section: string }) {
 /* ------------------------------- داشبورد -------------------------------- */
 
 function StudentDashboard() {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { assignments, submissions } = useStore();
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const myCourseIds = me?.courseIds ?? [];
   const pending = assignments
     .filter((a) => myCourseIds.includes(a.courseId))
     .filter((a) => {
-      const sub = submissions.find((s) => s.assignmentId === a.id && s.studentId === CURRENT_STUDENT_ID);
+      const sub = submissions.find((s) => s.assignmentId === a.id && s.studentId === currentStudentId);
       return !sub || sub.status !== "نمره‌داده‌شده";
     })
     .sort((x, y) => (faDateVal(x.due) ?? 99999999) - (faDateVal(y.due) ?? 99999999));
@@ -881,9 +884,10 @@ function StudentSchedule() {
 /* -------------------------------- تکالیف -------------------------------- */
 
 function StudentAssignments() {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { assignments, courses, submissions } = useStore();
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const myCourseIds = me?.courseIds ?? [];
   const list = assignments.filter((a) => myCourseIds.includes(a.courseId));
 
@@ -898,7 +902,7 @@ function StudentAssignments() {
       ) : (
         <div className="space-y-3">
           {list.map((a) => {
-            const sub = submissions.find((s) => s.assignmentId === a.id && s.studentId === CURRENT_STUDENT_ID);
+            const sub = submissions.find((s) => s.assignmentId === a.id && s.studentId === currentStudentId);
             const status = sub?.status === "نمره‌داده‌شده" ? "graded" : sub ? "submitted" : isPastDue(a.due) ? "late" : "new";
             const course = courses.find((c) => c.id === a.courseId);
             return (
@@ -1148,8 +1152,9 @@ function StudentMessages() {
 /* -------------------------------- پروفایل -------------------------------- */
 
 function StudentProfile() {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const [addrCount, setAddrCount] = React.useState(0);
   const [orderCount, setOrderCount] = React.useState(0);
 
