@@ -90,7 +90,7 @@ function TeacherDashboard() {
     .sort((x, y) => y.count - x.count);
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={BookOpenCheck} label="کلاس‌های تخصیص‌یافته" value={`${faNum(myCourses.length)} کلاس`} />
         <StatCard icon={Users2} label="دانشجویان فعال" value={`${faNum(new Set(myCourses.flatMap((c) => c.studentIds)).size)} نفر`} tint="yellow" />
         <StatCard icon={ClipboardList} label="تکالیف منتظر نمره" value={`${faNum(pendingSubs.reduce((s, x) => s + x.count, 0))} مورد`} tint="red" />
@@ -99,7 +99,7 @@ function TeacherDashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* کلاس‌های امروز */}
-        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 xl:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
+        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
           <div>
             <p className="text-xs font-bold text-ink-soft mb-4 flex items-center gap-1.5"><Clock className="size-4" /> کلاس‌های امروز</p>
             <div className="space-y-3">
@@ -179,7 +179,7 @@ function TeacherClasses() {
     <div>
       <PanelHeading title="کلاس‌های من" desc="فقط کلاس‌هایی که مدیریت به شما تخصیص داده است — برای مدیریت روی هر کلاس کلیک کنید." />
       {myClasses.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">کلاسی به شما تخصیص نیافته</p>
           <p className="mt-1 text-sm text-ink-soft">مدیریت از پنل مدیریت کلاس‌ها را به شما واگذار می‌کند.</p>
         </div>
@@ -346,7 +346,7 @@ function TeacherAssignments() {
 
       {/* تکالیف فعال */}
       {myAssignments.length === 0 ? (
-        <div className="mb-6 rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="mb-6 rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">تکلیفی برای کلاس‌های شما تعریف نشده</p>
           <p className="mt-1 text-sm text-ink-soft">اولین تکلیف را تعریف کنید یا منتظر تخصیص از مدیریت بمانید.</p>
         </div>
@@ -373,7 +373,7 @@ function TeacherAssignments() {
 
       {/* جدول نمره‌دهی */}
       {gradeable.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">پاسخی در انتظار نمره‌دهی نیست ✓</p>
           <p className="mt-1 text-sm text-ink-soft">به‌محض تحویل دانشجویان، پاسخ‌ها اینجا ظاهر می‌شوند.</p>
         </div>
@@ -454,7 +454,7 @@ function TeacherStudents() {
       <PanelHeading title="لیست دانشجویان" desc="اطلاعات مالی و پرداخت دانشجویان برای شما نمایش داده نمی‌شود — برای پروفایل تحصیلی روی هر ردیف کلیک کنید." />
       <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="جستجوی نام…" className="h-11 max-w-xs mb-4" />
       {list.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">دانشجویی پیدا نشد</p>
           <p className="mt-1 text-sm text-ink-soft">دانشجویان کلاس‌های شما اینجا نمایش داده می‌شوند.</p>
         </div>
