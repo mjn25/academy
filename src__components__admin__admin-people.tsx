@@ -585,7 +585,15 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
         title={existing ? `ویرایش پرونده ${existing.name}` : "ثبت‌نام دستی دانشجو"}
         desc={existing ? "اطلاعات هویتی و وضعیت مالی دانشجو را ویرایش کنید." : "برای پرداخت حضوری/نقدی، دانشجو را مستقیم ثبت‌نام کنید."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
+            <div>
+              <h2 className="text-sm font-black-fa text-ink">اطلاعات دانشجو</h2>
+              <p className="text-[11px] text-ink-soft">مشخصات تماس و وضعیت پرونده را وارد کنید.</p>
+            </div>
+          </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Label>نام و نام خانوادگی *</Label>
