@@ -195,7 +195,7 @@ function StudentDashboard() {
       {/* Bento داشبورد */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* کلاس بعدی — سلول بزرگ */}
-        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 xl:row-span-2 rd-inside rounded-[8px] bg-canvas-soft/70 text-ink p-6 flex flex-col justify-between min-h-[240px]">
+        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 rd-inside rounded-[8px] bg-canvas-soft/70 text-ink p-6 flex flex-col justify-between min-h-[240px]">
           <div>
             <p className="text-xs font-bold text-ink-soft mb-3 flex items-center gap-1.5"><CalendarDays className="size-4" /> کلاس بعدی (حضوری)</p>
             <h3 className="text-[16px] font-black-fa text-ink">آلمانی A1 — جلسه ۱۹</h3>
@@ -891,7 +891,7 @@ function StudentAssignments() {
     <div>
       <PanelHeading title="تکالیف" desc="تکالیف استاد و مدیریت — بر اساس نزدیک‌ترین مهلت. برای جزئیات و ارسال پاسخ کلیک کنید." />
       {list.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <p className="font-bold text-ink">تکلیفی برای کلاس‌های شما نیست</p>
           <p className="mt-1 text-sm text-ink-soft">به‌محض تخصیص تکلیف جدید، همین‌جا نمایش داده می‌شود.</p>
         </div>
@@ -1261,7 +1261,7 @@ function StudentAddresses() {
         }
       />
       {list.length === 0 && !showForm ? (
-        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-10 text-center">
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <span className="mx-auto grid size-12 place-items-center rounded-full bg-canvas-soft text-ink">
             <MapPin className="size-6" />
           </span>
@@ -1434,7 +1434,7 @@ function StudentOrders() {
     <div className="max-w-2xl">
       <PanelHeading title="سفارش‌های من" desc="دوره‌ها و کتاب‌هایی که از فروشگاه ثبت کرده‌اید." />
       {orders.length === 0 ? (
-        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-10 text-center">
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 sm:p-10 text-center">
           <span className="mx-auto grid size-12 place-items-center rounded-full bg-canvas-soft text-ink">
             <ShoppingBag className="size-6" />
           </span>
