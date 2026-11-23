@@ -1107,45 +1107,72 @@ function StudentProgress() {
 /* -------------------------------- پیام‌ها -------------------------------- */
 
 function StudentMessages() {
+  const currentStudentId = useCurrentStudentId();
+  const { students, courses, teachers, messages, sendMessage } = useStore();
+  const me = students.find((student) => student.id === currentStudentId);
+  const myCourses = courses.filter((course) => course.studentIds.includes(currentStudentId) || me?.courseIds.includes(course.id));
+  const [courseId, setCourseId] = React.useState(myCourses[0]?.id ?? "");
   const [text, setText] = React.useState("");
-  const [msgs, setMsgs] = React.useState([
-    { id: 1, from: "استاد — دکتر سارا محمدی", text: "سارا جان، تحلیل رایتینگ آخرت عالی بود. دو نکته برای جلسه بعد آماده کردم.", time: "۱ ساعت پیش", me: false },
-    { id: 2, from: "پشتیبانی آموزشی", text: "درخواست تمدید دسترسی شما بررسی شد؛ ۳۰ روز اضافه شد. موفق باشی!", time: "دیروز", me: false },
-  ]);
+  const visibleMessages = messages
+    .filter((message) =>
+      (message.fromRole === "student" && message.fromId === currentStudentId) ||
+      (message.toRole === "student" && message.toId === currentStudentId) ||
+      (message.toRole === "student" && message.toId === "" && myCourses.some((course) => course.id === message.courseId))
+    )
+    .sort((a, b) => a.sentAt.localeCompare(b.sentAt));
+  const send = () => {
+    const course = myCourses.find((item) => item.id === courseId);
+    const teacher = teachers.find((item) => item.id === course?.teacherId);
+    if (!course || !teacher || !text.trim()) return;
+    sendMessage({
+      courseId: course.id,
+      fromId: currentStudentId,
+      fromRole: "student",
+      fromName: me?.name ?? "دانشجو",
+      toId: teacher.id,
+      toRole: "teacher",
+      text: text.trim(),
+    });
+    setText("");
+  };
+  const availableCourses = myCourses.filter((course) => teachers.some((teacher) => teacher.id === course.teacherId));
   return (
     <div>
-      <PanelHeading title="پیام‌ها و اعلان‌ها" desc="پیام‌های استاد، مدیریت و پشتیبانی." />
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 space-y-4 max-h-[480px] overflow-y-auto scroll-thin">
-          {msgs.map((m) => (
-            <div key={m.id} className={`flex ${m.me ? "justify-start" : "justify-end"}`}>
-              <div className={`max-w-[85%] rounded-[8px] p-4 text-sm leading-7 ${m.me ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
-                <p className={`text-[11px] font-bold mb-1.5 ${m.me ? "text-white/70" : "text-ink-soft"}`}>{m.from}</p>
-                {m.text}
-                <p className="text-[10px] opacity-60 mt-2">{m.time}</p>
+      <PanelHeading title="پیام‌ها" desc="گفتگو با استاد دوره؛ پیام‌های شما در پنل استاد هم نمایش داده می‌شوند." />
+      {availableCourses.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 text-center">
+          <p className="font-bold text-ink">هنوز استادی برای گفتگو در دسترس نیست</p>
+          <p className="mt-1 text-sm text-ink-soft">پس از ثبت‌نام در دوره‌ای که استاد دارد، امکان ارسال پیام فعال می‌شود.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 space-y-3 max-h-[480px] overflow-y-auto scroll-thin">
+            {visibleMessages.length === 0 ? (
+              <p className="py-8 text-center text-sm text-ink-soft">هنوز پیامی در گفتگوهای شما ثبت نشده است.</p>
+            ) : visibleMessages.map((message) => (
+              <div key={message.id} className={message.fromRole === "student" ? "flex justify-start" : "flex justify-end"}>
+                <div className={`max-w-[88%] rounded-[8px] p-3.5 text-sm leading-7 ${message.fromRole === "student" ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
+                  <p className={`mb-1 text-[11px] font-bold ${message.fromRole === "student" ? "text-white/70" : "text-ink-soft"}`}>{message.fromName}</p>
+                  <p>{message.text}</p>
+                  <p className="mt-2 text-[10px] opacity-60" dir="ltr">{new Date(message.sentAt).toLocaleString("fa-IR")}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 flex flex-col">
+            <p className="font-bold text-ink text-sm mb-3">پیام جدید</p>
+            <label htmlFor="student-message-course" className="text-xs font-semibold text-ink mb-1.5">دوره</label>
+            <select id="student-message-course" value={courseId} onChange={(event) => setCourseId(event.target.value)} className="mb-3 h-10 w-full rounded-[8px] border border-input bg-white px-3 text-xs">
+              {availableCourses.map((course) => <option key={course.id} value={course.id}>{course.title} — {teachers.find((teacher) => teacher.id === course.teacherId)?.name}</option>)}
+            </select>
+            <Textarea value={text} onChange={(event) => setText(event.target.value)} placeholder="پیامت را بنویس…" className="flex-1 min-h-32" />
+            <Button className="mt-3 bg-rd-deep text-white hover:bg-navy-700 font-bold" disabled={!courseId || !text.trim()} onClick={send}>
+              <Send className="size-4 me-1.5" /> ارسال
+            </Button>
+          </div>
         </div>
-        <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 flex flex-col">
-          <p className="font-bold text-ink text-sm mb-3">پیام جدید</p>
-          <div className="rounded-[8px] bg-canvas-soft px-3 py-2 text-xs text-ink-soft mb-3">گیرنده: پشتیبانی آموزشی</div>
-          <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="پیامت را بنویس…" className="flex-1 min-h-32" />
-          <Button
-            className="mt-3 bg-rd-deep text-white hover:bg-navy-700 font-bold"
-            disabled={!text.trim()}
-            onClick={() => {
-              setMsgs((m) => [...m, { id: Date.now(), from: "تو", text, time: "همین حالا", me: true }]);
-              setText("");
-            }}
-          >
-            <Send className="size-4 me-1.5" /> ارسال
-          </Button>
-        </div>
-      </div>
-      <div className="mt-4 rounded-[8px] bg-canvas-soft border border-hairline p-4 text-xs leading-6 text-ink">
-        <b>اعلان‌های فعال:</b> تکلیف جدید، نمره جدید، کلاس جدید و تمدید دوره — برای رویدادهای مهم، پیامک متناظر هم ارسال می‌شود.
-      </div>
+      )}
+      <p className="mt-3 rounded-[8px] bg-canvas-soft p-4 text-xs leading-6 text-ink-soft">این پیام‌رسان نسخه نمایشی فرانت‌اند است؛ پیام‌ها فقط در localStorage همین مرورگر ذخیره می‌شوند. ارسال پیامک یا ارتباط با سرور انجام نمی‌شود.</p>
     </div>
   );
 }
