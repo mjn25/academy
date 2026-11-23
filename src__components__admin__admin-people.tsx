@@ -22,7 +22,6 @@ import { useRouter } from "@/lib/app-context";
 import { normalizePhone, DEMO_ACCOUNTS } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import { useStore, type UserStatus, type StoreStudent, type StoreTeacher, type StorePayment } from "@/lib/store";
-import { feedbackComments } from "@/lib/data";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { adminNav, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import {
@@ -751,7 +750,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
   const myCourses = courses.filter((c) => c.teacherId === t.id);
   const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
   const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
-  const myFeedback = feedbackComments.filter((f) => myCourses.some((c) => c.title === f.course));
+  const myFeedback: never[] = [];
   const unassigned = courses.filter((c) => !c.teacherId);
 
   const doAssign = () => {
