@@ -323,7 +323,7 @@ interface AppState {
   markNotificationsRead: (userKey: string, ids: string[]) => void;
 
   /* کاربران */
-  addStudent: (s: Partial<StoreStudent> & { name: string }) => string;
+  addStudent: (s: Partial<StoreStudent> & { name: string; createdBy?: "admin" | "self" }) => string;
   updateStudent: (id: string, patch: Partial<StoreStudent>) => void;
   setStudentStatus: (id: string, status: UserStatus) => void;
   addTeacher: (t: Partial<StoreTeacher> & { name: string }) => string;
@@ -407,10 +407,12 @@ export const useStore = create<AppState>()(
           createdAt: new Date().toISOString(),
         },
       ],
-      activity: [
-        { id: nid("ac"), text: `دانشجوی جدید «${s.name}» ثبت‌نام شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/students/${id}` },
-        ...st.activity,
-      ],
+      activity: s.createdBy === "self"
+        ? st.activity
+        : [
+            { id: nid("ac"), text: `دانشجوی جدید «${s.name}» ثبت‌نام شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/students/${id}` },
+            ...st.activity,
+          ],
     }));
     return id;
   },
