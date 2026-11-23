@@ -205,10 +205,10 @@ export function StudentProfileEdit() {
         desc="اطلاعات حساب کاربری خود را به‌روزرسانی کنید."
       />
       <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
-        <div className="flex items-center gap-4">
-          <span className="grid size-16 place-items-center rounded-[8px] bg-rd-deep text-white text-2xl font-black-fa">{(name || "س")[0]}</span>
-          <div>
-            <p className="font-black-fa text-ink">{name || "—"}</p>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-[8px] bg-rd-deep text-white text-xl font-black-fa sm:size-16 sm:text-2xl">{(name || "س")[0]}</span>
+          <div className="min-w-0 flex-1">
+            <p className="break-words font-black-fa text-ink">{name || "—"}</p>
             <p className="text-xs text-ink-soft mt-0.5">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
           </div>
         </div>
