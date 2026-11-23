@@ -12,7 +12,7 @@ export function useCurrentTeacherId() {
     const matched = user?.role === "teacher" && phone
       ? teachers.find((teacher) => normalizePhone(teacher.phone) === phone)
       : undefined;
-    return matched?.id ?? CURRENT_TEACHER_ID;
+    return matched?.id ?? (phone === normalizePhone("09114005050") ? CURRENT_TEACHER_ID : "");
   }, [teachers, user?.phone, user?.role]);
 }
 
@@ -24,6 +24,6 @@ export function useCurrentStudentId() {
     const matched = user?.role === "student" && phone
       ? students.find((student) => normalizePhone(student.phone) === phone)
       : undefined;
-    return matched?.id ?? CURRENT_STUDENT_ID;
+    return matched?.id ?? (phone === normalizePhone("09114006060") ? CURRENT_STUDENT_ID : "");
   }, [students, user?.phone, user?.role]);
 }
