@@ -104,6 +104,35 @@ try {
       await context.close();
     }
   }
+  const flowResults = [];
+  for (const flow of [
+    { name: "admin-create-teacher", path: "/admin/teachers/new", user: adminUser, nameValue: "آزمایش استاد مرورگر", phone: "09129998887", namePlaceholder: "مثلاً دکتر امیر کاظمی", submit: "ایجاد استاد", expectedPath: "/panel/admin/teachers/" },
+    { name: "admin-create-student", path: "/admin/students/new", user: adminUser, nameValue: "آزمایش دانشجو مرورگر", phone: "09129998886", namePlaceholder: "مثلاً الهام کریمی", submit: "ثبت‌نام دانشجو", expectedPath: "/panel/admin/students/" },
+  ]) {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    await context.addInitScript((user) => localStorage.setItem("edc-auth-user", JSON.stringify(user)), flow.user);
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    try {
+      await page.goto(baseURL + flow.path, { waitUntil: "domcontentloaded", timeout: 30000 });
+      await page.getByPlaceholder(flow.namePlaceholder).fill(flow.nameValue);
+      await page.getByPlaceholder("09xxxxxxxxx").fill(flow.phone);
+      await page.getByRole("button", { name: flow.submit }).click();
+      await page.getByText(flow.nameValue, { exact: true }).waitFor({ state: "visible", timeout: 10000 });
+      const currentPath = new URL(page.url()).pathname;
+      const ok = currentPath.startsWith(flow.expectedPath) && errors.length === 0;
+      flowResults.push({ name: flow.name, ok, path: currentPath, errors });
+      if (!ok) failures.push(`${flow.name}: profile navigation or rendering failed (${currentPath}) ${errors.join("; ")}`);
+      await page.screenshot({ path: path.join(output, `${flow.name}.png`), fullPage: true, animations: "disabled" });
+    } catch (error) {
+      flowResults.push({ name: flow.name, ok: false, error: error.message, errors });
+      failures.push(`${flow.name}: ${error.message}`);
+    } finally {
+      await context.close();
+    }
+  }
+  await fs.writeFile(path.join(output, "flows.json"), JSON.stringify(flowResults, null, 2));
 } finally {
   await browser.close();
 }
