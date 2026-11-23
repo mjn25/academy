@@ -1009,6 +1009,7 @@ function StudentAddresses() {
               <input
                 value={fPostal}
                 onChange={(e) => setFPostal(e.target.value)}
+                dir="ltr"
                 inputMode="numeric"
                 placeholder="مثلاً ۴۱۵۳۹"
                 aria-label="کد پستی"
