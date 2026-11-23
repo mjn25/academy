@@ -229,7 +229,7 @@ export function PanelShell({
 
               <button onClick={() => setNotifOpen((v) => !v)} className="relative grid size-10 place-items-center rounded-full text-ink hover:bg-canvas-soft" aria-label={unreadCount ? "اعلان‌ها، " + faNum(unreadCount) + " خوانده‌نشده" : "اعلان‌ها"} aria-expanded={notifOpen}>
                 <Bell className="size-5" />
-                {unreadCount > 0 && <span className="absolute top-1.5 end-1.5 min-w-2.5 h-2.5 rounded-full bg-bad border-2 border-white" />}
+                {unreadCount > 0 && <span className="absolute -top-0.5 -end-0.5 grid min-w-4 h-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold text-white border-2 border-white">{unreadCount > 9 ? "۹+" : faNum(unreadCount)}</span>}
               </button>
               {notifOpen && (
                 <div className="fixed top-16 end-2 z-20 w-80 max-w-[calc(100vw-1rem)] rounded-[8px] border border-hairline-soft bg-white shadow-[0_16px_40px_-16px_rgba(0,0,0,0.18)] p-3 animate-in-up" data-notif-panel>
