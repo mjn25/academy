@@ -119,7 +119,7 @@ try {
       await page.getByPlaceholder(flow.namePlaceholder).fill(flow.nameValue);
       await page.getByPlaceholder("09xxxxxxxxx").fill(flow.phone);
       await page.getByRole("button", { name: flow.submit }).click();
-      await page.getByText(flow.nameValue, { exact: true }).waitFor({ state: "visible", timeout: 10000 });
+      await page.getByRole("heading", { name: flow.nameValue, exact: true }).waitFor({ state: "visible", timeout: 10000 });
       const currentPath = new URL(page.url()).pathname;
       const ok = currentPath.startsWith(flow.expectedPath) && errors.length === 0;
       flowResults.push({ name: flow.name, ok, path: currentPath, errors });
