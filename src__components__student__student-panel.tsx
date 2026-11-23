@@ -1458,8 +1458,8 @@ function StudentOrders() {
                 </p>
                 <span className="flex items-center gap-2">
                   <span className="text-[11px] text-ink-faint">{o.at}</span>
-                  <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${o.pay === "online" ? "bg-ok/10 text-ok" : "bg-warn/10 text-warn"}`}>
-                    {o.pay === "online" ? "پرداخت‌شده" : "در انتظار پرداخت"}
+                  <span className="rounded-full bg-warn/10 px-2.5 py-1 text-[11px] font-bold text-warn">
+                    ثبت آزمایشی
                   </span>
                 </span>
               </div>
@@ -1482,10 +1482,12 @@ function StudentOrders() {
                     <span className="font-bold text-ok">−{faPrice(o.discount)}</span>
                   </p>
                 )}
-                <p className="flex items-center justify-between">
-                  <span>هزینه ارسال</span>
-                  <span className="font-bold text-ink">{o.shipping === 0 ? "رایگان" : faPrice(o.shipping)}</span>
-                </p>
+                {o.items.some((it) => it.type === "book") && (
+                  <p className="flex items-center justify-between">
+                    <span>هزینه ارسال</span>
+                    <span className="font-bold text-ink">{o.shipping === 0 ? "رایگان" : faPrice(o.shipping)}</span>
+                  </p>
+                )}
                 <p className="flex items-center justify-between">
                   <span className="font-black-fa text-[13px] text-ink">مبلغ کل</span>
                   <span className="text-[13.5px] font-black-fa text-ink">{faPrice(o.total)}</span>
