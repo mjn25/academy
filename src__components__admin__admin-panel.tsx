@@ -46,7 +46,7 @@ const nav = adminNav;
 const titles = adminTitles;
 
 /* بخش‌های حذف‌شده (مشاوره، مالی، محتوا، پیام و...) — مسیرهای قدیمی به داشبورد برمی‌گردند */
-const KNOWN_SECTIONS = ["dash", "classes", "students", "teachers", "shop", "settings"];
+const KNOWN_SECTIONS = ["dash", "classes", "students", "teachers", "shop"];
 
 export function AdminPanel({ section }: { section: string }) {
   const known = KNOWN_SECTIONS.includes(section);
@@ -57,7 +57,6 @@ export function AdminPanel({ section }: { section: string }) {
       {section === "students" && <AdminStudents />}
       {section === "teachers" && <AdminTeachers />}
       {section === "shop" && <AdminShop />}
-      {section === "settings" && <AdminSettings />}
       {!known && <AdminDashboard />}
     </PanelShell>
   );
@@ -89,7 +88,6 @@ function AdminDashboard() {
       {/* دسترسی سریع */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          { t: "تخصیص تکلیف جدید", d: "به هر کلاس و هر استاد", href: "/admin/assignments/new", icon: FileText },
           { t: "ثبت‌نام دستی دانشجو", d: "پرداخت حضوری / نقدی", href: "/admin/students/new", icon: Plus },
           { t: "افزودن استاد", d: "ساخت حساب کاربری استاد", href: "/admin/teachers/new", icon: GraduationCap },
         ].map((qa) => (
