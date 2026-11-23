@@ -520,10 +520,8 @@ export const useStore = create<AppState>()(
     set((st) => ({
       courses: st.courses.map((c) => (c.id === courseId ? { ...c, teacherId } : c)),
       teachers: st.teachers.map((t) => {
-        if (t.id === teacherId && !t.courseIds.includes(courseId)) return { ...t, courseIds: [...t.courseIds, courseId] };
-        if (!teacherId || (teacher && t.id !== teacherId && t.courseIds.includes(courseId) && course?.teacherId === t.id))
-          return { ...t, courseIds: t.courseIds.filter((x) => x !== courseId) };
-        return t;
+        if (t.id === teacherId) return t.courseIds.includes(courseId) ? t : { ...t, courseIds: [...t.courseIds, courseId] };
+        return t.courseIds.includes(courseId) ? { ...t, courseIds: t.courseIds.filter((x) => x !== courseId) } : t;
       }),
       activity: [
         {
@@ -543,21 +541,25 @@ export const useStore = create<AppState>()(
     const state = get();
     const course = state.courses.find((c) => c.id === courseId);
     if (!course) return;
-    const already = state.students.find((s) => s.id === studentId)?.courseIds.includes(courseId);
-    if (already) return;
-    if (course.capacity && course.studentIds.length >= course.capacity) return;
+    const student = state.students.find((s) => s.id === studentId);
+    if (!student) return;
+    const alreadyInCourse = course.studentIds.includes(studentId);
+    const alreadyInStudent = student.courseIds.includes(courseId);
+    if (alreadyInCourse && alreadyInStudent) return;
+    if (!alreadyInCourse && course.capacity && course.studentIds.length >= course.capacity) return;
+    const alreadyEnrolled = alreadyInCourse || alreadyInStudent;
     set((st) => ({
       courses: st.courses.map((c) =>
-        c.id === courseId && !c.studentIds.includes(studentId)
-          ? { ...c, studentIds: [...c.studentIds, studentId], enrolled: c.enrolled + 1 }
+        c.id === courseId
+          ? { ...c, studentIds: alreadyInCourse ? c.studentIds : [...c.studentIds, studentId], enrolled: alreadyInCourse ? c.enrolled : c.enrolled + 1 }
           : c
       ),
       students: st.students.map((s) =>
-        s.id === studentId && !s.courseIds.includes(courseId)
-          ? { ...s, courseIds: [...s.courseIds, courseId], balance: s.balance + course.price }
+        s.id === studentId
+          ? { ...s, courseIds: alreadyInStudent ? s.courseIds : [...s.courseIds, courseId], balance: alreadyEnrolled ? s.balance : s.balance + course.price }
           : s
       ),
-      activity: already
+      activity: alreadyEnrolled
         ? st.activity
         : [
             {
