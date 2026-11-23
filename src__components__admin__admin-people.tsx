@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
-import { normalizePhone } from "@/lib/auth-context";
+import { normalizePhone, DEMO_ACCOUNTS } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import { useStore, type UserStatus, type StoreStudent, type StoreTeacher, type StorePayment } from "@/lib/store";
 import { feedbackComments, grades as gradesData } from "@/lib/data";
@@ -555,7 +555,8 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
     }
     const duplicateStudent = students.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
     const duplicateTeacher = teachers.some((item) => normalizePhone(item.phone) === normalizedPhone);
-    if (duplicateStudent || duplicateTeacher) {
+    const reservedDemoPhone = Boolean(DEMO_ACCOUNTS[normalizedPhone] && normalizePhone(existing?.phone ?? "") !== normalizedPhone);
+    if (duplicateStudent || duplicateTeacher || reservedDemoPhone) {
       toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
@@ -960,7 +961,8 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
     }
     const duplicateTeacher = teachers.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
     const duplicateStudent = students.some((item) => normalizePhone(item.phone) === normalizedPhone);
-    if (duplicateTeacher || duplicateStudent) {
+    const reservedDemoPhone = Boolean(DEMO_ACCOUNTS[normalizedPhone] && normalizePhone(existing?.phone ?? "") !== normalizedPhone);
+    if (duplicateTeacher || duplicateStudent || reservedDemoPhone) {
       toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
