@@ -438,45 +438,49 @@ function StudentClassDetail({ classId }: { classId?: string }) {
 }
 
 function StudentSchedule() {
-  const colorMap: Record<string, string> = {
-    navy: "bg-rd-deep text-white",
-    yellow: "bg-canvas-soft text-ink border border-hairline",
-    green: "bg-ok/10 text-ok",
-  };
+  const currentStudentId = useCurrentStudentId();
+  const { navigate } = useRouter();
+  const { courses, assignments } = useStore();
+  const student = useStore((state) => state.students.find((item) => item.id === currentStudentId));
+  const myCourses = courses.filter((course) => student?.courseIds.includes(course.id));
+  const myAssignments = assignments
+    .filter((assignment) => student?.courseIds.includes(assignment.courseId))
+    .sort((a, b) => (faDateVal(a.due) ?? Number.MAX_SAFE_INTEGER) - (faDateVal(b.due) ?? Number.MAX_SAFE_INTEGER));
+
   return (
-    <div>
-      <PanelHeading title="برنامه هفتگی" desc="کلاس‌های حضوری و مهلت تکالیف در یک نگاه." />
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 overflow-x-auto">
-        <div className="grid grid-cols-6 gap-3 min-w-[720px]">
-          {["شنبه", "یکشنبه", "دوشنبه", "سه‌شنبه", "چهارشنبه", "پنجشنبه"].map((d) => (
-            <div key={d}>
-              <p className="text-center text-xs font-bold text-ink-soft pb-2 border-b border-hairline-soft mb-3">{d}</p>
-              <div className="space-y-2.5 min-h-[260px]">
-                {studentSchedule.filter((s) => s.day === d).map((s, i) => (
-                  <div key={i} className={`rounded-[8px] p-3 text-xs leading-6 ${colorMap[s.color]}`}>
-                    <p className="font-bold">{s.course}</p>
-                    <p className="opacity-80 mt-0.5">{s.time}</p>
-                    <p className="opacity-70 text-[10px]">{s.room}</p>
-                  </div>
-                ))}
-                {d === "دوشنبه" && (
-                  <div className="rounded-[8px] border-2 border-dashed border-hairline bg-canvas-soft p-3 text-xs leading-6">
-                    <p className="font-bold text-ink">مهلت تکلیف</p>
-                    <p className="text-ink-soft text-[10px]">نگارش بادی‌پاراگراف — ۲۳:۵۹</p>
-                  </div>
-                )}
-                {d === "پنجشنبه" && (
-                  <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft p-3 text-[11px] text-ink-soft text-center leading-6">
-                    بدون کلاس
-                    <br />وقت مطالعه آزاد 😉
-                  </div>
-                )}
+    <div className="space-y-5">
+      <PanelHeading title="برنامه هفتگی" desc="زمان‌بندی اعلام‌شده کلاس‌ها و مهلت تکالیف دوره‌های شما." />
+      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <h3 className="mb-3 text-sm font-bold text-ink">کلاس‌های من</h3>
+        {myCourses.length ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {myCourses.map((course) => (
+              <button key={course.id} onClick={() => navigate("/student/class/" + course.id)} className="rounded-[8px] border border-hairline-soft p-4 text-start transition-colors hover:border-navy-deep">
+                <span className="block text-sm font-bold text-ink">{course.title}</span>
+                <span className="mt-1 block text-xs text-ink-soft">{course.schedule || "زمان‌بندی هنوز اعلام نشده"}</span>
+                <span className="mt-2 block text-[11px] text-ink-faint">{course.type === "online" ? "آنلاین" : "حضوری"}</span>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-[8px] bg-canvas-soft p-4 text-center text-xs text-ink-soft">هنوز دوره‌ای برای این حساب ثبت نشده است.</p>
+        )}
+      </section>
+      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <h3 className="mb-3 text-sm font-bold text-ink">مهلت تکالیف</h3>
+        {myAssignments.length ? (
+          <div className="space-y-2">
+            {myAssignments.map((assignment) => (
+              <div key={assignment.id} className="flex flex-wrap items-center justify-between gap-2 rounded-[8px] bg-canvas-soft/60 p-3">
+                <span className="min-w-0 flex-1 text-xs font-bold text-ink">{assignment.title}</span>
+                <span className="text-[11px] text-ink-soft">مهلت: {assignment.due}</span>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <p className="mt-4 text-xs text-ink-soft text-center">یادآوری پیامکی کلاس‌ها فعال است (فاز پیامک هوشمند).</p>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-[8px] bg-canvas-soft p-4 text-center text-xs text-ink-soft">برای دوره‌های شما هنوز تکلیفی ثبت نشده است.</p>
+        )}
+      </section>
     </div>
   );
 }
