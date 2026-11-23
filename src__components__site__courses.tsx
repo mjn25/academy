@@ -198,19 +198,8 @@ function PlacementBanner() {
 }
 
 export function CoursesIndex() {
-  /* فیلتر کتگوری — فهرست واحد دوره‌ها؛ همهٔ ۸ کارت همیشه در «یک صفحه» دیده می‌شوند
-     (درخواست کاربر: ۸ کارت در یک صفحه، نه کمتر — بدون صفحه‌بندی وابسته به عرض) */
-  const [cat, setCat] = React.useState<"all" | SiteCourse["track"]>("all");
-  const catTabs: { id: "all" | SiteCourse["track"]; label: string }[] = [
-    { id: "all", label: "همهٔ دوره‌ها" },
-    { id: "blitzdeutsch", label: "BlitzDeutsch — مسیر اصلی زبان" },
-    { id: "blitzjob", label: "BlitzJob — بازار کار" },
-    { id: "blitzzertifikat", label: "BlitzZertifikat — آزمون رسمی" },
-  ];
-
-  const filtered = cat === "all" ? siteCourses : siteCourses.filter((c) => c.track === cat);
-  const PER_PAGE = 8;
-  const pageItems = filtered.slice(0, PER_PAGE);
+  /* نمایش همهٔ دوره‌ها در یک فهرست؛ بدون فیلتر و صفحه‌بندی */
+  const pageItems = siteCourses.slice(0, 8);
 
   return (
     <>
@@ -223,40 +212,8 @@ export function CoursesIndex() {
       <RdSection id="courses-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-<div className="rd-no-scrollbar sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی دوره‌ها">
-            {catTabs.map((t) => {
-              const on = cat === t.id;
-              const count =
-                t.id === "all" ? siteCourses.length : siteCourses.filter((c) => c.track === t.id).length;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={on}
-                  aria-controls="course-list"
-                  onClick={() => setCat(t.id)}
-                  className={`inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-[12px] transition-colors sm:h-10 sm:px-5 sm:text-[13px] ${
-                    on
-                      ? "bg-navy-deep font-extrabold text-white"
-                      : "rd-inside bg-white font-bold text-ink hover:bg-canvas-soft"
-                  }`}
-                >
-                  {t.label}
-                  <span
-                    className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-bold ${
-                      on ? "bg-white/15 text-white" : "bg-canvas-soft text-ink-soft"
-                    }`}
-                  >
-                    {faNum(count)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* فهرست واحد دوره‌ها — کارت‌ها دقیقاً با الگوی کارت صفحهٔ اصلی؛ همهٔ ۸ کارت در یک صفحه */}
-          <div id="course-list" className="mt-3.5 grid gap-4 sm:mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
+{/* فهرست همهٔ دوره‌ها — بدون فیلتر */}
+          <div id="course-list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
             {pageItems.map((c, i) => (
               <CourseCard key={c.slug} c={c} n={String(i + 1).padStart(2, "0")} />
             ))}
