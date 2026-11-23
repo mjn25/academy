@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PanelHeading, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
 import { fa, faNum, faPrice } from "@/lib/format";
-import { useStore, type StorePayment } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { adminNav, adminTitles, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import {
   courses,
@@ -26,7 +26,6 @@ import {
   Users,
   UserCheck,
   GraduationCap,
-  FileText,
   TriangleAlert,
   Plus,
   Search,
@@ -60,7 +59,7 @@ export function AdminPanel({ section }: { section: string }) {
 
 function AdminDashboard() {
   const { navigate } = useRouter();
-  const { students, teachers, courses, assignments, submissions, activity } = useStore();
+  const { students, teachers, courses, activity } = useStore();
 
   const roleBadge: Record<string, { label: string; cls: string }> = {
     admin: { label: "مدیریت", cls: "bg-navy-deep text-white" },
@@ -72,10 +71,9 @@ function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* کارت‌های آماری */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard icon={UserCheck} label="ثبت‌نام جدید (این هفته)" value="۱۸ نفر" trend="+۲۳٪" />
         <StatCard icon={Users} label="دانشجویان فعال" value={`${faNum(students.filter((s) => s.status === "فعال").length)} نفر`} tint="yellow" />
-        <StatCard icon={FileText} label="تکالیف فعال" value={`${faNum(assignments.length)} تکلیف — ${faNum(submissions.length)} پاسخ`} />
         <StatCard icon={BookOpenCheck} label="کلاس‌های در حال برگزاری" value={`${faNum(courses.filter((c) => c.status === "فعال").length)} کلاس`} />
       </div>
 
