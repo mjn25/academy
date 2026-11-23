@@ -22,7 +22,7 @@ import { useRouter } from "@/lib/app-context";
 import { normalizePhone, DEMO_ACCOUNTS } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import { useStore, type UserStatus, type StoreStudent, type StoreTeacher, type StorePayment } from "@/lib/store";
-import { feedbackComments, grades as gradesData } from "@/lib/data";
+import { feedbackComments } from "@/lib/data";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { adminNav, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import {
@@ -86,6 +86,8 @@ export function AdminStudentProfile({ id }: { id?: string }) {
 
   const myCourses = courses.filter((c) => s.courseIds.includes(c.id));
   const mySubs = submissions.filter((x) => x.studentId === s.id);
+  const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => sum + (submission.score ?? 0), 0) / gradedSubs.length : null;
   const myInvoices = invoices.filter((i) => i.studentId === s.id);
   const myPayments = payments.filter((p) => p.studentId === s.id);
   const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id));
@@ -156,8 +158,8 @@ export function AdminStudentProfile({ id }: { id?: string }) {
       {/* آمار */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(myCourses.length)} دوره`} />
-        <StatCard icon={TrendingUp} label="درصد حضور" value={s.attendance ? `${fa(s.attendance)}٪` : "—"} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره" value={s.avg ? fa(s.avg.toFixed(1)) : "—"} tint="green" />
+        <StatCard icon={ClipboardList} label="پاسخ‌های ثبت‌شده" value={\`\${faNum(mySubs.length)} پاسخ\`} tint="yellow" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1))} tint="green" />
         <StatCard icon={Wallet} label="مانده حساب" value={s.balance > 0 ? faPrice(s.balance) : "تسویه"} tint={s.balance > 0 ? "red" : "green"} />
       </div>
 
@@ -282,22 +284,33 @@ export function AdminStudentProfile({ id }: { id?: string }) {
           ) : (
             <div className="space-y-4">
               {s.courseIds.map((cid) => {
-                const rows = gradesData[cid];
-                const course = courses.find((c) => c.id === cid);
-                if (!rows) return null;
+                const course = courses.find((item) => item.id === cid);
+                const courseAssignments = assignments.filter((assignment) => assignment.courseId === cid);
+                const rows = courseAssignments.flatMap((assignment) => {
+                  const submission = gradedSubs.find((item) => item.assignmentId === assignment.id);
+                  return submission ? [{ assignment, submission }] : [];
+                });
+                if (!course) return null;
                 return (
                   <div key={cid} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-                    <p className="font-bold text-ink text-sm mb-3 flex items-center gap-2"><ShieldCheck className="size-4 text-ink" /> کارنامه {course?.title ?? cid}</p>
-                    <div className="space-y-2">
-                      {rows.map((g) => (
-                        <div key={g.item} className="flex flex-wrap items-center gap-3 rounded-[8px] bg-canvas-soft px-3.5 py-2.5">
-                          <span className="text-xs font-bold text-ink flex-1 min-w-40">{g.item}</span>
-                          <span className="text-[10px] rounded-full bg-white px-2 py-0.5 text-ink-soft border border-hairline-soft">{g.type}</span>
-                          <span className="text-xs font-black-fa text-ink">{fa(String(g.score))} <span className="text-ink-soft font-normal">از {fa(String(g.max))}</span></span>
-                          <span className={`text-[11px] font-bold ${g.score / g.max >= 0.8 ? "text-ok" : g.score / g.max >= 0.6 ? "text-warn" : "text-bad"}`}>{fa(Math.round((g.score / g.max) * 100))}٪</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="font-bold text-ink text-sm mb-3 flex items-center gap-2"><ShieldCheck className="size-4 text-ink" /> کارنامه {course.title}</p>
+                    {rows.length ? (
+                      <div className="space-y-2">
+                        {rows.map(({ assignment, submission }) => {
+                          const score = submission.score ?? 0;
+                          const ratio = assignment.max > 0 ? score / assignment.max : 0;
+                          return (
+                            <div key={submission.id} className="flex flex-wrap items-center gap-3 rounded-[8px] bg-canvas-soft px-3.5 py-2.5">
+                              <span className="text-xs font-bold text-ink flex-1 min-w-40">{assignment.title}</span>
+                              <span className="text-xs font-black-fa text-ink">{fa(score)} <span className="text-ink-soft font-normal">از {fa(assignment.max)}</span></span>
+                              <span className={\`text-[11px] font-bold \${ratio >= 0.8 ? "text-ok" : ratio >= 0.6 ? "text-warn" : "text-bad"}\`}>{fa(Math.round(ratio * 100))}٪</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-4 text-xs text-ink-soft">هنوز نمره‌ای برای این دوره ثبت نشده است.</p>
+                    )}
                   </div>
                 );
               })}
@@ -566,7 +579,6 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
       phone: normalizedPhone,
       email: email.trim(),
       status,
-      balance: totalFee,
       courseIds,
     };
     if (existing) {
@@ -693,7 +705,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
             <p className="mt-3 rounded-[8px] border border-dashed border-hairline-soft bg-white px-4 py-3 text-xs text-ink-soft">هنوز دوره‌ای اضافه نشده — یک دوره از لیست بالا انتخاب کنید و «افزودن دوره» را بزنید.</p>
           )}
           <p className="mt-2 text-[11px] text-ink-soft leading-6">
-            مانده حساب دانشجو برابر جمع شهریه دوره‌های انتخابی محاسبه می‌شود. پس از ذخیره، دانشجو در لیست هر دوره (پنل استاد و پنل دانشجو) هم ثبت می‌شود.
+            جمع شهریه دوره‌های انتخابی در همین فرم نمایش داده می‌شود. در ویرایش پرونده، تغییر دوره‌ها مانده حساب را به‌اندازه شهریه همان دوره‌ها تغییر می‌دهد و پرداخت‌های قبلی حفظ می‌شوند. پس از ذخیره، ثبت‌نام در فهرست دوره‌ها و پنل دانشجو و استاد هم به‌روزرسانی می‌شود.
           </p>
         </div>
         </section>
