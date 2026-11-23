@@ -349,6 +349,97 @@ function StudentClasses() {
 /* ---------------------- موتور آزمون ویدئویی (فلگ‌شیپ) --------------------- */
 
 
+
+function StudentClassDetail({ classId }: { classId?: string }) {
+  const currentStudentId = useCurrentStudentId();
+  const { navigate } = useRouter();
+  const { courses: allCourses, students, teachers, assignments, submissions, materials } = useStore();
+  const student = students.find((item) => item.id === currentStudentId);
+  const course = allCourses.find((item) => item.id === classId);
+  const hasAccess = Boolean(course && student?.courseIds.includes(course.id));
+  const courseAssignments = course ? assignments.filter((assignment) => assignment.courseId === course.id) : [];
+  const assignmentIds = courseAssignments.map((assignment) => assignment.id);
+  const mySubmissions = submissions.filter((submission) => submission.studentId === currentStudentId && assignmentIds.includes(submission.assignmentId));
+  const courseMaterials = materials.filter((material) => assignmentIds.includes(material.assignmentId) && (!material.studentId || material.studentId === currentStudentId));
+  const graded = mySubmissions.filter((submission) => submission.status === "نمره‌داده‌شده");
+  const pending = mySubmissions.filter((submission) => submission.status === "در انتظار بررسی");
+  const teacher = course ? teachers.find((item) => item.id === course.teacherId) : undefined;
+
+  if (!course || !hasAccess) {
+    return (
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 text-center sm:p-10">
+        <BookOpenCheck className="mx-auto size-9 text-ink-faint" />
+        <h2 className="mt-3 text-sm font-bold text-ink">{course ? "این کلاس در فهرست دوره‌های شما نیست" : "کلاس پیدا نشد"}</h2>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-ink-soft">فقط کلاس‌هایی که در آن‌ها ثبت‌نام کرده‌اید از این بخش قابل مشاهده‌اند.</p>
+        <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/classes")}>بازگشت به کلاس‌های من</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5">
+      <button onClick={() => navigate("/student/classes")} className="flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink">
+        <ArrowRight className="size-4" /> بازگشت به کلاس‌ها
+      </button>
+      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <Badge className={course.type === "online" ? "bg-rd-deep text-white hover:bg-rd-deep" : "bg-canvas-soft text-ink hover:bg-canvas-soft"}>{course.type === "online" ? "آنلاین" : "حضوری"}</Badge>
+              <Badge variant="outline" className="border-hairline-soft text-ink-soft">سطح {course.level}</Badge>
+              <StatusBadge status={course.status} />
+            </div>
+            <h1 className="text-lg font-black-fa text-ink sm:text-xl">{course.title}</h1>
+            <p className="mt-1.5 text-xs text-ink-soft">{teacher?.name ?? "استاد تعیین نشده"} · {course.schedule || "زمان‌بندی اعلام نشده"}</p>
+          </div>
+          <div className="grid min-w-[112px] grid-cols-2 gap-2 sm:min-w-[180px]">
+            <div className="rounded-[8px] bg-canvas-soft/70 p-3 text-center"><p className="text-lg font-black-fa text-ink">{faNum(courseAssignments.length)}</p><p className="mt-0.5 text-[10px] text-ink-soft">تکلیف</p></div>
+            <div className="rounded-[8px] bg-canvas-soft/70 p-3 text-center"><p className="text-lg font-black-fa text-ink">{faNum(graded.length)}</p><p className="mt-0.5 text-[10px] text-ink-soft">نمره ثبت‌شده</p></div>
+          </div>
+        </div>
+        {pending.length > 0 && <p className="mt-4 rounded-[8px] bg-info/5 px-3.5 py-2.5 text-xs text-ink-soft">{faNum(pending.length)} پاسخ در انتظار بررسی استاد است.</p>}
+      </section>
+
+      <Tabs defaultValue="tasks" className="rounded-[8px] rd-inside border border-hairline-soft bg-white">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start rounded-none border-b border-hairline-soft bg-transparent p-0">
+          {[{ value: "tasks", label: "تکالیف" }, { value: "files", label: "فایل‌های آموزشی" }, { value: "grades", label: "نمرات من" }].map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="rounded-none border-b-2 border-transparent px-4 py-3 text-xs text-ink-soft data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:shadow-none sm:px-5 sm:text-sm">{tab.label}</TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value="tasks" className="space-y-3 p-4 sm:p-5">
+          {courseAssignments.length ? courseAssignments.map((assignment) => {
+            const submission = mySubmissions.find((item) => item.assignmentId === assignment.id);
+            return (
+              <button key={assignment.id} onClick={() => navigate("/student/assignments/" + assignment.id)} className="flex w-full flex-wrap items-center gap-3 rounded-[8px] border border-hairline-soft p-3.5 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/30 sm:p-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><ClipboardList className="size-5" /></span>
+                <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-ink">{assignment.title}</span><span className="mt-1 block text-[11px] text-ink-soft">مهلت تحویل: {assignment.due} · نمره کل: {fa(assignment.max)}</span></span>
+                {submission ? <StatusBadge status={submission.status} /> : <Badge className="bg-warn/10 text-warn hover:bg-warn/10">تحویل‌نداده</Badge>}
+                <ArrowLeft className="size-4 shrink-0 text-ink-faint" />
+              </button>
+            );
+          }) : <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center"><ClipboardList className="mx-auto size-7 text-ink-faint" /><p className="mt-2 text-sm font-bold text-ink">هنوز تکلیفی برای این کلاس تعریف نشده</p><p className="mt-1 text-xs text-ink-soft">وقتی استاد تکلیفی ثبت کند، از همین بخش می‌توانید آن را ببینید.</p></div>}
+        </TabsContent>
+        <TabsContent value="files" className="space-y-2 p-4 sm:p-5">
+          {courseMaterials.length ? courseMaterials.map((material) => (
+            <div key={material.id} className="flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3.5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-5" /></span>
+              <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-ink">{material.name}</span><span className="mt-1 block text-[11px] text-ink-soft">{material.uploadedByName} · {material.uploadedAt}{material.size ? " · " + material.size : ""}</span></span>
+              <Badge variant="outline" className="shrink-0 border-hairline-soft text-ink-soft">{material.kind === "video" ? "ویدئو" : "تمرین"}</Badge>
+            </div>
+          )) : <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center"><FolderOpen className="mx-auto size-7 text-ink-faint" /><p className="mt-2 text-sm font-bold text-ink">فایلی برای این کلاس ثبت نشده</p><p className="mt-1 text-xs text-ink-soft">فایل‌های بارگذاری‌شده توسط استاد در این بخش نمایش داده می‌شوند.</p></div>}
+          <p className="pt-1 text-[10px] leading-5 text-ink-faint">در این نسخه فقط فایل‌هایی نمایش داده می‌شوند که در پرونده تکلیف ثبت شده‌اند.</p>
+        </TabsContent>
+        <TabsContent value="grades" className="space-y-2 p-4 sm:p-5">
+          {graded.length ? graded.map((submission) => {
+            const assignment = courseAssignments.find((item) => item.id === submission.assignmentId);
+            return <div key={submission.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[8px] border border-hairline-soft p-3.5"><div className="min-w-0"><p className="text-sm font-bold text-ink">{assignment?.title ?? "تکلیف"}</p><p className="mt-1 text-[11px] text-ink-soft">بازخورد استاد: {submission.feedback || "بازخوردی ثبت نشده"}</p></div><p className="shrink-0 text-base font-black-fa text-ink">{fa(submission.score ?? 0)} <span className="text-xs font-normal text-ink-soft">از {fa(assignment?.max ?? 10)}</span></p></div>;
+          }) : <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center"><Award className="mx-auto size-7 text-ink-faint" /><p className="mt-2 text-sm font-bold text-ink">هنوز نمره‌ای ثبت نشده</p><p className="mt-1 text-xs text-ink-soft">پس از بررسی پاسخ‌ها توسط استاد، نمره‌ها اینجا نمایش داده می‌شوند.</p></div>}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
 function StudentSchedule() {
   const colorMap: Record<string, string> = {
     navy: "bg-rd-deep text-white",
