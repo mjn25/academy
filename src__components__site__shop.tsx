@@ -21,7 +21,7 @@ function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
   const off = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
   return (
     <RdCard
-      className="group flex flex-col p-2 transition-colors hover:bg-canvas-soft/70 sm:p-3"
+      className="group flex min-w-0 flex-col p-2 transition-colors hover:bg-canvas-soft/70 sm:p-3"
       marks
       radius="rounded-[8px]"
     >
@@ -93,6 +93,10 @@ function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
 }
 
 export function ShopPage() {
+  const [activeTag, setActiveTag] = React.useState("all");
+  const tags = [...new Set(shopProducts.map((p) => p.tag))];
+  const filtered = activeTag === "all" ? shopProducts : shopProducts.filter((p) => p.tag === activeTag);
+
   return (
     <>
       <PageHero
@@ -105,9 +109,19 @@ export function ShopPage() {
       <RdSection id="shop-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-          {/* ۸ محصول در دو ردیف ۴تایی (درخواست کاربر — هم‌ریتم صفحهٔ دوره‌ها) */}
-          <div className="mt-3.5 grid gap-3.5 sm:mt-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
-            {shopProducts.map((p, i) => (
+          <div className="sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی محصولات">
+            {[{ id: "all", label: "همه محصولات", count: shopProducts.length }, ...tags.map((tag) => ({ id: tag, label: tag, count: shopProducts.filter((p) => p.tag === tag).length }))].map((item) => {
+              const active = activeTag === item.id;
+              return (
+                <button key={item.id} type="button" role="tab" aria-selected={active} aria-controls="shop-product-list" onClick={() => setActiveTag(item.id)} className={`inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 text-[12px] font-bold transition-colors sm:h-10 sm:px-4 sm:text-[13px] ${active ? "bg-navy-deep text-white" : "rd-inside bg-white text-ink-soft hover:bg-canvas-soft hover:text-ink"}`}>
+                  {item.label}
+                  <span className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] ${active ? "bg-white/15 text-white" : "bg-canvas-soft text-ink-soft"}`}>{faNum(item.count)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div id="shop-product-list" className="mt-3.5 grid gap-4 sm:mt-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
+            {filtered.map((p, i) => (
               <ProductCard key={p.id} p={p} n={faNum(i + 1)} />
             ))}
           </div>
