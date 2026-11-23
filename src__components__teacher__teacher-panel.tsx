@@ -390,8 +390,9 @@ function TeacherAssignments() {
     const a = myAssignments.find((x) => x.id === sub?.assignmentId);
     const raw = scores[subId];
     const num = Number(raw?.replace(/[^\d.]/g, ""));
-    if (raw === undefined || raw === "" || isNaN(num)) {
-      toast({ title: "نمره وارد نشده", description: `نمره بین ۰ تا ${a?.max ?? 10} وارد کنید.`, variant: "destructive" });
+    const maxScore = a?.max ?? 10;
+    if (raw === undefined || raw === "" || !Number.isFinite(num) || num < 0 || num > maxScore) {
+      toast({ title: "نمره معتبر نیست", description: `نمره باید عددی بین ۰ تا ${maxScore} باشد.`, variant: "destructive" });
       return;
     }
     gradeSubmission(subId, { score: num, feedback: feedbacks[subId] || undefined });
