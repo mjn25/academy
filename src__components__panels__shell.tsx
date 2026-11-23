@@ -189,9 +189,9 @@ export function PanelShell({
               )}
             </div>
             <button
-              onClick={() => navigate(roleLabel === "پنل مدیریت" ? "/admin/settings" : roleLabel === "پنل استاد" ? "/teacher/profile" : "/student/profile")}
+              onClick={() => navigate(roleLabel === "پنل مدیریت" ? "/admin" : roleLabel === "پنل استاد" ? "/teacher/profile" : "/student/profile")}
               className="flex items-center gap-2.5 rounded-full border border-hairline px-2 h-9 hover:bg-canvas-soft transition-colors"
-              aria-label="پروفایل من"
+              aria-label={roleLabel === "پنل مدیریت" ? "داشبورد مدیریت" : "پروفایل من"}
             >
               <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-white text-xs font-black-fa">{name[0]}</span>
               <span className="hidden sm:block text-xs font-bold text-ink pe-1">{name}</span>
