@@ -17,10 +17,7 @@ import { useCurrentStudentId } from "@/lib/current-user";
 import { useAuth, normalizePhone } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import {
-  grades as gradesData,
-  studentSchedule,
   notificationsStudent,
-  courses,
 } from "@/lib/data";
 import {
   LayoutDashboard,
@@ -75,11 +72,11 @@ const nav: PanelNavItem[] = [
   { key: "dash", label: "داشبورد", icon: LayoutDashboard, href: "/student" },
   { key: "classes", label: "کلاس‌های من", icon: BookOpenCheck, href: "/student/classes" },
   { key: "schedule", label: "برنامه هفتگی", icon: CalendarDays, href: "/student/schedule" },
-  { key: "assignments", label: "تکالیف", icon: ClipboardList, href: "/student/assignments", badge: 2 },
+  { key: "assignments", label: "تکالیف", icon: ClipboardList, href: "/student/assignments" },
   { key: "files", label: "فایل‌های آموزشی", icon: FolderOpen, href: "/student/files" },
   { key: "grades", label: "نمرات", icon: Star, href: "/student/grades" },
   { key: "progress", label: "گزارش پیشرفت", icon: TrendingUp, href: "/student/progress" },
-  { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/student/messages", badge: 2 },
+  { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/student/messages" },
   { key: "addresses", label: "آدرس‌های من", icon: MapPin, href: "/student/addresses" },
   { key: "orders", label: "سفارش‌های من", icon: ShoppingBag, href: "/student/orders" },
   { key: "profile", label: "پروفایل", icon: UserCircle, href: "/student/profile" },
