@@ -689,8 +689,9 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
             مانده حساب دانشجو برابر جمع شهریه دوره‌های انتخابی محاسبه می‌شود. پس از ذخیره، دانشجو در لیست هر دوره (پنل استاد و پنل دانشجو) هم ثبت می‌شود.
           </p>
         </div>
+        </section>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <UserPlus className="size-4 me-1.5" /> {existing ? "ذخیره تغییرات" : "ثبت‌نام دانشجو"}
           </Button>
