@@ -441,6 +441,15 @@ export function TeacherClassDetail({ id }: { id?: string }) {
   const courseAssignments = assignments.filter((a) => a.courseId === c.id);
   const isMine = c.teacherId === currentTeacherId;
 
+  if (!isMine) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "کلاس‌های من", href: "/teacher/classes" }, { label: c.title }]} title={c.title} />
+        <EmptyState title="این کلاس به شما تخصیص داده نشده" desc="فقط می‌توانید اطلاعات کلاس‌هایی را ببینید که مدیریت به شما سپرده است." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/classes")}>بازگشت به کلاس‌های من</Button>} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader
