@@ -44,6 +44,25 @@ try {
         width: window.innerWidth,
         documentWidth: Math.max(document.documentElement.scrollWidth, document.body?.scrollWidth ?? 0),
         bodyText: (document.body?.innerText ?? "").trim().slice(0, 240),
+        overflowElements: Array.from(document.querySelectorAll("body *"))
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+              tag: element.tagName,
+              className: typeof element.className === "string" ? element.className.slice(0, 180) : "",
+              text: (element.textContent ?? "").trim().replace(/\s+/g, " ").slice(0, 70),
+              left: Math.round(rect.left),
+              right: Math.round(rect.right),
+              width: Math.round(rect.width),
+              position: style.position,
+              display: style.display,
+              scrollWidth: element.scrollWidth,
+            };
+          })
+          .filter((element) => element.display !== "none" && element.width > 0 && (element.right > window.innerWidth + 2 || element.left < -2))
+          .sort((a, b) => b.right - a.right)
+          .slice(0, 12),
       }));
       const screenshotPath = path.join(output, `${route.name}-${viewport.name}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: true, animations: "disabled" });
