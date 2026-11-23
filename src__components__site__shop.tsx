@@ -109,7 +109,7 @@ export function ShopPage() {
       <RdSection id="shop-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-          <div className="sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی محصولات">
+          <div className="rd-no-scrollbar sticky top-[56px] z-40 -mx-4 flex gap-2 overflow-x-auto border-b border-hairline-soft bg-white/95 px-4 py-2 backdrop-blur sm:mx-0 sm:flex-wrap sm:overflow-visible sm:rounded-[8px] sm:border sm:px-3" role="tablist" aria-label="دسته‌بندی محصولات">
             {[{ id: "all", label: "همه محصولات", count: shopProducts.length }, ...tags.map((tag) => ({ id: tag, label: tag, count: shopProducts.filter((p) => p.tag === tag).length }))].map((item) => {
               const active = activeTag === item.id;
               return (
@@ -347,19 +347,19 @@ export function ShopProductPage({ id }: { id: string }) {
       </RdSection>
 
       {/* قیمت + تعداد + افزودن — فیکس در انتهای صفحه در موبایل؛ هم‌الگوی پروفایل دوره */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-2.5">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-1.5">
           <div className="min-w-0 leading-tight">
             <p className="text-[10px] text-ink-faint">هزینه</p>
-            <p className="whitespace-nowrap text-[14px] font-black-fa leading-6 text-ink">
+            <p className="whitespace-nowrap text-[13px] font-black-fa leading-6 text-ink">
               {formatToman(p.price)} <span className="text-[10px] font-bold text-ink-soft">تومان</span>
             </p>
           </div>
-          <div className="shrink-0">{qtyStepper}</div>
+          <div className="shrink-0 [&_button]:size-8 [&_span]:min-w-[44px] [&_span]:text-[12px]">{qtyStepper}</div>
           <button
             type="button"
             onClick={addToCart}
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-rd-deep px-4 text-[12.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-rd-deep px-3 text-[11.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
           >
             <ShoppingBag className="size-4" />
             افزودن
