@@ -59,7 +59,8 @@ function AdminClassDetail({ id }: { id?: string }) {
 
   const teacher = teachers.find((t) => t.id === c.teacherId);
   const roster = c.studentIds.map((sid) => students.find((s) => s.id === sid)).filter(Boolean) as typeof students;
-  const notInCourse = students.filter((s) => !c.studentIds.includes(s.id));
+  const hasCapacity = !c.capacity || c.studentIds.length < c.capacity;
+  const notInCourse = hasCapacity ? students.filter((s) => !c.studentIds.includes(s.id)) : [];
 
   const openEdit = () => {
     setForm({
@@ -145,7 +146,7 @@ function AdminClassDetail({ id }: { id?: string }) {
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <p className="font-bold text-ink text-sm flex items-center gap-2"><Users className="size-4 text-ink" /> لیست دانشجویان ({faNum(roster.length)})</p>
-          <Button size="sm" className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}>
+          <Button size="sm" disabled={!hasCapacity || notInCourse.length === 0} className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}
             <UserPlus className="size-4 me-1" /> افزودن دانشجو به دوره
           </Button>
         </div>
@@ -306,7 +307,7 @@ function AdminClassDetail({ id }: { id?: string }) {
             <DialogTitle className="font-black-fa text-ink">افزودن دانشجو به دوره</DialogTitle>
           </DialogHeader>
           {notInCourse.length === 0 ? (
-            <p className="text-sm text-ink-soft py-4 text-center">همه دانشجویان ثبت‌نامی قبلاً عضو این دوره هستند.</p>
+            <p className="text-sm text-ink-soft py-4 text-center">{hasCapacity ? "همه دانشجویان ثبت‌نامی قبلاً عضو این دوره هستند." : "ظرفیت این دوره تکمیل شده است؛ ابتدا ظرفیت دوره را افزایش دهید."}</p>
           ) : (
             <div className="space-y-4">
               <div>
