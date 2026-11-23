@@ -576,7 +576,10 @@ export const useStore = create<AppState>()(
   },
 
   removeStudentFromCourse: (courseId, studentId) => {
-    const course = get().courses.find((c) => c.id === courseId);
+    const state = get();
+    const course = state.courses.find((c) => c.id === courseId);
+    const student = state.students.find((s) => s.id === studentId);
+    if (!course || !student || (!course.studentIds.includes(studentId) && !student.courseIds.includes(courseId))) return;
     set((st) => ({
       courses: st.courses.map((c) =>
         c.id === courseId && c.studentIds.includes(studentId)
@@ -662,13 +665,25 @@ export const useStore = create<AppState>()(
 
   submitAnswer: (s) =>
     set((st) => {
-      const existing = st.submissions.find((x) => x.assignmentId === s.assignmentId && x.studentId === s.studentId);
       const asg = st.assignments.find((a) => a.id === s.assignmentId);
+      const student = st.students.find((x) => x.id === s.studentId);
+      if (!asg || !student || !student.courseIds.includes(asg.courseId)) return {};
+      const existing = st.submissions.find((x) => x.assignmentId === s.assignmentId && x.studentId === s.studentId);
       if (existing) {
         return {
           submissions: st.submissions.map((x) =>
             x.id === existing.id
-              ? { ...x, text: s.text ?? x.text, file: s.file ?? x.file, submittedAt: new Date().toISOString(), status: "در انتظار بررسی" as const }
+              ? {
+                  ...x,
+                  text: s.text ?? "",
+                  file: s.file,
+                  late: s.late ?? false,
+                  score: undefined,
+                  feedback: undefined,
+                  gradedAt: undefined,
+                  submittedAt: new Date().toISOString(),
+                  status: "در انتظار بررسی" as const,
+                }
               : x
           ),
           activity: [
@@ -702,8 +717,9 @@ export const useStore = create<AppState>()(
     set((st) => {
       const sub = st.submissions.find((x) => x.id === id);
       const asg = st.assignments.find((a) => a.id === sub?.assignmentId);
+      if (!sub || !asg || !Number.isFinite(g.score) || g.score < 0 || g.score > asg.max) return {};
       return {
-        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback, gradedAt: new Date().toISOString(), status: "نمره‌داده‌شده" as const } : x)),
+        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback?.trim() || undefined, gradedAt: new Date().toISOString(), status: "نمره‌داده‌شده" as const } : x)),
         activity: [
           {
             id: nid("ac"),
