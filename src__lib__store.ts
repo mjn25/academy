@@ -539,6 +539,8 @@ export const useStore = create<AppState>()(
     const course = state.courses.find((c) => c.id === courseId);
     if (!course) return;
     const already = state.students.find((s) => s.id === studentId)?.courseIds.includes(courseId);
+    if (already) return;
+    if (course.capacity && course.studentIds.length >= course.capacity) return;
     set((st) => ({
       courses: st.courses.map((c) =>
         c.id === courseId && !c.studentIds.includes(studentId)
