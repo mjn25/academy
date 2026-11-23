@@ -47,9 +47,9 @@ function RouterSwitch({ ready }: { ready: boolean }) {
     const rest = path.replace("/student", "");
     let el: React.ReactNode;
     if (rest.startsWith("/class/")) {
-      el = <StudentPanel section="class" param={rest.split("/")[2]} />;
+      el = <StudentPanel key={rest.split("/")[2]} section="class" param={rest.split("/")[2]} />;
     } else if (rest.startsWith("/assignments/")) {
-      el = <StudentPagesPanel mode="assignment" id={rest.split("/")[2]} />;
+      el = <StudentPagesPanel key={rest.split("/")[2]} mode="assignment" id={rest.split("/")[2]} />;
     } else if (rest === "/profile/edit") {
       el = <StudentPagesPanel mode="profile-edit" />;
     } else {
@@ -67,13 +67,13 @@ function RouterSwitch({ ready }: { ready: boolean }) {
     const rest = path.replace("/teacher", "");
     let el: React.ReactNode;
     if (rest.startsWith("/classes/")) {
-      el = <TeacherPagesPanel mode="class" id={rest.split("/")[2]} />;
+      el = <TeacherPagesPanel key={rest.split("/")[2]} mode="class" id={rest.split("/")[2]} />;
     } else if (rest === "/assignments/new") {
       el = <TeacherPagesPanel mode="assignment-new" />;
     } else if (rest.startsWith("/assignments/")) {
-      el = <TeacherPagesPanel mode="assignment" id={rest.split("/")[2]} />;
+      el = <TeacherPagesPanel key={rest.split("/")[2]} mode="assignment" id={rest.split("/")[2]} />;
     } else if (rest.startsWith("/students/")) {
-      el = <TeacherPagesPanel mode="student" id={rest.split("/")[2]} />;
+      el = <TeacherPagesPanel key={rest.split("/")[2]} mode="student" id={rest.split("/")[2]} />;
     } else {
       el = <TeacherPanel section={rest.replace("/", "") || "dash"} />;
     }
@@ -93,21 +93,21 @@ function RouterSwitch({ ready }: { ready: boolean }) {
     } else if (rest.startsWith("/students/")) {
       const tail = rest.replace("/students/", "");
       if (tail.endsWith("/edit")) {
-        el = <AdminPeoplePanel mode="student-edit" id={tail.replace("/edit", "")} />;
+        el = <AdminPeoplePanel key={tail.replace("/edit", "")} mode="student-edit" id={tail.replace("/edit", "")} />;
       } else {
-        el = <AdminPeoplePanel mode="student" id={tail} />;
+        el = <AdminPeoplePanel key={tail} mode="student" id={tail} />;
       }
     } else if (rest === "/teachers/new") {
       el = <AdminPeoplePanel mode="teacher-new" />;
     } else if (rest.startsWith("/teachers/")) {
       const tail = rest.replace("/teachers/", "");
       if (tail.endsWith("/edit")) {
-        el = <AdminPeoplePanel mode="teacher-edit" id={tail.replace("/edit", "")} />;
+        el = <AdminPeoplePanel key={tail.replace("/edit", "")} mode="teacher-edit" id={tail.replace("/edit", "")} />;
       } else {
-        el = <AdminPeoplePanel mode="teacher" id={tail} />;
+        el = <AdminPeoplePanel key={tail} mode="teacher" id={tail} />;
       }
     } else if (rest.startsWith("/classes/")) {
-      el = <AdminClassPanel id={rest.split("/")[2]} />;
+      el = <AdminClassPanel key={rest.split("/")[2]} id={rest.split("/")[2]} />;
     } else {
       el = <AdminPanel section={rest.replace("/", "") || "dash"} />;
     }
