@@ -271,12 +271,12 @@ function AdminClassDetail({ id }: { id?: string }) {
                   toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
                   return;
                 }
-                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, roster.length))) {
-                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت نمی‌تواند کمتر از ${faNum(roster.length)} دانشجوی ثبت‌نام‌شده باشد.`, variant: "destructive" });
+                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, c.studentIds.length))) {
+                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت نمی‌تواند کمتر از ${faNum(c.studentIds.length)} دانشجوی ثبت‌نام‌شده باشد.`, variant: "destructive" });
                   return;
                 }
-                if (form.status === "فعال" && !c.teacherId) {
-                  toast({ title: "ابتدا استاد دوره را مشخص کنید", description: "دوره بدون استاد نمی‌تواند فعال شود.", variant: "destructive" });
+                if (form.status === "فعال" && (!teacher || teacher.status !== "فعال")) {
+                  toast({ title: "ابتدا استاد دوره را مشخص کنید", description: "برای فعال‌کردن دوره، یک استاد فعال تخصیص دهید.", variant: "destructive" });
                   return;
                 }
                 updateCourse(c.id, {
