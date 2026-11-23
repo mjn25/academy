@@ -161,7 +161,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(myCourses.length)} دوره`} />
         <StatCard icon={ClipboardList} label="پاسخ‌های ثبت‌شده" value={\`\${faNum(mySubs.length)} پاسخ\`} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1))} tint="green" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪"} tint="green" />
         <StatCard icon={Wallet} label="مانده حساب" value={s.balance > 0 ? faPrice(s.balance) : "تسویه"} tint={s.balance > 0 ? "red" : "green"} />
       </div>
 
