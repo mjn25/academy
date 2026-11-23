@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
+import { normalizePhone } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import { useStore, type UserStatus, type StoreStudent, type StoreTeacher, type StorePayment } from "@/lib/store";
 import { feedbackComments, grades as gradesData } from "@/lib/data";
@@ -509,7 +510,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
 export function AdminStudentEdit({ id }: { id: string | null }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { students, courses, addStudent, updateStudent, addStudentToCourse, removeStudentFromCourse } = useStore();
+  const { students, teachers, courses, addStudent, updateStudent, addStudentToCourse, removeStudentFromCourse } = useStore();
   const existing = id ? students.find((x) => x.id === id) : null;
 
   const [name, setName] = React.useState(existing?.name ?? "");
@@ -547,14 +548,21 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   };
 
   const save = () => {
-    if (!name.trim() || !phone.trim()) {
-      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل الزامی است.", variant: "destructive" });
+    const normalizedPhone = normalizePhone(phone);
+    if (!name.trim() || !normalizedPhone) {
+      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل معتبر الزامی است.", variant: "destructive" });
+      return;
+    }
+    const duplicateStudent = students.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
+    const duplicateTeacher = teachers.some((item) => normalizePhone(item.phone) === normalizedPhone);
+    if (duplicateStudent || duplicateTeacher) {
+      toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
     /* مانده حساب خودکار = جمع شهریه دوره‌های انتخابی */
     const patch = {
       name: name.trim(),
-      phone: phone.trim(),
+      phone: normalizedPhone,
       email: email.trim(),
       status,
       balance: totalFee,
@@ -925,7 +933,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
 export function AdminTeacherEdit({ id }: { id: string | null }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { teachers, courses, addTeacher, updateTeacher, setCourseTeacher } = useStore();
+  const { teachers, students, courses, addTeacher, updateTeacher, setCourseTeacher } = useStore();
   const existing = id ? teachers.find((x) => x.id === id) : null;
 
   /* درخواست کاربر: فرم استاد فقط نام + موبایل + درس‌هایی که تدریس می‌کند — ایمیل/مدرک/سابقه/بیوگرافی نیست */
@@ -945,15 +953,22 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
   }
 
   const save = () => {
-    if (!name.trim() || !phone.trim()) {
-      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل الزامی است.", variant: "destructive" });
+    const normalizedPhone = normalizePhone(phone);
+    if (!name.trim() || !normalizedPhone) {
+      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل معتبر الزامی است.", variant: "destructive" });
+      return;
+    }
+    const duplicateTeacher = teachers.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
+    const duplicateStudent = students.some((item) => normalizePhone(item.phone) === normalizedPhone);
+    if (duplicateTeacher || duplicateStudent) {
+      toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
     /* بقیهٔ مشخصات استاد (عنوان، مدرک، سابقه، بیوگرافی) دست‌نخورده می‌ماند */
     const patch = {
       name: name.trim(),
       title: existing?.title || "مدرس",
-      phone: phone.trim(),
+      phone: normalizedPhone,
       email: existing?.email ?? "",
       degree: existing?.degree ?? "",
       experience: existing?.experience ?? 1,
