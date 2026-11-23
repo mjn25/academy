@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useStore } from "@/lib/store";
 
 /* حساب‌های کاربری دمو (localStorage) — ورود با کد پیامکی:
    چهار دسترسی ثابت با شمارهٔ ثبت‌شده + هر شمارهٔ موبایل معتبر دیگری
@@ -82,11 +83,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = (phone: string) => {
-    /* شمارهٔ ثبت‌شده → حساب همان نقش؛ هر شمارهٔ معتبر دیگر → دانش‌آموز تازه‌وارد */
-    const account = DEMO_ACCOUNTS[phone];
+    /* حساب‌های ثابت دمو اولویت دارند؛ سپس کاربران ساخته‌شده از پنل مدیریت شناسایی می‌شوند. */
+    const normalized = normalizePhone(phone) ?? phone;
+    const account = DEMO_ACCOUNTS[normalized];
+    const state = useStore.getState();
+    const teacher = state.teachers.find((item) => normalizePhone(item.phone) === normalized);
+    const student = state.students.find((item) => normalizePhone(item.phone) === normalized);
     const u: AuthUser = account
-      ? { ...account, phone }
-      : { name: "دانش‌آموز", role: "student", full: false, phone };
+      ? { ...account, phone: normalized }
+      : teacher
+        ? { name: teacher.name, role: "teacher", phone: normalized }
+        : student
+          ? { name: student.name, role: "student", full: student.courseIds.length > 0, phone: normalized }
+          : { name: "دانش‌آموز", role: "student", full: false, phone: normalized };
     setUser(u);
     try {
       localStorage.setItem(KEY, JSON.stringify(u));
