@@ -1272,7 +1272,7 @@ function PanelView({ active }: { active: number }) {
     /* داشبورد — چهار کارت آمار با آیکون + تایم‌لاین هفته با برچسب ساعت + برنامهٔ پیش رو */
     return (
       <>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {PANEL_STATS.map((s) => (
             <div key={s.l} className="rounded-[8px] border border-white/[0.08] bg-white/[0.03] p-2">
               <span className="flex items-center gap-1.5">
