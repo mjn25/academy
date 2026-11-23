@@ -163,7 +163,6 @@ export function PanelShell({
                     <div className="space-y-1 max-h-[min(16rem,50dvh)] overflow-y-auto scroll-thin">
                       {(roleLabel === "پنل مدیریت"
                         ? [
-                            { t: "پاسخ جدید تکلیف تحویل شد", d: "۲۰ دقیقه پیش", href: "/admin/assignments/a1" },
                             { t: "سفارش فروشگاه در انتظار ارسال", d: "دیروز", href: "/admin/shop" },
                           ]
                         : roleLabel === "پنل استاد"
