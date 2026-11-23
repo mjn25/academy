@@ -90,7 +90,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
   const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => sum + (submission.score ?? 0), 0) / gradedSubs.length : null;
   const myInvoices = invoices.filter((i) => i.studentId === s.id);
   const myPayments = payments.filter((p) => p.studentId === s.id);
-  const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id));
+  const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id) && (!c.capacity || c.studentIds.length < c.capacity));
   const totalFee = myCourses.reduce((sum, c) => sum + c.price, 0);
 
   const addCourse = () => {
@@ -181,7 +181,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
                   <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب دوره…" /></SelectTrigger>
                   <SelectContent>
                     {availableCourses.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-ink-soft">همه دوره‌ها قبلاً اضافه شده‌اند</div>
+                      <div className="px-3 py-2 text-xs text-ink-soft">دوره دیگری با ظرفیت خالی وجود ندارد.</div>
                     ) : (
                       availableCourses.map((c) => (
                         <SelectItem key={c.id} value={c.id}>{c.title} — {faPrice(c.price)}</SelectItem>
