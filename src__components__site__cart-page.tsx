@@ -27,6 +27,7 @@ import {
   CITIES_BY_PROVINCE,
   IRAN_PROVINCES,
   addAddress,
+  addressStorageKey,
   addrOneLine,
   loadAddresses,
   removeAddress,
@@ -36,6 +37,7 @@ import { SiteLink } from "@/components/site/shared";
 import { faNum } from "@/components/site/pages-shared";
 import { RdBand, RdSection, RdWrap } from "@/components/site/home";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
 
 const WA_NUMBER = "989120000000";
 const ORDERS_KEY = "edc-orders";
@@ -151,6 +153,8 @@ const fieldCls =
 
 export function CartPage() {
   const { items, remove, setQty, clear, total } = useCart();
+  const { user } = useAuth();
+  const addressKey = addressStorageKey(user?.phone);
   const { toast } = useToast();
   /* فرم ثبت سفارش */
   const [name, setName] = React.useState("");
@@ -177,10 +181,10 @@ export function CartPage() {
 
   /* آدرس‌های ذخیره‌شده از localStorage — مشترک با «آدرس‌های من» پنل دانشجو */
   React.useEffect(() => {
-    const list = loadAddresses();
+    const list = loadAddresses(addressKey);
     setAddresses(list);
     if (list.length > 0) setSelectedId(list[0].id);
-  }, []);
+  }, [addressKey]);
 
   const hasBooks = items.some((it) => it.type === "book");
   const subtotal = total;
@@ -244,7 +248,7 @@ export function CartPage() {
       const a = validateNewAddr();
       if (!a) return null;
       if (saveAddr) {
-        const next = addAddress(a);
+        const next = addAddress(a, addressKey);
         setAddresses(next);
       }
       return {
@@ -653,7 +657,7 @@ export function CartPage() {
                                     aria-label={`حذف آدرس ${a.title}`}
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      const next = removeAddress(a.id);
+                                      const next = removeAddress(a.id, addressKey);
                                       setAddresses(next);
                                       if (selectedId === a.id) setSelectedId(next[0]?.id ?? "");
                                       toast({ title: "آدرس حذف شد" });
