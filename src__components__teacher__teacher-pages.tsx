@@ -244,6 +244,23 @@ export function TeacherAssignmentNew() {
     navigate(`/teacher/assignments/${id}`);
   };
 
+  if (myCourses.length === 0) {
+    return (
+      <div className="max-w-2xl">
+        <PageHeader
+          crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "تکالیف", href: "/teacher/assignments" }, { label: "تکلیف جدید" }]}
+          title="تعریف تکلیف جدید"
+          desc="برای ساخت تکلیف، ابتدا باید یک دوره به شما تخصیص داده شده باشد."
+        />
+        <EmptyState
+          title="هنوز کلاسی به شما تخصیص داده نشده"
+          desc="از مدیریت بخواهید ابتدا یک دوره را به شما واگذار کند؛ بعد از آن می‌توانید برای دانشجویان تکلیف بسازید."
+          action={<Button variant="outline" className="border-hairline text-ink" onClick={() => navigate("/teacher/classes")}>مشاهده کلاس‌ها</Button>}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-2xl">
       <PageHeader
@@ -251,7 +268,7 @@ export function TeacherAssignmentNew() {
         title="تعریف تکلیف جدید"
         desc="تکلیف برای کلاس‌های تخصیص‌یافته شما ساخته می‌شود."
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
         <div>
           <Label>کلاس *</Label>
           <select
@@ -276,14 +293,14 @@ export function TeacherAssignmentNew() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>مهلت تحویل</Label>
-            <Input value={due} onChange={(e) => setDue(e.target.value)} className="mt-1.5 h-11" placeholder="۱۴۰۴/۰۸/۱۵" />
+            <Input value={due} onChange={(e) => setDue(e.target.value)} className="mt-1.5 h-11" placeholder="۱۴۰۵/۰۹/۱۵" />
           </div>
           <div>
             <Label>نمره کل</Label>
             <Input value={max} onChange={(e) => setMax(e.target.value)} dir="ltr" inputMode="numeric" className="mt-1.5 h-11" />
           </div>
         </div>
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <Send className="size-4 me-1.5" /> ایجاد و اعلان به دانشجویان
           </Button>
