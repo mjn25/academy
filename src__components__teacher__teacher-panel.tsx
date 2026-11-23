@@ -184,7 +184,7 @@ function TeacherClasses() {
           <p className="mt-1 text-sm text-ink-soft">مدیریت از پنل مدیریت کلاس‌ها را به شما واگذار می‌کند.</p>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
           {myClasses.map((c) => (
             <button key={c.id} onClick={() => navigate(`/teacher/classes/${c.id}`)} className="text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 hover:border-navy-deep transition-colors">
               <div className="flex items-center justify-between gap-2">
@@ -611,10 +611,10 @@ function TeacherProfile() {
   return (
     <div className="max-w-2xl">
       <PanelHeading title="پروفایل من" desc="این اطلاعات در صفحه عمومی اساتید سایت نمایش داده می‌شود (با تأیید مدیریت)." />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
-        <div className="flex items-center gap-4">
-          <img src={me?.image ?? "/images/teachers/t1.jpg"} alt="" className="size-20 rounded-[8px] object-cover" />
-          <div>
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <img src={me?.image ?? "/images/teachers/t1.jpg"} alt="" className="size-16 shrink-0 rounded-[8px] object-cover sm:size-20" />
+          <div className="min-w-0 flex-1">
             <p className="font-black-fa text-ink text-lg">{name || "—"}</p>
             <p className="text-sm text-ink-soft">{title || "—"} — {fa(me?.experience ?? 0)} سال سابقه</p>
             <Badge className="mt-1.5 bg-ok/10 text-ok hover:bg-ok/10">رزومه عمومی: تأییدشده توسط مدیریت</Badge>
