@@ -347,8 +347,8 @@ export function ShopProductPage({ id }: { id: string }) {
       </RdSection>
 
       {/* قیمت + تعداد + افزودن — فیکس در انتهای صفحه در موبایل؛ هم‌الگوی پروفایل دوره */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-3 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-1.5">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-2.5 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-1">
           <div className="min-w-0 leading-tight">
             <p className="text-[10px] text-ink-faint">هزینه</p>
             <p className="whitespace-nowrap text-[13px] font-black-fa leading-6 text-ink">
@@ -359,7 +359,7 @@ export function ShopProductPage({ id }: { id: string }) {
           <button
             type="button"
             onClick={addToCart}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-rd-deep px-3 text-[11.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-full bg-rd-deep px-2.5 text-[11.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
           >
             <ShoppingBag className="size-4" />
             افزودن
