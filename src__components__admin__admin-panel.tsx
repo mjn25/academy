@@ -59,9 +59,9 @@ export function AdminPanel({ section }: { section: string }) {
 
 function AdminDashboard() {
   const { navigate } = useRouter();
-  const { students, teachers, courses, activity, assignments, submissions } = useStore();
+  const { students, courses, activity, assignments, submissions } = useStore();
   const now = Date.now();
-  const newStudentsThisWeek = students.filter((student) => student.createdAt && now - Date.parse(student.createdAt) <= 7 * 24 * 60 * 60 * 1000).length;
+  const newStudentsThisWeek = students.filter((student) => student.createdAt && now - Date.parse(student.createdAt) >= 0 && now - Date.parse(student.createdAt) <= 7 * 24 * 60 * 60 * 1000).length;
   const pendingGrades = submissions.filter((submission) => submission.status === "در انتظار بررسی" && assignments.some((assignment) => assignment.id === submission.assignmentId)).length;
   const capacityWarnings = courses.filter((course) => course.capacity && course.studentIds.length / course.capacity >= 0.8);
   const unassignedCourses = courses.filter((course) => !course.teacherId && course.status === "فعال");
@@ -137,7 +137,7 @@ function AdminDashboard() {
         <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Zap className="size-4 text-ink" /> فعالیت زنده هر سه پنل</p>
-            <span className="text-[10px] rounded-full bg-ok/10 text-ok px-2 py-0.5 font-bold">اتصال کامل</span>
+            <span className="text-[10px] rounded-full bg-canvas-soft text-ink-soft px-2 py-0.5 font-bold">داده‌های همین مرورگر</span>
           </div>
           <div className="space-y-2 max-h-52 overflow-y-auto scroll-thin">
             {activity.slice(0, 8).map((a) => (
