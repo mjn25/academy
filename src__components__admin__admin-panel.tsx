@@ -229,8 +229,7 @@ function AdminClasses() {
                   </div>
                 </td>
               </tr>
-              );
-            })}
+            ))}
           </tbody>
         </table>
       </div>
@@ -411,8 +410,7 @@ function AdminStudents() {
                   </div>
                 </td>
               </tr>
-              );
-            })}
+            ))}
           </tbody>
         </table>
       </div>
