@@ -15,7 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter, Link } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
-import { useStore, CURRENT_STUDENT_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentStudentId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection } from "@/components/panels/assignment-materials";
 import {
@@ -39,7 +40,8 @@ const nav: PanelNavItem[] = [
 ];
 
 export function StudentPagesPanel({ mode, id }: { mode: string; id?: string }) {
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const currentStudentId = useCurrentStudentId();
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const titles: Record<string, string> = { assignment: "جزئیات تکلیف", "profile-edit": "ویرایش پروفایل" };
   return (
     <PanelShell title={titles[mode] ?? "پنل دانشجو"} nav={nav} active={mode === "assignment" ? "assignments" : "profile"} roleLabel="پنل دانشجو" userName={me?.name ?? "دانشجو"}>
@@ -52,6 +54,7 @@ export function StudentPagesPanel({ mode, id }: { mode: string; id?: string }) {
 /* ======================= جزئیات تکلیف + ارسال پاسخ ======================= */
 
 export function StudentAssignmentDetail({ id }: { id?: string }) {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { assignments, courses, submissions, submitAnswer, teachers, materials } = useStore();
@@ -68,8 +71,8 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     );
   }
 
-  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === CURRENT_STUDENT_ID);
-  const mySub = submissions.find((s) => s.assignmentId === a.id && s.studentId === CURRENT_STUDENT_ID);
+  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === currentStudentId);
+  const mySub = submissions.find((s) => s.assignmentId === a.id && s.studentId === currentStudentId);
   const course = courses.find((c) => c.id === a.courseId);
   const teacher = teachers.find((t) => t.id === course?.teacherId);
   const isLate = a.due.includes("گذشته");
@@ -82,7 +85,7 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     }
     submitAnswer({
       assignmentId: a.id,
-      studentId: CURRENT_STUDENT_ID,
+      studentId: currentStudentId,
       text: text.trim() || undefined,
       file: myMaterials.length ? `${faNum(myMaterials.length)} پیوست` : undefined,
       late: isLate,
@@ -188,10 +191,11 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
 /* ============================ ویرایش پروفایل ============================ */
 
 export function StudentProfileEdit() {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { students, updateStudent } = useStore();
-  const me = students.find((x) => x.id === CURRENT_STUDENT_ID);
+  const me = students.find((x) => x.id === currentStudentId);
 
   const [name, setName] = React.useState(me?.name ?? "");
   const [phone, setPhone] = React.useState(me?.phone ?? "");
@@ -235,7 +239,7 @@ export function StudentProfileEdit() {
                 toast({ title: "نام را وارد کنید", variant: "destructive" });
                 return;
               }
-              updateStudent(CURRENT_STUDENT_ID, { name: name.trim(), phone: phone.trim(), email: email.trim() });
+              updateStudent(currentStudentId, { name: name.trim(), phone: phone.trim(), email: email.trim() });
               toast({ title: "پروفایل به‌روزرسانی شد ✓", description: "نام جدید در پنل مدیریت هم نمایش داده می‌شود." });
               navigate("/student/profile");
             }}
