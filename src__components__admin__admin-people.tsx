@@ -256,7 +256,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
               {mySubs.map((sub) => {
                 const a = assignments.find((x) => x.id === sub.assignmentId);
                 return (
-                  <button key={sub.id} onClick={() => navigate(`/admin/assignments/${sub.assignmentId}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex flex-wrap items-center gap-3">
+                  <button key={sub.id} onClick={() => navigate(a?.courseId ? `/admin/classes/${a.courseId}` : `/admin/students/${s.id}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex flex-wrap items-center gap-3">
                     <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-5" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold text-ink truncate">{a?.title ?? "—"}</span>
@@ -631,9 +631,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
               <p className="text-[11px] text-ink-soft">دوره‌های موردنظر را اضافه کنید؛ جمع شهریه پایین همین بخش محاسبه می‌شود.</p>
             </div>
           </div>
-          <p className="hidden">
-          </p>
-          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">دوره یا دوره‌هایی که این دانشجو ثبت‌نام می‌شود را انتخاب و «افزودن دوره» را بزنید؛ جمع شهریه خودکار حساب می‌شود.</p>
+          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">یک یا چند دوره را انتخاب و اضافه کنید؛ جمع شهریه به‌صورت خودکار محاسبه می‌شود.</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-56">
               <Select value={pickCourse} onValueChange={setPickCourse}>
@@ -853,7 +851,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
           ) : (
             <div className="space-y-3">
               {myAssignments.map((a) => (
-                <button key={a.id} onClick={() => navigate(`/admin/assignments/${a.id}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex items-center gap-3">
+                <button key={a.id} onClick={() => navigate(`/admin/classes/${a.courseId}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex items-center gap-3">
                   <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><ClipboardList className="size-5" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold text-ink truncate">{a.title}</span>
@@ -984,7 +982,12 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
         title={existing ? `ویرایش پرونده ${existing.name}` : "افزودن استاد جدید"}
         desc={existing ? "نام، موبایل و درس‌های تدریس استاد را ویرایش کنید." : "فقط نام، موبایل و درس‌های تدریس — پس از ثبت، حساب کاربری استاد ساخته می‌شود."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
+            <div><h2 className="text-sm font-black-fa text-ink">اطلاعات استاد</h2><p className="text-[11px] text-ink-soft">نام و شماره تماس استاد را وارد کنید.</p></div>
+          </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Label>نام و نام خانوادگی *</Label>
@@ -995,23 +998,26 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" className="mt-1.5 h-11" placeholder="09xxxxxxxxx" />
           </div>
         </div>
+        </section>
 
         {/* درس‌های تدریس — انتخاب مستقیم با تیک، بدون دراپ‌داون گم‌شده */}
-        <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
-          <p className="flex items-center gap-2 text-sm font-black-fa text-ink">
-            <BookOpenCheck className="size-4 text-rd-accent" />
-            درس‌هایی که تدریس می‌کند
-          </p>
-          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">یک یا چند دوره را تیک بزنید؛ پس از ذخیره، استاد در پروندهٔ همان دوره‌ها ثبت و در کلاس‌های آن‌ها نمایش داده می‌شود.</p>
+        <section className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۲</span>
+            <div><h2 className="text-sm font-black-fa text-ink">تخصیص دوره‌ها</h2><p className="text-[11px] text-ink-soft">فقط دوره‌های بدون استاد یا دوره‌های فعلی همین استاد قابل انتخاب‌اند.</p></div>
+          </div>
           <div className="mt-3 grid sm:grid-cols-2 gap-2">
             {courses.map((c) => {
               const on = teachCourseIds.includes(c.id);
+              const assignedElsewhere = Boolean(c.teacherId && c.teacherId !== existing?.id);
+              const assignedName = assignedElsewhere ? teachers.find((teacher) => teacher.id === c.teacherId)?.name : null;
               return (
                 <button
                   type="button"
                   key={c.id}
+                  disabled={assignedElsewhere}
                   onClick={() => setTeachCourseIds((v) => (on ? v.filter((x) => x !== c.id) : [...v, c.id]))}
-                  className={`flex items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${
                     on ? "border-rd-accent/50 ring-1 ring-rd-accent/30" : "border-hairline-soft hover:bg-canvas-soft"
                   }`}
                 >
@@ -1020,7 +1026,7 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-bold text-ink">{c.title}</span>
-                    <span className="block text-[11px] text-ink-soft">{c.level}</span>
+                    <span className="block text-[11px] text-ink-soft">{assignedElsewhere ? `در اختیار ${assignedName ?? "استاد دیگر"}` : c.level}</span>
                   </span>
                 </button>
               );
@@ -1029,9 +1035,9 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
           {teachCourseIds.length > 0 && (
             <p className="mt-2.5 text-[11px] font-bold text-ink">{faNum(teachCourseIds.length)} دوره انتخاب شده — با ذخیره به پروندهٔ استاد اضافه می‌شود.</p>
           )}
-        </div>
+        </section>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <UserPlus className="size-4 me-1.5" /> {existing ? "ذخیره تغییرات" : "ایجاد استاد"}
           </Button>
