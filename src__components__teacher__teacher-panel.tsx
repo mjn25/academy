@@ -65,14 +65,14 @@ export function TeacherPanel({ section }: { section: string }) {
   const sec = section === "content" ? "dash" : section;
   return (
     <PanelShell title={titles[sec] ?? "پنل استاد"} nav={nav} active={sec} roleLabel="پنل استاد" userName={me?.name ?? "استاد"}>
-      {section === "dash" && <TeacherDashboard />}
-      {section === "classes" && <TeacherClasses />}
-      {section === "attendance" && <TeacherAttendance />}
-      {section === "assignments" && <TeacherAssignments />}
-      {section === "students" && <TeacherStudents />}
-      {section === "feedback" && <TeacherFeedback />}
-      {section === "messages" && <TeacherMessages />}
-      {section === "profile" && <TeacherProfile />}
+      {sec === "dash" && <TeacherDashboard />}
+      {sec === "classes" && <TeacherClasses />}
+      {sec === "attendance" && <TeacherAttendance />}
+      {sec === "assignments" && <TeacherAssignments />}
+      {sec === "students" && <TeacherStudents />}
+      {sec === "feedback" && <TeacherFeedback />}
+      {sec === "messages" && <TeacherMessages />}
+      {sec === "profile" && <TeacherProfile />}
     </PanelShell>
   );
 }
