@@ -221,11 +221,11 @@ function TeacherAttendance() {
   const activeCourse = myCourses.find((c) => c.id === cls) ?? myCourses[0];
   const session = activeCourse?.schedule ?? "زمان‌بندی ثبت نشده";
   const roster = (activeCourse?.studentIds ?? [])
-    .map((id) => students.find((s) => s.id === id)?.name ?? "")
-    .filter(Boolean);
+    .map((id) => students.find((student) => student.id === id))
+    .filter(Boolean) as typeof students;
   const [marks, setMarks] = React.useState<Record<string, AttStatus>>({});
   const [saved, setSaved] = React.useState(false);
-  const unmarked = roster.filter((name) => !marks[name]).length;
+  const unmarked = roster.filter((student) => !marks[student.id]).length;
 
   React.useEffect(() => {
     if (!activeCourse) {
@@ -236,7 +236,12 @@ function TeacherAttendance() {
     try {
       const raw = window.localStorage.getItem(`edc-attendance:${activeCourse.id}`);
       const record = raw ? JSON.parse(raw) as { marks?: Record<string, AttStatus> } : null;
-      setMarks(record?.marks ?? {});
+      const normalizedMarks: Record<string, AttStatus> = {};
+      roster.forEach((student) => {
+        const status = record?.marks?.[student.id] ?? record?.marks?.[student.name];
+        if (status) normalizedMarks[student.id] = status;
+      });
+      setMarks(normalizedMarks);
       setSaved(Boolean(record));
     } catch {
       setMarks({});
@@ -245,7 +250,7 @@ function TeacherAttendance() {
   }, [activeCourse?.id]);
 
   const setAll = (status: AttStatus) => {
-    setMarks(Object.fromEntries(roster.map((name) => [name, status])));
+    setMarks(Object.fromEntries(roster.map((student) => [student.id, status])));
     setSaved(false);
   };
 
@@ -340,17 +345,17 @@ function TeacherAttendance() {
           <p className="rounded-[8px] border border-dashed border-hairline-soft p-5 text-center text-sm text-ink-soft">هنوز دانشجویی در این کلاس ثبت‌نام نشده است.</p>
         ) : (
           <div className="space-y-2.5">
-            {roster.map((name) => (
-              <div key={name} className={`flex flex-wrap items-center gap-3 rounded-[8px] border p-3.5 transition-colors ${marks[name] === "absent" ? "border-bad/40 bg-bad/5" : marks[name] === "present" ? "border-ok/40 bg-ok/5" : "border-hairline-soft bg-white"}`}>
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas-soft text-ink text-sm font-black-fa">{name.replace("دکتر ", "")[0]}</span>
-                <p className="text-sm font-bold text-ink flex-1 min-w-32">{name}</p>
+            {roster.map((student) => (
+              <div key={student.id} className={`flex flex-wrap items-center gap-3 rounded-[8px] border p-3.5 transition-colors ${marks[student.id] === "absent" ? "border-bad/40 bg-bad/5" : marks[student.id] === "present" ? "border-ok/40 bg-ok/5" : "border-hairline-soft bg-white"}`}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas-soft text-ink text-sm font-black-fa">{student.name.replace("دکتر ", "")[0]}</span>
+                <p className="text-sm font-bold text-ink flex-1 min-w-32">{student.name}</p>
                 <div className="flex gap-1.5 flex-wrap">
                   {options.map((option) => (
                     <button
                       key={option.k}
-                      onClick={() => { setMarks((current) => ({ ...current, [name]: option.k })); setSaved(false); }}
-                      className={`flex items-center gap-1.5 rounded-[8px] px-3.5 py-2.5 text-xs font-bold transition-all min-h-10 ${marks[name] === option.k ? `${option.cls} shadow` : "bg-canvas-soft text-ink hover:bg-canvas-soft"}`}
-                      aria-pressed={marks[name] === option.k}
+                      onClick={() => { setMarks((current) => ({ ...current, [student.id]: option.k })); setSaved(false); }}
+                      className={`flex items-center gap-1.5 rounded-[8px] px-3.5 py-2.5 text-xs font-bold transition-all min-h-10 ${marks[student.id] === option.k ? `${option.cls} shadow` : "bg-canvas-soft text-ink hover:bg-canvas-soft"}`}
+                      aria-pressed={marks[student.id] === option.k}
                     >
                       <option.icon className="size-3.5" /> {option.l}
                     </button>
