@@ -119,17 +119,16 @@ function SummaryLines({
           <span className="font-bold">−{formatToman(discount)}</span>
         </li>
       )}
-      <li className="flex items-center justify-between gap-3 text-ink-soft">
-        <span>
-          هزینه ارسال
-          {!hasBooks && <span className="ms-1.5 text-[10.5px] text-ink-faint">(فقط کتاب‌ها)</span>}
-        </span>
-        {shipping === 0 && hasBooks ? (
-          <span className="font-bold text-ok">رایگان</span>
-        ) : (
-          <span className="font-bold text-ink">{formatToman(shipping)}</span>
-        )}
-      </li>
+      {hasBooks && (
+        <li className="flex items-center justify-between gap-3 text-ink-soft">
+          <span>هزینه ارسال</span>
+          {shipping === 0 ? (
+            <span className="font-bold text-ok">رایگان</span>
+          ) : (
+            <span className="font-bold text-ink">{formatToman(shipping)}</span>
+          )}
+        </li>
+      )}
       {addressTitle && (
         <li className="flex items-center justify-between gap-3 text-ink-soft">
           <span>عنوان آدرس</span>
@@ -846,7 +845,7 @@ export function CartPage() {
                           shipping={shipping}
                           total={grand}
                           hasBooks={hasBooks}
-                          addressTitle={selectedSaved?.title ?? (addrTitle || undefined)}
+                          addressTitle={hasBooks ? selectedSaved?.title ?? (addrTitle || undefined) : undefined}
                         />
                       </div>
                       {/* روش پرداخت — فقط آنلاین (درخواست کاربر) */}
@@ -864,7 +863,7 @@ export function CartPage() {
                         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-rd-deep text-[13.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.99]"
                       >
                         <Check className="size-4" strokeWidth={3} />
-                        تایید نهایی و پرداخت
+                        ادامه به پرداخت نمایشی
                       </button>
                       <p className="mt-2.5 text-center text-[10.5px] leading-5 text-ink-faint">
                         مرحله بعد، صفحه پرداخت نمایشی است و مبلغی کسر نمی‌شود.
