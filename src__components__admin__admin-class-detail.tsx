@@ -251,10 +251,29 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button
               className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
               onClick={() => {
+                const nextTitle = form.title.trim();
+                const nextPrice = Number(form.price.replace(/[^\d]/g, ""));
+                const nextCapacity = form.capacity ? Number(form.capacity.replace(/[^\d]/g, "")) : undefined;
+                if (!nextTitle) {
+                  toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
+                  return;
+                }
+                if (!Number.isFinite(nextPrice) || nextPrice < 0) {
+                  toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
+                  return;
+                }
+                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < roster.length)) {
+                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت نمی‌تواند کمتر از ${faNum(roster.length)} دانشجوی ثبت‌نام‌شده باشد.`, variant: "destructive" });
+                  return;
+                }
+                if (form.status === "فعال" && !c.teacherId) {
+                  toast({ title: "ابتدا استاد دوره را مشخص کنید", description: "دوره بدون استاد نمی‌تواند فعال شود.", variant: "destructive" });
+                  return;
+                }
                 updateCourse(c.id, {
-                  title: form.title.trim() || c.title,
-                  price: Number(form.price.replace(/[^\d]/g, "")) || c.price,
-                  capacity: form.capacity ? Number(form.capacity.replace(/[^\d]/g, "")) : undefined,
+                  title: nextTitle,
+                  price: nextPrice,
+                  capacity: nextCapacity,
                   schedule: form.schedule.trim() || undefined,
                   status: form.status as "فعال" | "پیش‌نویس",
                 });
