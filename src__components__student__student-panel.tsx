@@ -566,287 +566,146 @@ function QuizEngine({
 /* -------------------------- جزئیات کلاس (فلگ‌شیپ) ------------------------- */
 
 function StudentClassDetail({ classId }: { classId?: string }) {
-  const course = classId ? courses.find((c) => c.id === classId) : undefined;
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
-  const [watchedMap, setWatchedMap] = React.useState<Record<string, number>>({ v1: 100, v2: 100, v3: 45, v4: 0, v5: 0 });
-  const [quizOpen, setQuizOpen] = React.useState<Video | null>(null);
-  const [quizUnlocked, setQuizUnlocked] = React.useState<Record<string, boolean>>({});
-  const [playing, setPlaying] = React.useState<string | null>(null);
-  const [ratingSent, setRatingSent] = React.useState(false);
+  const { courses: allCourses, students, teachers, assignments, submissions, materials } = useStore();
+  const student = students.find((item) => item.id === currentStudentId);
+  const course = allCourses.find((item) => item.id === classId);
+  const hasAccess = Boolean(course && student?.courseIds.includes(course.id));
+  const courseAssignments = course ? assignments.filter((assignment) => assignment.courseId === course.id) : [];
+  const assignmentIds = courseAssignments.map((assignment) => assignment.id);
+  const mySubmissions = submissions.filter((submission) => submission.studentId === currentStudentId && assignmentIds.includes(submission.assignmentId));
+  const courseMaterials = materials.filter((material) => assignmentIds.includes(material.assignmentId) && (!material.studentId || material.studentId === currentStudentId));
+  const graded = mySubmissions.filter((submission) => submission.status === "نمره‌داده‌شده");
+  const pending = mySubmissions.filter((submission) => submission.status === "در انتظار بررسی");
+  const teacher = course ? teachers.find((item) => item.id === course.teacherId) : undefined;
 
-  // شبیه‌ساز پخش ویدئو: هر نیم‌ثانیه ۳٪ جلو می‌رود
-  React.useEffect(() => {
-    if (!playing) return;
-    const t = setInterval(() => {
-      setWatchedMap((m) => {
-        const next = Math.min(100, (m[playing] ?? 0) + 3);
-        return { ...m, [playing]: next };
-      });
-    }, 500);
-    return () => clearInterval(t);
-  }, [playing]);
-
-  React.useEffect(() => {
-    Object.entries(watchedMap).forEach(([vid, pct]) => {
-      if (pct >= 90) setQuizUnlocked((u) => (u[vid] ? u : { ...u, [vid]: true }));
-    });
-    if (playing && watchedMap[playing] >= 100) setPlaying(null);
-  }, [watchedMap, playing]);
-
-  if (!course) {
+  if (!course || !hasAccess) {
     return (
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 sm:p-10 text-center">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 text-center sm:p-10">
         <BookOpenCheck className="mx-auto size-9 text-ink-faint" />
-        <h2 className="mt-3 text-sm font-bold text-ink">محتوای آموزشی این کلاس هنوز آماده نیست</h2>
-        <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-ink-soft">اطلاعات ثبت‌نام شما در فهرست کلاس‌ها نمایش داده می‌شود؛ اما محتوای جلسات و فایل‌های این دوره هنوز در نسخه فعلی تعریف نشده است.</p>
-        <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/classes")}>بازگشت به کلاس‌ها</Button>
+        <h2 className="mt-3 text-sm font-bold text-ink">{course ? "این کلاس در فهرست دوره‌های شما نیست" : "کلاس پیدا نشد"}</h2>
+        <p className="mx-auto mt-2 max-w-md text-xs leading-6 text-ink-soft">فقط کلاس‌هایی که در آن‌ها ثبت‌نام کرده‌اید از این بخش قابل مشاهده‌اند.</p>
+        <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/classes")}>بازگشت به کلاس‌های من</Button>
       </div>
     );
   }
 
-  const isOnline = course.type === "online";
-  const overall = Math.round(Object.values(watchedMap).reduce((a, b) => a + b, 0) / Object.keys(watchedMap).length);
-
   return (
-    <div className="space-y-6">
-      <button onClick={() => navigate("/student/classes")} className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
+    <div className="space-y-5">
+      <button onClick={() => navigate("/student/classes")} className="flex items-center gap-1.5 text-sm text-ink-soft transition-colors hover:text-ink">
         <ArrowRight className="size-4" /> بازگشت به کلاس‌ها
       </button>
 
-      <div className="rd-inside rounded-[8px] bg-white p-6 flex flex-wrap items-center gap-4 justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Badge className={isOnline ? "bg-rd-deep text-white hover:bg-navy-700" : "bg-canvas-soft text-ink hover:bg-canvas-soft"}>
-              {isOnline ? "آنلاین ویدئویی" : "حضوری"}
-            </Badge>
-            <Badge variant="outline" className="border-hairline-soft text-ink-soft">سطح {course.level}</Badge>
-          </div>
-          <h2 className="text-[17px] font-black-fa text-ink">{course.title}</h2>
-          <p className="text-sm text-ink-soft mt-1">{teachersById[course.teacherId]?.name} — {isOnline ? `پیشرفت کلی: ${fa(overall)}٪` : course.schedule}</p>
-        </div>
-        {isOnline && (
-          <div className="w-full sm:w-52">
-            <div className="flex justify-between text-[11px] mb-1.5">
-              <span className="text-ink-soft">تکمیل ویدئوها</span>
-              <span className="font-bold text-ink">{fa(overall)}٪</span>
+      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <Badge className={course.type === "online" ? "bg-rd-deep text-white hover:bg-rd-deep" : "bg-canvas-soft text-ink hover:bg-canvas-soft"}>
+                {course.type === "online" ? "آنلاین" : "حضوری"}
+              </Badge>
+              <Badge variant="outline" className="border-hairline-soft text-ink-soft">سطح {course.level}</Badge>
+              <StatusBadge status={course.status} />
             </div>
-            <Progress value={overall} className="h-2 bg-canvas-soft [&>div]:bg-rd-accent" />
+            <h1 className="text-lg font-black-fa text-ink sm:text-xl">{course.title}</h1>
+            <p className="mt-1.5 text-xs text-ink-soft">{teacher?.name ?? "استاد تعیین نشده"} · {course.schedule || "زمان‌بندی اعلام نشده"}</p>
           </div>
+          <div className="grid min-w-[112px] grid-cols-2 gap-2 sm:min-w-[180px]">
+            <div className="rounded-[8px] bg-canvas-soft/70 p-3 text-center">
+              <p className="text-lg font-black-fa text-ink">{faNum(courseAssignments.length)}</p>
+              <p className="mt-0.5 text-[10px] text-ink-soft">تکلیف</p>
+            </div>
+            <div className="rounded-[8px] bg-canvas-soft/70 p-3 text-center">
+              <p className="text-lg font-black-fa text-ink">{faNum(graded.length)}</p>
+              <p className="mt-0.5 text-[10px] text-ink-soft">نمره ثبت‌شده</p>
+            </div>
+          </div>
+        </div>
+        {pending.length > 0 && (
+          <p className="mt-4 rounded-[8px] bg-info/5 px-3.5 py-2.5 text-xs text-ink-soft">{faNum(pending.length)} پاسخ در انتظار بررسی استاد است.</p>
         )}
-      </div>
+      </section>
 
-      <Tabs defaultValue={isOnline ? "videos" : "sessions"} className="rounded-[8px] rd-inside border border-hairline-soft bg-white">
-        <TabsList className="w-full justify-start rounded-none border-b border-hairline-soft bg-transparent p-0 h-auto flex-wrap">
+      <Tabs defaultValue="tasks" className="rounded-[8px] rd-inside border border-hairline-soft bg-white">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start rounded-none border-b border-hairline-soft bg-transparent p-0">
           {[
-            isOnline ? { v: "videos", l: "ویدئوها و آزمون‌ها" } : { v: "sessions", l: "جلسات و حضور و غیاب" },
-            { v: "files", l: "فایل‌ها" },
-            { v: "tasks", l: "تکالیف" },
-            { v: "scores", l: "نمرات" },
-            { v: "rate", l: "امتیاز به استاد" },
-          ].map((t) => (
-            <TabsTrigger
-              key={t.v}
-              value={t.v}
-              className="rounded-none border-b-2 border-transparent px-5 py-3.5 text-sm data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:shadow-none text-ink-soft"
-            >
-              {t.l}
+            { value: "tasks", label: "تکالیف" },
+            { value: "files", label: "فایل‌های آموزشی" },
+            { value: "grades", label: "نمرات من" },
+          ].map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="rounded-none border-b-2 border-transparent px-4 py-3 text-xs text-ink-soft data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:shadow-none sm:px-5 sm:text-sm">
+              {tab.label}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {isOnline && (
-          <TabsContent value="videos" className="p-5 space-y-4">
-            {videos.map((v, i) => {
-              const watched = watchedMap[v.id] ?? 0;
-              const locked = v.locked && !(quizUnlocked[videos[i - 1]?.id ?? ""] ?? false) && watched === 0;
-              const canQuiz = quizUnlocked[v.id] || watched >= 90;
-              return (
-                <div key={v.id} className={`rounded-[8px] rd-inside border p-4 ${locked ? "border-hairline-soft bg-canvas-soft/60 opacity-75" : "border-hairline-soft bg-white"}`}>
-                  <div className="flex items-start gap-4">
-                    {/* پخش‌کننده ساده */}
-                    <button
-                      disabled={locked}
-                      onClick={() => setPlaying(playing === v.id ? null : v.id)}
-                      className={`relative grid place-items-center size-20 rounded-[8px] overflow-hidden shrink-0 ${locked ? "bg-canvas-soft" : "bg-ink cursor-pointer group"}`}
-                      aria-label={locked ? "قفل" : "پخش ویدئو"}
-                    >
-                      {locked ? (
-                        <Lock className="size-6 text-ink-soft" />
-                      ) : (
-                        <>
-                          {playing === v.id ? (
-                            <Pause className="size-7 text-white fill-white/30" />
-                          ) : (
-                            <Play className="size-7 text-white fill-white/30 transition-transform group-hover:scale-110" />
-                          )}
-                          <span className="absolute bottom-0 inset-x-0 bg-ink/80 text-[9px] text-white py-0.5">{fa(v.duration)}</span>
-                        </>
-                      )}
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-bold text-ink text-sm">{fa(i + 1)}. {v.title}</p>
-                        {watched >= 100 && <CheckCircle2 className="size-4 text-ok" />}
-                      </div>
-                      <div className="mt-2 max-w-md">
-                        <div className="flex justify-between text-[10px] mb-1">
-                          <span className="text-ink-soft">
-                            {watched === 0 ? "شروع نشده" : playing === v.id ? "در حال پخش…" : watched >= 100 ? "دیده‌شده" : `تا ${fa(watched)}٪ دیده‌ای — ادامه بده`}
-                          </span>
-                          <span className="font-bold text-ink">{fa(watched)}٪</span>
-                        </div>
-                        <Progress value={watched} className="h-1.5 bg-canvas-soft [&>div]:bg-rd-accent" />
-                      </div>
-                      <p className="text-[10px] text-ink-soft mt-1.5">پخش داخل پنل با ذخیره نقطه توقف — محافظت‌شده در برابر دانلود</p>
-                    </div>
-                    {/* دکمه آزمون */}
-                    {v.hasQuiz && (
-                      <div className="shrink-0 sm:w-40">
-                        {canQuiz ? (
-                          <Button className="w-full bg-rd-deep text-white hover:bg-navy-700 font-bold" onClick={() => setQuizOpen(v)}>
-                            {quizUnlocked[v.id] && watched < 100 ? "شروع آزمون" : watched >= 100 ? "آزمون دوباره" : "آزمون فعال شد!"}
-                          </Button>
-                        ) : (
-                          <p className="text-[10px] text-ink-soft text-center leading-5 rounded-[8px] bg-canvas-soft p-2">
-                            «شروع آزمون» پس از دیدن ۹۰٪ ویدئو فعال می‌شود
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  {playing === v.id && (
-                    <div className="mt-3 rounded-[8px] bg-ink p-4 text-center">
-                      <p className="text-xs text-navy-200/70 leading-6">
-                        پخش‌کننده ویدئو (دمو) — ویدئو در حال پخش شبیه‌سازی‌شده است و پیشرفت شما ذخیره می‌شود.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </TabsContent>
-        )}
-
-        {!isOnline && (
-          <TabsContent value="sessions" className="p-5 space-y-3">
-            {[
-              { n: 22, t: "جلسه ۲۲ — مرور Writing", d: "سه‌شنبه ۱ آبان", att: "حاضر" },
-              { n: 21, t: "جلسه ۲۱ — Speaking تست", d: "یکشنبه ۳۱ مهر", att: "حاضر" },
-              { n: 20, t: "جلسه ۲۰ — Reading پیشرفته", d: "شنبه ۲۹ مهر", att: "حاضر" },
-              { n: 19, t: "جلسه ۱۹ — آزمون میان‌ترم", d: "چهارشنبه ۲۶ مهر", att: "غایب (موجه)" },
-              { n: 18, t: "جلسه ۱۸ — Listening", d: "دوشنبه ۲۴ مهر", att: "حاضر" },
-            ].map((s) => (
-              <div key={s.n} className="flex items-center gap-4 rounded-[8px] border border-hairline-soft p-4">
-                <span className="grid size-12 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink font-black-fa">{fa(s.n)}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-ink">{s.t}</p>
-                  <p className="text-xs text-ink-soft mt-0.5">{s.d} — کلاس ۱۰۵</p>
-                </div>
-                <Badge className={s.att === "حاضر" ? "bg-ok/10 text-ok hover:bg-ok/10" : "bg-warn/10 text-warn hover:bg-warn/10"}>{s.att}</Badge>
-              </div>
-            ))}
-          </TabsContent>
-        )}
-
-        <TabsContent value="files" className="p-5 grid gap-3 sm:grid-cols-2">
-          {[
-            { t: "جزوه کامل Reading — PDF", s: "۲٫۴ MB", d: true },
-            { t: "فایل صوتی تمرین Listening جلسه ۱۸", s: "۱۲٫۱ MB", d: true },
-            { t: "ویدئوی تحلیل نمونه سؤال", s: "۹۸ MB", d: false },
-            { t: "کاربرگ تمرین Writing Task 1", s: "۸۶۰ KB", d: true },
-          ].map((f) => (
-            <div key={f.t} className="flex items-center gap-3 rounded-[8px] border border-hairline-soft p-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-5" /></span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-ink truncate">{f.t}</p>
-                <p className="text-[11px] text-ink-soft mt-0.5">{f.s} — {f.d ? "قابل دانلود" : "فقط پخش آنلاین"}</p>
-              </div>
-              {f.d && <Button size="sm" variant="outline" className="border-hairline text-ink shrink-0"><Download className="size-4" /></Button>}
+        <TabsContent value="tasks" className="space-y-3 p-4 sm:p-5">
+          {courseAssignments.length ? courseAssignments.map((assignment) => {
+            const submission = mySubmissions.find((item) => item.assignmentId === assignment.id);
+            return (
+              <button key={assignment.id} onClick={() => navigate("/student/assignments/" + assignment.id)} className="flex w-full flex-wrap items-center gap-3 rounded-[8px] border border-hairline-soft p-3.5 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/30 sm:p-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><ClipboardList className="size-5" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-ink">{assignment.title}</span>
+                  <span className="mt-1 block text-[11px] text-ink-soft">مهلت تحویل: {assignment.due} · نمره کل: {fa(assignment.max)}</span>
+                </span>
+                {submission ? <StatusBadge status={submission.status} /> : <Badge className="bg-warn/10 text-warn hover:bg-warn/10">تحویل‌نداده</Badge>}
+                <ArrowLeft className="size-4 shrink-0 text-ink-faint" />
+              </button>
+            );
+          }) : (
+            <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center">
+              <ClipboardList className="mx-auto size-7 text-ink-faint" />
+              <p className="mt-2 text-sm font-bold text-ink">هنوز تکلیفی برای این کلاس تعریف نشده</p>
+              <p className="mt-1 text-xs text-ink-soft">وقتی استاد تکلیفی ثبت کند، از همین بخش می‌توانید آن را ببینید.</p>
             </div>
-          ))}
+          )}
         </TabsContent>
 
-        <TabsContent value="tasks" className="p-5 space-y-3">
-          {assignmentsData.filter((a) => a.courseId === course.id || a.courseId === "toefl").slice(0, 3).map((a) => (
-            <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-[8px] border border-hairline-soft p-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><ClipboardList className="size-5" /></span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-ink">{a.title}</p>
-                <p className="text-xs text-ink-soft mt-0.5">مهلت {a.due} — بارم {fa(a.max)}</p>
-              </div>
-              <Badge className={a.status === "graded" ? "bg-ok/10 text-ok hover:bg-ok/10" : a.status === "late" ? "bg-bad/10 text-bad hover:bg-bad/10" : "bg-warn/10 text-warn hover:bg-warn/10"}>
-                {a.status === "graded" ? `نمره: ${fa(a.score!)}` : a.status === "late" ? "دیرکرد" : "در انتظار تحویل"}
-              </Badge>
+        <TabsContent value="files" className="space-y-2 p-4 sm:p-5">
+          {courseMaterials.length ? courseMaterials.map((material) => (
+            <div key={material.id} className="flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3.5">
+              <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-5" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-bold text-ink">{material.name}</span>
+                <span className="mt-1 block text-[11px] text-ink-soft">{material.uploadedByName} · {material.uploadedAt}{material.size ? " · " + material.size : ""}</span>
+              </span>
+              <Badge variant="outline" className="shrink-0 border-hairline-soft text-ink-soft">{material.kind === "video" ? "ویدئو" : "فایل"}</Badge>
             </div>
-          ))}
+          )) : (
+            <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center">
+              <FolderOpen className="mx-auto size-7 text-ink-faint" />
+              <p className="mt-2 text-sm font-bold text-ink">فایلی برای این کلاس ثبت نشده</p>
+              <p className="mt-1 text-xs text-ink-soft">فایل‌های بارگذاری‌شده توسط استاد در این بخش نمایش داده می‌شوند.</p>
+            </div>
+          )}
+          <p className="pt-1 text-[10px] leading-5 text-ink-faint">نمایش فایل‌ها در این نسخه فعال است؛ لینک دانلود فقط برای فایل‌هایی قابل ارائه است که آدرس فایل واقعی داشته باشند.</p>
         </TabsContent>
 
-        <TabsContent value="scores" className="p-5">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-ink-soft text-xs border-b border-hairline-soft">
-                <th className="text-start p-3 font-semibold">مورد</th>
-                <th className="text-start p-3 font-semibold">نوع</th>
-                <th className="text-start p-3 font-semibold">نمره</th>
-                <th className="text-start p-3 font-semibold">بازخورد استاد</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line">
-              {(gradesData[course.id] ?? gradesData.a1).map((g, i) => (
-                <tr key={i} className={i % 2 ? "bg-canvas-soft/50" : ""}>
-                  <td className="p-3 font-bold text-ink">{g.item}</td>
-                  <td className="p-3 text-ink-soft">{g.type}</td>
-                  <td className="p-3 font-black-fa text-ink">{fa(g.score)}/{fa(g.max)}</td>
-                  <td className="p-3 text-xs text-ink-soft">{g.feedback ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </TabsContent>
-
-        <TabsContent value="rate" className="p-5">
-          {ratingSent ? (
-            <div className="text-center py-10">
-              <Trophy className="size-12 mx-auto text-ink" />
-              <p className="mt-3 font-bold text-ink">امتیازت ثبت شد، ممنون!</p>
-              <p className="text-sm text-ink-soft mt-1">نظر تو به بهتر شدن کلاس کمک می‌کند.</p>
-            </div>
-          ) : (
-            <div className="max-w-md mx-auto space-y-4">
-              <p className="text-sm text-ink-soft leading-7 text-center">به استاد این کلاس امتیاز بده؛ نظرات برای ارزیابی آموزش استفاده می‌شود.</p>
-              {["کیفیت تدریس", "نظم و برنامه", "پاسخ‌گویی"].map((c) => (
-                <div key={c} className="flex items-center justify-between rounded-[8px] border border-hairline-soft p-4">
-                  <span className="text-sm font-semibold text-ink">{c}</span>
-                  <div className="flex gap-1" role="radiogroup" aria-label={c}>
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <Star key={s} className="size-6 cursor-pointer text-brand-600 fill-brand-200 hover:fill-brand-400" />
-                    ))}
-                  </div>
+        <TabsContent value="grades" className="space-y-2 p-4 sm:p-5">
+          {graded.length ? graded.map((submission) => {
+            const assignment = courseAssignments.find((item) => item.id === submission.assignmentId);
+            return (
+              <div key={submission.id} className="flex flex-wrap items-center justify-between gap-3 rounded-[8px] border border-hairline-soft p-3.5">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-ink">{assignment?.title ?? "تکلیف"}</p>
+                  <p className="mt-1 text-[11px] text-ink-soft">بازخورد استاد: {submission.feedback || "بازخوردی ثبت نشده"}</p>
                 </div>
-              ))}
-              <Textarea placeholder="نظر متنی (اختیاری)…" className="min-h-20" />
-              <Button className="w-full bg-rd-deep text-white hover:bg-navy-700 font-bold" onClick={() => setRatingSent(true)}>ثبت امتیاز</Button>
+                <p className="shrink-0 text-base font-black-fa text-ink">{fa(submission.score ?? 0)} <span className="text-xs font-normal text-ink-soft">از {fa(assignment?.max ?? 10)}</span></p>
+              </div>
+            );
+          }) : (
+            <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-7 text-center">
+              <Award className="mx-auto size-7 text-ink-faint" />
+              <p className="mt-2 text-sm font-bold text-ink">هنوز نمره‌ای ثبت نشده</p>
+              <p className="mt-1 text-xs text-ink-soft">پس از بررسی پاسخ‌ها توسط استاد، نمره‌ها اینجا نمایش داده می‌شوند.</p>
             </div>
           )}
         </TabsContent>
       </Tabs>
-
-      {quizOpen && (
-        <QuizEngine
-          video={quizOpen}
-          onPass={() => {
-            // باز کردن ویدئوی بعدی
-            setQuizUnlocked((u) => ({ ...u }));
-            setWatchedMap((m) => m);
-          }}
-          onClose={() => setQuizOpen(null)}
-        />
-      )}
     </div>
   );
 }
-
-/* ----------------------------- برنامه هفتگی ------------------------------ */
 
 function StudentSchedule() {
   const colorMap: Record<string, string> = {
