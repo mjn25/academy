@@ -358,7 +358,7 @@ export function CartPage() {
                     className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-rd-deep text-[13.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.99]"
                   >
                     <Check className="size-4" strokeWidth={3} />
-                    پرداخت
+                    تأیید پرداخت نمایشی
                   </button>
                   <button
                     type="button"
@@ -387,7 +387,12 @@ export function CartPage() {
                   <span className="ms-2 text-[12px] text-ink-faint">({placed.at})</span>
                 </p>
                 <p className="mx-auto mt-3 max-w-[520px] text-[12.5px] leading-6 text-ink-soft">
-                  پرداخت آنلاین نمایشی انجام شد؛ کارشناس کلینیک برای نهایی‌کردن ثبت‌نام با شما تماس می‌گیرد.
+                  {placed.items.some((it) => it.type === "course") && placed.items.some((it) => it.type === "book")
+                    ? "سفارش شما شامل ثبت‌نام دوره و ارسال کتاب است؛ برای پیگیری با شما تماس می‌گیریم."
+                    : placed.items.some((it) => it.type === "course")
+                      ? "درخواست ثبت‌نام شما ثبت شد؛ برای هماهنگی مراحل بعد با شما تماس می‌گیریم."
+                      : "سفارش کتاب شما ثبت شد؛ برای هماهنگی ارسال با شما تماس می‌گیریم."}
+                  {" "}پرداخت این نسخه نمایشی است و مبلغی کسر نشده است.
                 </p>
                 {/* خلاصهٔ سفارش — کالاهای انتخابی + تخفیف/ارسال/مبلغ کل */}
                 <div className="rd-inside mx-auto mt-5 max-w-[560px] rounded-[8px] bg-canvas-soft/60 p-4 text-start">
@@ -602,8 +607,8 @@ export function CartPage() {
                         </div>
                       </section>
 
-                      {/* آدرس ارسال — انتخاب از آدرس‌های قبلی یا افزودن آدرس جدید (استان/شهر/نشانی/توضیحات) */}
-                      <section aria-label="آدرس ارسال" className="rounded-[8px] border border-hairline-soft p-4">
+                      {/* آدرس فقط برای سفارش‌هایی که کتاب دارند لازم است */}
+                      {hasBooks && <section aria-label="آدرس ارسال" className="rounded-[8px] border border-hairline-soft p-4">
                         <h2 className="flex items-center gap-2 text-[13px] font-black-fa text-ink">
                           <MapPin className="size-4 text-rd-accent" />
                           آدرس ارسال
@@ -776,7 +781,7 @@ export function CartPage() {
                             کتاب‌های سبد با پست پیشتاز ارسال می‌شود.
                           </p>
                         )}
-                      </section>
+                      </section>}
 
                       {/* کد تخفیف دارید؟ — درج کد در همین بخش */}
                       <section aria-label="کد تخفیف" className="rounded-[8px] border border-hairline-soft p-4">
@@ -848,9 +853,9 @@ export function CartPage() {
                       <div className="mt-4 flex items-center gap-2.5 rounded-[8px] border border-rd-accent/40 bg-rd-accent/[0.04] p-3">
                         <CreditCard className="size-4 shrink-0 text-rd-accent" />
                         <span className="min-w-0">
-                          <span className="block text-[12.5px] font-bold text-ink">پرداخت آنلاین</span>
+                          <span className="block text-[12.5px] font-bold text-ink">پرداخت آنلاین (نمایشی)</span>
                           <span className="mt-0.5 block text-[11px] leading-5 text-ink-faint">
-                            تسویه فوری در درگاه پرداخت امن
+                            این مرحله فقط برای نمایش روند خرید است.
                           </span>
                         </span>
                       </div>
@@ -862,7 +867,7 @@ export function CartPage() {
                         تایید نهایی و پرداخت
                       </button>
                       <p className="mt-2.5 text-center text-[10.5px] leading-5 text-ink-faint">
-                        پس از تأیید، به درگاه پرداخت هدایت می‌شوید.
+                        مرحله بعد، صفحه پرداخت نمایشی است و مبلغی کسر نمی‌شود.
                       </p>
                       <div className="mt-3 flex gap-2 border-t border-hairline-soft pt-3">
                         <SiteLink
