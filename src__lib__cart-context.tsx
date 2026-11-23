@@ -28,19 +28,28 @@ const STORAGE_KEY = "edc-cart";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = React.useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = React.useState(false);
 
   React.useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as CartItem[]);
-    } catch {}
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) setItems(parsed as CartItem[]);
+      }
+    } catch {
+      /* دادهٔ خراب یا غیردسترس‌پذیر نباید مانع استفاده از سبد شود */
+    } finally {
+      setHydrated(true);
+    }
   }, []);
 
   React.useEffect(() => {
+    if (!hydrated) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {}
-  }, [items]);
+  }, [items, hydrated]);
 
   const add = React.useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
     const n = Math.max(1, Math.min(10, qty));
