@@ -36,8 +36,7 @@ try {
       const pageErrors = [];
       page.on("pageerror", (error) => pageErrors.push(error.message));
       const response = await page.goto(baseURL + route.path, { waitUntil: "domcontentloaded", timeout: 30000 });
-      await page.waitForLoadState("load", { timeout: 15000 }).catch(() => {});
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(350);
       const state = await page.evaluate(() => ({
         dir: document.documentElement.getAttribute("dir"),
         lang: document.documentElement.getAttribute("lang"),
