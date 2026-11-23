@@ -524,8 +524,8 @@ export function CartPage() {
                                   <span className="text-ink-faint"> × {faNum(it.qty)} = {formatToman(it.price * it.qty)}</span>
                                 </p>
                               </div>
-                              {/* استپر تعداد — هم‌الگوی صفحهٔ محصول */}
-                              <div className="flex shrink-0 items-center gap-1 rounded-full border border-hairline-soft p-1">
+                              {/* تعداد کتاب قابل تغییر است؛ ثبت‌نام هر دوره یک‌بار انجام می‌شود */}
+                              {it.type === "book" && <div className="flex shrink-0 items-center gap-1 rounded-full border border-hairline-soft p-1">
                                 <button
                                   type="button"
                                   onClick={() => setQty(it.id, it.qty - 1)}
@@ -545,7 +545,7 @@ export function CartPage() {
                                 >
                                   <Plus className="size-3.5" />
                                 </button>
-                              </div>
+                              </div>}
                               <button
                                 type="button"
                                 title="حذف از سبد"
