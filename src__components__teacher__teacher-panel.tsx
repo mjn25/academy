@@ -42,7 +42,7 @@ const nav: PanelNavItem[] = [
   { key: "dash", label: "داشبورد", icon: LayoutDashboard, href: "/teacher" },
   { key: "classes", label: "کلاس‌های من", icon: BookOpenCheck, href: "/teacher/classes" },
   { key: "attendance", label: "حضور و غیاب", icon: UserCheck, href: "/teacher/attendance" },
-  { key: "assignments", label: "تکالیف و نمره‌دهی", icon: ClipboardList, href: "/teacher/assignments", badge: 3 },
+  { key: "assignments", label: "تکالیف و نمره‌دهی", icon: ClipboardList, href: "/teacher/assignments" },
   { key: "students", label: "دانشجویان", icon: Users, href: "/teacher/students" },
   { key: "feedback", label: "بازخوردها", icon: Star, href: "/teacher/feedback" },
   { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/teacher/messages" },
