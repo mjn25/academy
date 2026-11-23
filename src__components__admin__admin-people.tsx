@@ -160,7 +160,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
       {/* آمار */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(myCourses.length)} دوره`} />
-        <StatCard icon={ClipboardList} label="پاسخ‌های ثبت‌شده" value={\`\${faNum(mySubs.length)} پاسخ\`} tint="yellow" />
+        <StatCard icon={ClipboardList} label="پاسخ‌های ثبت‌شده" value={`${"${"}faNum(mySubs.length)} پاسخ`} tint="yellow" />
         <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪"} tint="green" />
         <StatCard icon={Wallet} label="مانده حساب" value={s.balance > 0 ? faPrice(s.balance) : "تسویه"} tint={s.balance > 0 ? "red" : "green"} />
       </div>
@@ -305,7 +305,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
                             <div key={submission.id} className="flex flex-wrap items-center gap-3 rounded-[8px] bg-canvas-soft px-3.5 py-2.5">
                               <span className="text-xs font-bold text-ink flex-1 min-w-40">{assignment.title}</span>
                               <span className="text-xs font-black-fa text-ink">{fa(score)} <span className="text-ink-soft font-normal">از {fa(assignment.max)}</span></span>
-                              <span className={\`text-[11px] font-bold \${ratio >= 0.8 ? "text-ok" : ratio >= 0.6 ? "text-warn" : "text-bad"}\`}>{fa(Math.round(ratio * 100))}٪</span>
+                              <span className={`text-[11px] font-bold ${"${"}ratio >= 0.8 ? "text-ok" : ratio >= 0.6 ? "text-warn" : "text-bad"}`}>{fa(Math.round(ratio * 100))}٪</span>
                             </div>
                           );
                         })}
