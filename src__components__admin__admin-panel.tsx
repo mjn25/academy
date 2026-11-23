@@ -234,7 +234,7 @@ function AdminClasses() {
         </table>
       </div>
       <p className="mt-4 text-[11px] text-ink-soft leading-6">
-        قوانین ظرفیت: با پر شدن ظرفیت، ثبت‌نام خودکار بسته می‌شود و فرم «لیست انتظار» فعال می‌گردد. دوره آنلاین محدودیت ظرفیت ندارد.
+        قوانین ظرفیت: با تکمیل ظرفیت، افزودن دانشجو بسته می‌شود. دوره آنلاین بدون محدودیت ظرفیت ثبت می‌شود.
       </p>
 
       {/* فرم دوره جدید */}
@@ -270,9 +270,9 @@ function AdminClasses() {
               <div>
                 <Label>استاد</Label>
                 <Select value={form.teacherId} onValueChange={(v) => setForm((f) => ({ ...f, teacherId: v }))}>
-                  <SelectTrigger className="mt-1.5 h-10"><SelectValue placeholder="انتخاب" /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 h-10"><SelectValue placeholder="بدون استاد" /></SelectTrigger>
                   <SelectContent>
-                    {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                    {teachers.filter((t) => t.status === "فعال").map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -285,11 +285,26 @@ function AdminClasses() {
                   toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
                   return;
                 }
+                const capacity = form.type === "online" || !form.capacity ? undefined : Number(form.capacity);
+                const price = form.price ? Number(form.price) : 0;
+                if (!Number.isFinite(price) || price < 0) {
+                  toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
+                  return;
+                }
+                if (capacity !== undefined && (!Number.isInteger(capacity) || capacity < 1)) {
+                  toast({ title: "ظرفیت معتبر نیست", description: "ظرفیت باید یک عدد صحیح بزرگ‌تر از صفر باشد.", variant: "destructive" });
+                  return;
+                }
+                const selectedTeacher = teachers.find((teacher) => teacher.id === form.teacherId);
+                if (form.teacherId && selectedTeacher?.status !== "فعال") {
+                  toast({ title: "استاد انتخاب‌شده فعال نیست", variant: "destructive" });
+                  return;
+                }
                 const id = addCourse({
                   title: form.title.trim(),
                   type: form.type as "online" | "offline",
-                  capacity: form.capacity ? Number(form.capacity) : undefined,
-                  price: Number(form.price) || 0,
+                  capacity,
+                  price,
                   teacherId: form.teacherId || null,
                 });
                 setOpen(false);
