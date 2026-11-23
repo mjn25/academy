@@ -141,34 +141,6 @@ function AdminClassDetail({ id }: { id?: string }) {
           </div>
         </div>
 
-        {/* تکالیف دوره */}
-        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm">تکالیف این دوره</p>
-            <Link href={`/admin/assignments/new?course=${c.id}`} className="text-[11px] font-bold text-ink">تخصیص تکلیف جدید</Link>
-          </div>
-          {courseAssignments.length === 0 ? (
-            <EmptyState title="تکلیفی تخصیص نیافته" desc="برای این دوره تکلیف تعریف کنید." />
-          ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto scroll-thin">
-              {courseAssignments.map((a) => {
-                const subs = useStore.getState().submissions.filter((s) => s.assignmentId === a.id);
-                return (
-                  <button key={a.id} onClick={() => navigate(`/admin/assignments/${a.id}`)} className="w-full text-start flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3 hover:border-navy-deep transition-colors">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-bold text-ink truncate">{a.title}</span>
-                      <span className="block text-[11px] text-ink-soft">مهلت {a.due} — {faNum(subs.length)} تحویل</span>
-                    </span>
-                    <ArrowLeft className="size-4 text-ink-soft" />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* لیست دانشجویان */}
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
