@@ -394,11 +394,26 @@ export function CoursePage({ slug }: { slug: string }) {
       {/* هیروسکشن صفحه دوره حذف شد (درخواست کاربر) — صفحه مستقیم با نوار تب‌ها و سکشن‌ها شروع می‌شود */}
       <RdSection id="course-detail" fadeTop>
         <RdBand className="top-0" />
-        {/* تیتر واقعی صفحه برای SEO و دسترس‌پذیری — بصری نمی‌آید */}
-        <h1 className="sr-only">{c.title}</h1>
-        {/* پدینگ پایین موبایل/تبلت جای نوار قیمت ثابت را نگه می‌دارد؛ دسکتاپ بدون نوار ثابت */}
+        {/* معرفی فشرده و قابل‌دیدن دوره؛ بدون بازگشت به هیروی بزرگ */}
         <RdWrap pb="pb-[110px] lg:pb-[62px] xl:pb-[79px]">
-        {/* گرید مرجع: ویدئو و محتوا (راست) + کارت قیمت چسبان (چپ) */}
+        <section className="mb-5 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-navy-deep px-3 py-1 text-[11px] font-extrabold text-white">{c.code}</span>
+            <span className="rounded-full bg-canvas-soft px-3 py-1 text-[11px] font-bold text-ink-soft">{c.trackLabel}</span>
+            <span className="ms-auto inline-flex items-center gap-1 text-[11px] font-bold text-ink-soft">
+              <Star className="size-3.5 fill-brand-500 text-brand-500" /> {faRate(avg)} از {faNum(c.reviews.length)} نظر
+            </span>
+          </div>
+          <h1 className="mt-3 font-black-fa text-[19px] leading-8 text-ink sm:text-[24px]">{c.title}</h1>
+          <p className="mt-1.5 max-w-4xl text-[12.5px] leading-7 text-ink-soft sm:text-[13px]">{c.short}</p>
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-ink-soft">
+            <span className="inline-flex items-center gap-1.5"><GraduationCap className="size-3.5 text-rd-accent" /> {c.teacher}</span>
+            <span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5 text-rd-accent" /> {c.months}</span>
+            <span className="inline-flex items-center gap-1.5"><Users className="size-3.5 text-rd-accent" /> {faNum(c.sessions)} جلسه</span>
+          </div>
+        </section>
+        <div className="mb-5"><CourseTabBar c={c} /></div>
+        {/* گرید محتوا و کارت قیمت چسبان */}
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
           <div className="min-w-0 space-y-5">
           {/* ویدئو معرفی — سلول قاب‌دار با مربع‌های تاکیدی: سربرگ مونو + عکس + دکمهٔ پخش
