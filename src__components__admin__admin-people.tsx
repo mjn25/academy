@@ -904,12 +904,13 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                 <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب دوره…" /></SelectTrigger>
                 <SelectContent>
                   {unassigned.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title} {c.teacherId ? `— استاد فعلی: ${useStore.getState().teachers.find((x) => x.id === c.teacherId)?.name}` : "— بدون استاد"}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.title} — بدون استاد</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {unassigned.length === 0 && <p className="mt-2 text-[11px] leading-5 text-ink-soft">در حال حاضر دورهٔ بدون استاد وجود ندارد. برای جابه‌جایی، ابتدا دوره را از پرونده استاد فعلی بردارید.</p>}
             </div>
-            <Button className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" disabled={!pickCourse} onClick={doAssign}>
+            <Button className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" disabled={!pickCourse || unassigned.length === 0} onClick={doAssign}>
               <CheckCircle2 className="size-4 me-1.5" /> تخصیص دوره
             </Button>
           </div>
