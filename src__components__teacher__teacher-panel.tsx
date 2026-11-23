@@ -212,13 +212,41 @@ type AttStatus = "present" | "absent" | "excused" | "late";
 function TeacherAttendance() {
   const { toast } = useToastImport();
   const { students, courses } = useStore();
-  const [cls, setCls] = React.useState("a1");
-  const [session] = React.useState("جلسه ۲۳ — شنبه ۱ آبان");
-  const roster = (courses.find((c) => c.id === cls)?.studentIds ?? []).map((id) => students.find((s) => s.id === id)?.name ?? "").filter(Boolean);
+  const myCourses = React.useMemo(
+    () => courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID && c.type === "offline"),
+    [courses],
+  );
+  const [cls, setCls] = React.useState(myCourses[0]?.id ?? "");
+  const activeCourse = myCourses.find((c) => c.id === cls) ?? myCourses[0];
+  const session = activeCourse?.schedule ?? "زمان‌بندی ثبت نشده";
+  const roster = (activeCourse?.studentIds ?? [])
+    .map((id) => students.find((s) => s.id === id)?.name ?? "")
+    .filter(Boolean);
   const [marks, setMarks] = React.useState<Record<string, AttStatus>>({});
   const [saved, setSaved] = React.useState(false);
+  const unmarked = roster.filter((name) => !marks[name]).length;
 
-  const setAll = (s: AttStatus) => setMarks(Object.fromEntries(roster.map((r) => [r, s])));
+  React.useEffect(() => {
+    if (!activeCourse) {
+      setMarks({});
+      setSaved(false);
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(`edc-attendance:${activeCourse.id}`);
+      const record = raw ? JSON.parse(raw) as { marks?: Record<string, AttStatus> } : null;
+      setMarks(record?.marks ?? {});
+      setSaved(Boolean(record));
+    } catch {
+      setMarks({});
+      setSaved(false);
+    }
+  }, [activeCourse?.id]);
+
+  const setAll = (status: AttStatus) => {
+    setMarks(Object.fromEntries(roster.map((name) => [name, status])));
+    setSaved(false);
+  };
 
   const options: { k: AttStatus; l: string; icon: React.ElementType; cls: string }[] = [
     { k: "present", l: "حاضر", icon: Check, cls: "bg-ok text-white hover:bg-ok/90" },
@@ -227,76 +255,112 @@ function TeacherAttendance() {
     { k: "late", l: "تأخیر", icon: Clock, cls: "bg-warn text-white hover:bg-warn/90" },
   ];
 
+  const saveAttendance = () => {
+    if (!activeCourse || unmarked > 0) {
+      toast({ title: "حضور همه دانشجویان مشخص نشده", description: `${faNum(unmarked)} نفر بدون وضعیت هستند.`, variant: "destructive" });
+      return;
+    }
+    try {
+      window.localStorage.setItem(`edc-attendance:${activeCourse.id}`, JSON.stringify({
+        courseId: activeCourse.id,
+        session: activeCourse.schedule ?? "",
+        marks,
+        savedAt: new Date().toISOString(),
+      }));
+      setSaved(true);
+      toast({
+        title: "حضور و غیاب در این مرورگر ذخیره شد ✓",
+        description: `${faNum(Object.values(marks).filter((m) => m === "present").length)} حاضر، ${faNum(Object.values(marks).filter((m) => m === "absent").length)} غایب`,
+      });
+    } catch {
+      toast({ title: "ذخیره انجام نشد", description: "امکان ذخیره در این مرورگر وجود ندارد.", variant: "destructive" });
+    }
+  };
+
+  if (myCourses.length === 0) {
+    return (
+      <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
+        <p className="font-bold text-ink">کلاس حضوری فعالی به شما تخصیص داده نشده</p>
+        <p className="mt-1 text-sm leading-6 text-ink-soft">حضور و غیاب فقط برای کلاس‌های حضوری فعال است. برای تخصیص کلاس با مدیریت هماهنگ کنید.</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <PanelHeading
         title="حضور و غیاب"
-        desc="فقط برای کلاس‌های حضوری — ثبت سریع در چند ثانیه."
+        desc="فقط کلاس‌های حضوری شما نمایش داده می‌شوند؛ ثبت این نسخه در همین مرورگر ذخیره می‌شود."
         action={
           <Button
             className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
-            onClick={() => {
-              setSaved(true);
-              toast({ title: "حضور و غیاب ثبت شد ✓", description: `خلاصه: ${faNum(Object.values(marks).filter((m) => m === "present").length)} حاضر، ${faNum(Object.values(marks).filter((m) => m === "absent").length)} غایب` });
-            }}
+            disabled={!roster.length || unmarked > 0}
+            onClick={saveAttendance}
           >
-            <Check className="size-4 me-1.5" /> ثبت و تأیید نهایی
+            <Check className="size-4 me-1.5" /> ثبت و ذخیره
           </Button>
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-5">
-        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+      <div className="grid gap-4 sm:grid-cols-2 mb-5">
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
           <p className="text-xs text-ink-soft mb-2">انتخاب کلاس</p>
           <div className="flex flex-wrap gap-2">
-            {[
-              { id: "a1", t: "آلمانی A1" },
-              { id: "b1", t: "آلمانی B1" },
-              { id: "konversation", t: "کلاب مکالمه" },
-            ].map((c) => (
-              <button key={c.id} onClick={() => setCls(c.id)} className={`rounded-full px-4 py-1.5 text-xs font-bold ${cls === c.id ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}>
-                {c.t}
+            {myCourses.map((course) => (
+              <button
+                key={course.id}
+                onClick={() => setCls(course.id)}
+                className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${(activeCourse?.id === course.id) ? "bg-navy-deep text-white" : "bg-canvas-soft text-ink"}`}
+                aria-pressed={activeCourse?.id === course.id}
+              >
+                {course.title}
               </button>
             ))}
           </div>
         </div>
-        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
-          <p className="text-xs text-ink-soft mb-2">جلسه (پیش‌فرض: امروز)</p>
-          <p className="font-bold text-ink text-sm">{session} {saved && <Badge className="bg-ok/10 text-ok hover:bg-ok/10 ms-2">ثبت‌شده</Badge>}</p>
+        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4">
+          <p className="text-xs text-ink-soft mb-2">برنامه کلاس</p>
+          <p className="font-bold text-ink text-sm">{session}</p>
+          {saved && <Badge className="mt-2 bg-ok/10 text-ok hover:bg-ok/10">ذخیره‌شده در این مرورگر</Badge>}
         </div>
       </div>
 
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-hairline-soft">
-          <p className="text-sm font-bold text-ink">{faNum(roster.length)} دانشجو</p>
+          <div>
+            <p className="text-sm font-bold text-ink">{faNum(roster.length)} دانشجو</p>
+            <p className="mt-1 text-[11px] text-ink-soft">{unmarked ? `${faNum(unmarked)} نفر هنوز وضعیت ندارند` : "وضعیت همه مشخص شده است"}</p>
+          </div>
           <Button variant="outline" className="border-ok text-ok hover:bg-ok/10 h-10" onClick={() => setAll("present")}>
             <Check className="size-4 me-1.5" /> همه حاضر
           </Button>
         </div>
-        <div className="space-y-2.5">
-          {roster.map((name) => (
-            <div key={name} className={`flex flex-wrap items-center gap-3 rounded-[8px] border p-3.5 transition-colors ${marks[name] === "absent" ? "border-bad/40 bg-bad/5" : marks[name] === "present" ? "border-ok/40 bg-ok/5" : "border-hairline-soft bg-white"}`}>
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas-soft text-ink text-sm font-black-fa">{name.replace("دکتر ", "")[0]}</span>
-              <p className="text-sm font-bold text-ink flex-1 min-w-32">{name}</p>
-              <div className="flex gap-1.5 flex-wrap">
-                {options.map((o) => (
-                  <button
-                    key={o.k}
-                    onClick={() => setMarks((m) => ({ ...m, [name]: o.k }))}
-                    className={`flex items-center gap-1.5 rounded-[8px] px-3.5 py-2.5 text-xs font-bold transition-all min-h-10 ${
-                      marks[name] === o.k ? `${o.cls} shadow` : "bg-canvas-soft text-ink hover:bg-canvas-soft"
-                    }`}
-                    aria-pressed={marks[name] === o.k}
-                  >
-                    <o.icon className="size-3.5" /> {o.l}
-                  </button>
-                ))}
+        {roster.length === 0 ? (
+          <p className="rounded-[8px] border border-dashed border-hairline-soft p-5 text-center text-sm text-ink-soft">هنوز دانشجویی در این کلاس ثبت‌نام نشده است.</p>
+        ) : (
+          <div className="space-y-2.5">
+            {roster.map((name) => (
+              <div key={name} className={`flex flex-wrap items-center gap-3 rounded-[8px] border p-3.5 transition-colors ${marks[name] === "absent" ? "border-bad/40 bg-bad/5" : marks[name] === "present" ? "border-ok/40 bg-ok/5" : "border-hairline-soft bg-white"}`}>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-canvas-soft text-ink text-sm font-black-fa">{name.replace("دکتر ", "")[0]}</span>
+                <p className="text-sm font-bold text-ink flex-1 min-w-32">{name}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {options.map((option) => (
+                    <button
+                      key={option.k}
+                      onClick={() => { setMarks((current) => ({ ...current, [name]: option.k })); setSaved(false); }}
+                      className={`flex items-center gap-1.5 rounded-[8px] px-3.5 py-2.5 text-xs font-bold transition-all min-h-10 ${marks[name] === option.k ? `${option.cls} shadow` : "bg-canvas-soft text-ink hover:bg-canvas-soft"}`}
+                      aria-pressed={marks[name] === option.k}
+                    >
+                      <option.icon className="size-3.5" /> {option.l}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         <p className="mt-4 text-[11px] text-ink-soft leading-6">
-          ثبت حضور تا پایان مهلت مشخص قابل ویرایش است. برای غایبت‌ها، پیامک هوشمند به دانشجو (یا ولی) ارسال می‌شود.
+          برای فعال‌شدن دکمه ثبت، وضعیت همه دانشجویان را مشخص کنید. این نسخه اطلاعات را فقط در مرورگر فعلی نگه می‌دارد و جایگزین ثبت در سامانه مرکزی نیست.
         </p>
       </div>
     </div>
