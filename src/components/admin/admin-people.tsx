@@ -609,13 +609,13 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full min-w-0 max-w-2xl">
       <PageHeader
         crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "دانشجویان", href: "/admin/students" }, { label: existing ? "ویرایش پرونده" : "ثبت‌نام دستی" }]}
         title={existing ? `ویرایش پرونده ${existing.name}` : "ثبت‌نام دستی دانشجو"}
         desc={existing ? "اطلاعات هویتی و وضعیت مالی دانشجو را ویرایش کنید." : "برای پرداخت حضوری/نقدی، دانشجو را مستقیم ثبت‌نام کنید."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+      <div className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
         <section>
           <div className="mb-3 flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
@@ -1017,13 +1017,13 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full min-w-0 max-w-2xl">
       <PageHeader
         crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "اساتید", href: "/admin/teachers" }, { label: existing ? "ویرایش پرونده" : "استاد جدید" }]}
         title={existing ? `ویرایش پرونده ${existing.name}` : "افزودن استاد جدید"}
         desc={existing ? "نام، موبایل و درس‌های تدریس استاد را ویرایش کنید." : "فقط نام، موبایل و درس‌های تدریس — پس از ثبت، حساب کاربری استاد ساخته می‌شود."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+      <div className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
         <section>
           <div className="mb-3 flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
@@ -1042,12 +1042,12 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
         </section>
 
         {/* درس‌های تدریس — انتخاب مستقیم با تیک، بدون دراپ‌داون گم‌شده */}
-        <section className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
+        <section className="min-w-0 rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
           <div className="mb-3 flex items-center gap-2">
             <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۲</span>
             <div><h2 className="text-sm font-black-fa text-ink">تخصیص دوره‌ها</h2><p className="text-[11px] text-ink-soft">فقط دوره‌های بدون استاد یا دوره‌های فعلی همین استاد قابل انتخاب‌اند.</p></div>
           </div>
-          <div className="mt-3 grid sm:grid-cols-2 gap-2">
+          <div className="mt-3 grid min-w-0 sm:grid-cols-2 gap-2">
             {courses.map((c) => {
               const on = teachCourseIds.includes(c.id);
               const assignedElsewhere = Boolean(c.teacherId && c.teacherId !== existing?.id);
@@ -1058,14 +1058,14 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
                   key={c.id}
                   disabled={assignedElsewhere}
                   onClick={() => setTeachCourseIds((v) => (on ? v.filter((x) => x !== c.id) : [...v, c.id]))}
-                  className={`flex items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${
+                  className={`flex w-full min-w-0 items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${
                     on ? "border-rd-accent/50 ring-1 ring-rd-accent/30" : "border-hairline-soft hover:bg-canvas-soft"
                   }`}
                 >
                   <span className={`grid size-5 shrink-0 place-items-center rounded-[6px] border transition-colors ${on ? "border-rd-accent bg-rd-accent text-white" : "border-hairline bg-white text-transparent"}`}>
                     <Check className="size-3.5" />
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-ink">{c.title}</span>
                     <span className="block text-[11px] text-ink-soft">{assignedElsewhere ? `در اختیار ${assignedName ?? "استاد دیگر"}` : c.level}</span>
                   </span>
