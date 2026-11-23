@@ -429,9 +429,31 @@ function AdminTeachers() {
 
 /* -------------------------------- فروشگاه -------------------------------- */
 
+type LocalCheckoutOrder = {
+  code: string;
+  items: { type: "course" | "book"; title: string; price: number; qty: number }[];
+  total: number;
+  name: string;
+  phone: string;
+  address?: string;
+  at: string;
+};
+
 function AdminShop() {
   const { toast } = useToast();
   const [orders, setOrders] = React.useState(shopOrders);
+  const [checkoutOrders, setCheckoutOrders] = React.useState<LocalCheckoutOrder[]>([]);
+
+  React.useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("edc-orders");
+      if (!raw) return;
+      const parsed: unknown = JSON.parse(raw);
+      if (Array.isArray(parsed)) setCheckoutOrders(parsed as LocalCheckoutOrder[]);
+    } catch {
+      setCheckoutOrders([]);
+    }
+  }, []);
 
   const nextShip: Partial<Record<ShopOrder["shipping"], ShopOrder["shipping"]>> = { "در حال آماده‌سازی": "ارسال‌شده", "ارسال‌شده": "تحویل‌شده" };
   const advance = (id: string) => {
@@ -441,6 +463,45 @@ function AdminShop() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <PanelHeading
+          title="سفارش‌های ثبت‌شده"
+          desc="سفارش‌های ثبت‌شده از سبد خرید در همین مرورگر؛ وضعیت پرداخت نمایشی است."
+        />
+        {checkoutOrders.length === 0 ? (
+          <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white px-5 py-8 text-center text-[12px] text-ink-soft">
+            هنوز سفارشی از فرایند خرید ثبت نشده است.
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {[...checkoutOrders].reverse().map((order) => (
+              <article key={order.code} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[12px] font-bold text-ink">{order.name}</p>
+                    <p className="dc-mono mt-0.5 text-[10px] text-rd-accent" dir="ltr">{order.code}</p>
+                  </div>
+                  <span className="rounded-full bg-warn/10 px-2.5 py-1 text-[10px] font-bold text-warn">پرداخت نمایشی</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {order.items.map((item, index) => (
+                    <span key={`${item.type}-${item.title}-${index}`} className="rounded-full bg-canvas-soft px-2.5 py-1 text-[11px] text-ink-soft">
+                      {item.type === "course" ? "دوره" : "کتاب"}: {item.title}{item.qty > 1 ? ` × ${faNum(item.qty)}` : ""}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-hairline-soft pt-3 text-[11px] text-ink-soft">
+                  <span dir="ltr">{order.phone}</span>
+                  <span>{order.at}</span>
+                  <strong className="text-[13px] text-ink">{faPrice(order.total)}</strong>
+                </div>
+                {order.address && <p className="mt-2 text-[11px] leading-6 text-ink-soft">آدرس ارسال: {order.address}</p>}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
       <div>
         <PanelHeading
           title="سفارش‌های فروشگاه"
