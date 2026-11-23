@@ -12,16 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
+import { PanelShell, PageHeader, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter, Link } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
-import { useStore, CURRENT_STUDENT_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentStudentId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection } from "@/components/panels/assignment-materials";
 import {
   LayoutDashboard, BookOpenCheck, CalendarDays, ClipboardList, FolderOpen, Star, TrendingUp,
   MessageSquare, ShoppingBag, UserCircle, FileText, Clock, Send, CheckCircle2, ArrowLeft,
-  PhoneCall, Mail, Info, Paperclip,
+  PhoneCall, Mail, Info, Paperclip, MapPin,
 } from "lucide-react";
 
 const nav: PanelNavItem[] = [
@@ -33,12 +34,14 @@ const nav: PanelNavItem[] = [
   { key: "grades", label: "نمرات", icon: Star, href: "/student/grades" },
   { key: "progress", label: "گزارش پیشرفت", icon: TrendingUp, href: "/student/progress" },
   { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/student/messages" },
-  { key: "orders", label: "سفارش‌ها", icon: ShoppingBag, href: "/student/orders" },
+  { key: "addresses", label: "آدرس‌های من", icon: MapPin, href: "/student/addresses" },
+  { key: "orders", label: "سفارش‌های من", icon: ShoppingBag, href: "/student/orders" },
   { key: "profile", label: "پروفایل", icon: UserCircle, href: "/student/profile" },
 ];
 
 export function StudentPagesPanel({ mode, id }: { mode: string; id?: string }) {
-  const me = useStore((s) => s.students.find((x) => x.id === CURRENT_STUDENT_ID));
+  const currentStudentId = useCurrentStudentId();
+  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
   const titles: Record<string, string> = { assignment: "جزئیات تکلیف", "profile-edit": "ویرایش پروفایل" };
   return (
     <PanelShell title={titles[mode] ?? "پنل دانشجو"} nav={nav} active={mode === "assignment" ? "assignments" : "profile"} roleLabel="پنل دانشجو" userName={me?.name ?? "دانشجو"}>
@@ -50,13 +53,34 @@ export function StudentPagesPanel({ mode, id }: { mode: string; id?: string }) {
 
 /* ======================= جزئیات تکلیف + ارسال پاسخ ======================= */
 
+/** بررسی مهلت بر اساس تقویم شمسی دستگاه، بدون تاریخ ثابت دمو */
+function isPersianDeadlinePast(value: string): boolean {
+  const match = value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit))).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (!match) return value.includes("گذشته");
+  try {
+    const parts = new Intl.DateTimeFormat("en-US-u-ca-persian-nu-latn", {
+      year: "numeric", month: "numeric", day: "numeric",
+    }).formatToParts(new Date());
+    const part = (type: string) => Number(parts.find((item) => item.type === type)?.value ?? 0);
+    const today = part("year") * 10000 + part("month") * 100 + part("day");
+    const deadline = Number(match[1]) * 10000 + Number(match[2]) * 100 + Number(match[3]);
+    return deadline < today;
+  } catch {
+    return false;
+  }
+}
+
 export function StudentAssignmentDetail({ id }: { id?: string }) {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { assignments, courses, submissions, submitAnswer, teachers, materials } = useStore();
+  const { assignments, courses, submissions, submitAnswer, teachers, materials, students } = useStore();
   const a = assignments.find((x) => x.id === id);
+  const existingSubmission = a
+    ? submissions.find((submission) => submission.assignmentId === a.id && submission.studentId === currentStudentId)
+    : undefined;
 
-  const [text, setText] = React.useState("");
+  const [text, setText] = React.useState(existingSubmission?.text ?? "");
 
   if (!a) {
     return (
@@ -67,11 +91,20 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     );
   }
 
-  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === CURRENT_STUDENT_ID);
-  const mySub = submissions.find((s) => s.assignmentId === a.id && s.studentId === CURRENT_STUDENT_ID);
   const course = courses.find((c) => c.id === a.courseId);
-  const teacher = teachers.find((t) => t.id === course?.teacherId);
-  const isLate = a.due.includes("گذشته");
+  const myCourseIds = students.find((student) => student.id === currentStudentId)?.courseIds ?? [];
+  if (!course || !myCourseIds.includes(a.courseId)) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل دانشجو", href: "/student" }, { label: "تکالیف", href: "/student/assignments" }]} title="دسترسی به تکلیف ممکن نیست" />
+        <EmptyState title="این تکلیف برای شما نیست" desc="فقط تکالیف دوره‌هایی را می‌توانید ببینید که در آن‌ها ثبت‌نام کرده‌اید." action={<Button className="bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/student/assignments")}>بازگشت به تکالیف</Button>} />
+      </div>
+    );
+  }
+  const myMaterials = materials.filter((m) => m.assignmentId === a.id && m.studentId === currentStudentId);
+  const mySub = existingSubmission;
+  const teacher = teachers.find((t) => t.id === course.teacherId);
+  const isLate = isPersianDeadlinePast(a.due);
   const canSubmit = !mySub || mySub.status !== "نمره‌داده‌شده";
 
   const doSubmit = () => {
@@ -81,7 +114,7 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
     }
     submitAnswer({
       assignmentId: a.id,
-      studentId: CURRENT_STUDENT_ID,
+      studentId: currentStudentId,
       text: text.trim() || undefined,
       file: myMaterials.length ? `${faNum(myMaterials.length)} پیوست` : undefined,
       late: isLate,
@@ -187,10 +220,11 @@ export function StudentAssignmentDetail({ id }: { id?: string }) {
 /* ============================ ویرایش پروفایل ============================ */
 
 export function StudentProfileEdit() {
+  const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { students, updateStudent } = useStore();
-  const me = students.find((x) => x.id === CURRENT_STUDENT_ID);
+  const me = students.find((x) => x.id === currentStudentId);
 
   const [name, setName] = React.useState(me?.name ?? "");
   const [phone, setPhone] = React.useState(me?.phone ?? "");
@@ -203,12 +237,12 @@ export function StudentProfileEdit() {
         title="ویرایش پروفایل"
         desc="اطلاعات حساب کاربری خود را به‌روزرسانی کنید."
       />
-      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-6 space-y-5">
-        <div className="flex items-center gap-4">
-          <span className="grid size-16 place-items-center rounded-[8px] bg-rd-deep text-white text-2xl font-black-fa">{(name || "س")[0]}</span>
-          <div>
-            <p className="font-black-fa text-ink">{name || "—"}</p>
-            <p className="text-xs text-ink-soft mt-0.5">سطح فعلی: A1 — هدف: B1 برای کار در آلمان</p>
+      <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <span className="grid size-14 shrink-0 place-items-center rounded-[8px] bg-rd-deep text-white text-xl font-black-fa sm:size-16 sm:text-2xl">{(name || "س")[0]}</span>
+          <div className="min-w-0 flex-1">
+            <p className="break-words font-black-fa text-ink">{name || "—"}</p>
+            <p className="text-xs text-ink-soft mt-0.5">اطلاعات آموزشی بر اساس دوره‌های ثبت‌شده نمایش داده می‌شود</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -218,15 +252,15 @@ export function StudentProfileEdit() {
           </div>
           <div>
             <Label>شماره موبایل</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" className="mt-1.5 h-11" />
-            <p className="text-[10px] text-ink mt-1">تغییر شماره با تأیید کد پیامکی انجام می‌شود.</p>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" disabled className="mt-1.5 h-11 disabled:cursor-not-allowed disabled:opacity-60" />
+            <p className="text-[10px] text-ink mt-1">برای تغییر شماره باید تأیید پیامکی انجام شود؛ این امکان در نسخه فعلی فعال نیست.</p>
           </div>
           <div>
             <Label>ایمیل</Label>
             <Input value={email} onChange={(e) => setEmail(e.target.value)} dir="ltr" className="mt-1.5 h-11" />
           </div>
         </div>
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button
             className="flex-1 h-11 bg-rd-deep text-white hover:bg-navy-700 font-bold"
             onClick={() => {
@@ -234,7 +268,7 @@ export function StudentProfileEdit() {
                 toast({ title: "نام را وارد کنید", variant: "destructive" });
                 return;
               }
-              updateStudent(CURRENT_STUDENT_ID, { name: name.trim(), phone: phone.trim(), email: email.trim() });
+              updateStudent(currentStudentId, { name: name.trim(), phone: phone.trim(), email: email.trim() });
               toast({ title: "پروفایل به‌روزرسانی شد ✓", description: "نام جدید در پنل مدیریت هم نمایش داده می‌شود." });
               navigate("/student/profile");
             }}

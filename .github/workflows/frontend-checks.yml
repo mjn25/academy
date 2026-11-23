@@ -1,0 +1,56 @@
+name: Frontend checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [frontend-ux-responsive-checkout]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: TypeScript, lint and production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Generate Prisma client
+        run: bunx prisma generate
+      - name: TypeScript check
+        run: bunx tsc --noEmit
+      - name: ESLint
+        run: bun run lint
+      - name: Production build
+        run: bun run build
+      - name: Install Playwright and Chromium
+        run: |
+          bun add --no-save playwright
+          bunx playwright install chromium
+      - name: Start production server
+        run: |
+          bun run start > /tmp/academy-server.log 2>&1 &
+          for attempt in {1..40}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 3
+          done
+          cat /tmp/academy-server.log
+          exit 1
+      - name: Responsive and RTL browser audit
+        run: bun run tests/visual-smoke.mjs
+      - name: Upload browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responsive-rtl-browser-audit
+          path: artifacts/visual/
+          if-no-files-found: warn

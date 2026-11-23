@@ -6,6 +6,7 @@ import { useRouter, Link } from "@/lib/app-context";
 import { faNum } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth-context";
+import { useCurrentStudentId, useCurrentTeacherId } from "@/lib/current-user";
 import { EdcLogo } from "@/components/site/shared";
 import { Bell, Search, LogOut, Menu, ArrowRight, FileText, BookOpenCheck, Users, GraduationCap as TeacherIcon, X, Home } from "lucide-react";
 
@@ -104,6 +105,81 @@ export function PanelShell({
     navigate("/");
   };
 
+
+  const role = roleLabel === "پنل مدیریت" ? "admin" : roleLabel === "پنل استاد" ? "teacher" : "student";
+  const teacherId = useCurrentTeacherId();
+  const studentId = useCurrentStudentId();
+  const userKey = role === "admin" ? "admin" : role === "teacher" ? "teacher:" + teacherId : "student:" + studentId;
+  const { messages, assignments, submissions, students, teachers, courses, notificationReadIds, markNotificationsRead } = useStore();
+  const notifications = React.useMemo(() => {
+    const items: { id: string; title: string; desc: string; href: string; at: string }[] = [];
+    const validDate = (value?: string) => !!value && Number.isFinite(Date.parse(value));
+    if (role === "admin") {
+      students.filter((item) => validDate(item.createdAt)).forEach((item) => items.push({
+        id: "student-created:" + item.id, title: "دانشجوی جدید ثبت شد", desc: item.name,
+        href: "/admin/students/" + item.id, at: item.createdAt!,
+      }));
+      teachers.filter((item) => validDate(item.createdAt)).forEach((item) => items.push({
+        id: "teacher-created:" + item.id, title: "استاد جدید اضافه شد", desc: item.name,
+        href: "/admin/teachers/" + item.id, at: item.createdAt!,
+      }));
+    }
+    if (role === "teacher") {
+      const myCourses = courses.filter((course) => course.teacherId === teacherId);
+      const myCourseIds = myCourses.map((course) => course.id);
+      messages.filter((message) => message.toRole === "teacher" && message.toId === teacherId).forEach((message) => items.push({
+        id: "message:" + message.id, title: "پیام جدید از دانشجو", desc: message.fromName,
+        href: "/teacher/messages", at: message.sentAt,
+      }));
+      submissions.filter((submission) => {
+        const assignment = assignments.find((item) => item.id === submission.assignmentId);
+        return !!assignment && myCourseIds.includes(assignment.courseId) && validDate(submission.submittedAt);
+      }).forEach((submission) => {
+        const assignment = assignments.find((item) => item.id === submission.assignmentId);
+        const student = students.find((item) => item.id === submission.studentId);
+        items.push({
+          id: "submission:" + submission.id + ":" + submission.submittedAt, title: "پاسخ تکلیف جدید دریافت شد",
+          desc: (student?.name ?? "دانشجو") + " · " + (assignment?.title ?? "تکلیف"),
+          href: "/teacher/assignments", at: submission.submittedAt,
+        });
+      });
+    }
+    if (role === "student") {
+      const myStudent = students.find((item) => item.id === studentId);
+      const myCourses = courses.filter((course) => course.studentIds.includes(studentId) || !!myStudent?.courseIds.includes(course.id));
+      const courseIds = myCourses.map((course) => course.id);
+      assignments.filter((assignment) => courseIds.includes(assignment.courseId) && validDate(assignment.createdAt)).forEach((assignment) => items.push({
+        id: "assignment:" + assignment.id, title: "تکلیف جدید اضافه شد", desc: assignment.title,
+        href: "/student/assignments", at: assignment.createdAt,
+      }));
+      submissions.filter((submission) => submission.studentId === studentId && submission.status === "نمره‌داده‌شده" && validDate(submission.gradedAt)).forEach((submission) => {
+        const assignment = assignments.find((item) => item.id === submission.assignmentId);
+        items.push({
+          id: "grade:" + submission.id + ":" + submission.gradedAt, title: "نمره جدید ثبت شد", desc: assignment?.title ?? "تکلیف",
+          href: "/student/grades", at: submission.gradedAt!,
+        });
+      });
+      messages.filter((message) =>
+        (message.toRole === "student" && message.toId === studentId) ||
+        (message.toRole === "student" && message.toId === "" && courseIds.includes(message.courseId))
+      ).forEach((message) => items.push({
+        id: "message:" + message.id, title: "پیام جدید از استاد", desc: message.fromName,
+        href: "/student/messages", at: message.sentAt,
+      }));
+    }
+    return items.filter((item) => validDate(item.at)).sort((a, b) => Date.parse(b.at) - Date.parse(a.at)).slice(0, 30);
+  }, [role, teacherId, studentId, messages, assignments, submissions, students, teachers, courses]);
+  const readIds = notificationReadIds[userKey] ?? [];
+  const unreadCount = notifications.filter((item) => !readIds.includes(item.id)).length;
+  const relativeTime = (value: string) => {
+    const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(value)) / 60000));
+    if (minutes < 1) return "همین حالا";
+    if (minutes < 60) return faNum(minutes) + " دقیقه پیش";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return faNum(hours) + " ساعت پیش";
+    return faNum(Math.floor(hours / 24)) + " روز پیش";
+  };
+
   /* پانوشت سایدبار — خانه + خروج؛ بین سایدبار دسکتاپ و درِوَر موبایل مشترک است */
   const sidebarFooter = (
     <>
@@ -150,48 +226,43 @@ export function PanelShell({
           <div className="ms-auto flex items-center gap-2">
             <PanelSearch role={roleLabel === "پنل مدیریت" ? "admin" : roleLabel === "پنل استاد" ? "teacher" : "student"} />
             <div className="relative" data-notif-root>
-              <button onClick={() => setNotifOpen((v) => !v)} className="relative grid size-10 place-items-center rounded-full text-ink hover:bg-canvas-soft" aria-label="اعلان‌ها">
+
+              <button onClick={() => setNotifOpen((v) => !v)} className="relative grid size-10 place-items-center rounded-full text-ink hover:bg-canvas-soft" aria-label={unreadCount ? "اعلان‌ها، " + faNum(unreadCount) + " خوانده‌نشده" : "اعلان‌ها"} aria-expanded={notifOpen}>
                 <Bell className="size-5" />
-                <span className="absolute top-1.5 end-1.5 size-2.5 rounded-full bg-bad border-2 border-white" />
+                {unreadCount > 0 && <span className="absolute -top-0.5 -end-0.5 grid min-w-4 h-4 place-items-center rounded-full bg-bad px-1 text-[9px] font-bold text-white border-2 border-white">{unreadCount > 9 ? "۹+" : faNum(unreadCount)}</span>}
               </button>
               {notifOpen && (
-                <>
-                  {/* دراپ‌داون اعلان‌ها — fixed زیر هدر و محدود به عرض صفحه؛ در موبایل از کادر بیرون نمی‌زند (فیکس ریسپانسیو).
-                      نکته: rd-inside اینجا نمی‌آید چون position:relative می‌دهد و fixed را باطل می‌کند */}
-                  <div className="fixed top-16 end-2 z-20 w-72 max-w-[calc(100vw-1rem)] rounded-[8px] border border-hairline-soft bg-white shadow-[0_16px_40px_-16px_rgba(0,0,0,0.18)] p-3 animate-in-up" data-notif-panel>
-                    <p className="text-xs font-bold text-ink px-2 pb-2">اعلان‌های اخیر</p>
-                    <div className="space-y-1 max-h-[min(16rem,50dvh)] overflow-y-auto scroll-thin">
-                      {(roleLabel === "پنل مدیریت"
-                        ? [
-                            { t: "پاسخ جدید تکلیف تحویل شد", d: "۲۰ دقیقه پیش", href: "/admin/assignments/a1" },
-                            { t: "سفارش فروشگاه در انتظار ارسال", d: "دیروز", href: "/admin/shop" },
-                          ]
-                        : roleLabel === "پنل استاد"
-                          ? [
-                              { t: "۳ پاسخ جدید برای تکالیف", d: "۲۰ دقیقه پیش", href: "/teacher/assignments/a1" },
-                              { t: "حضور و غیاب امروز ثبت نشده", d: "۱ ساعت پیش", href: "/teacher/attendance" },
-                              { t: "بازخورد جدید از دانشجو", d: "دیروز", href: "/teacher/feedback" },
-                            ]
-                          : [
-                              { t: "نمره جدید ثبت شد", d: "۲۰ دقیقه پیش", href: "/student/grades" },
-                              { t: "تکلیف جدید اضافه شد", d: "۱ ساعت پیش", href: "/student/assignments" },
-                              { t: "پیام پشتیبانی", d: "دیروز", href: "/student/messages" },
-                            ]
-                      ).map((n) => (
-                        <button key={n.t} onClick={() => { setNotifOpen(false); navigate(n.href); }} className="w-full text-start rounded-[8px] hover:bg-canvas-soft p-2.5">
-                          <p className="text-xs font-bold text-ink">{n.t}</p>
-                          <p className="text-[11px] text-ink-soft mt-0.5">{n.d}</p>
-                        </button>
-                      ))}
-                    </div>
+                <div className="fixed top-16 end-2 z-20 w-80 max-w-[calc(100vw-1rem)] rounded-[8px] border border-hairline-soft bg-white shadow-[0_16px_40px_-16px_rgba(0,0,0,0.18)] p-3 animate-in-up" data-notif-panel>
+                  <div className="flex items-center justify-between gap-2 px-2 pb-2">
+                    <p className="text-xs font-bold text-ink">اعلان‌ها</p>
+                    {unreadCount > 0 && <button className="text-[10px] font-bold text-rd-accent hover:underline" onClick={() => markNotificationsRead(userKey, notifications.map((item) => item.id))}>خواندن همه</button>}
                   </div>
-                </>
+                  <div className="space-y-1 max-h-[min(19rem,55dvh)] overflow-y-auto scroll-thin">
+                    {notifications.length === 0 ? (
+                      <p className="px-2 py-8 text-center text-xs text-ink-soft">فعلاً اعلانی ندارید.</p>
+                    ) : notifications.map((item) => {
+                      const isRead = readIds.includes(item.id);
+                      return (
+                        <button key={item.id} onClick={() => { markNotificationsRead(userKey, [item.id]); setNotifOpen(false); navigate(item.href); }} className={"w-full text-start rounded-[8px] p-2.5 transition-colors hover:bg-canvas-soft " + (isRead ? "opacity-65" : "bg-canvas-soft/70")}>
+                          <span className="flex items-start gap-2">
+                            {!isRead && <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-rd-accent" />}
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-xs font-bold text-ink">{item.title}</span>
+                              <span className="block text-[11px] text-ink-soft mt-0.5">{item.desc}</span>
+                              <span className="block text-[10px] text-ink-faint mt-1">{relativeTime(item.at)}</span>
+                            </span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
             <button
-              onClick={() => navigate(roleLabel === "پنل مدیریت" ? "/admin/settings" : roleLabel === "پنل استاد" ? "/teacher/profile" : "/student/profile")}
+              onClick={() => navigate(roleLabel === "پنل مدیریت" ? "/admin" : roleLabel === "پنل استاد" ? "/teacher/profile" : "/student/profile")}
               className="flex items-center gap-2.5 rounded-full border border-hairline px-2 h-9 hover:bg-canvas-soft transition-colors"
-              aria-label="پروفایل من"
+              aria-label={roleLabel === "پنل مدیریت" ? "داشبورد مدیریت" : "پروفایل من"}
             >
               <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-white text-xs font-black-fa">{name[0]}</span>
               <span className="hidden sm:block text-xs font-bold text-ink pe-1">{name}</span>
@@ -201,7 +272,7 @@ export function PanelShell({
 
         {extraTop}
 
-        <main className="flex-1 p-4 lg:p-6 max-w-[1200px] w-full mx-auto">{children}</main>
+        <main className="flex-1 min-w-0 p-4 lg:p-6 max-w-[1200px] w-full mx-auto">{children}</main>
       </div>
 
       {/* منوی کامل موبایل — از سمت راست باز می‌شود، هم‌سمت سایدبار دسکتاپ (فیکس RTL: قبلاً end-0 بود و در فارسی به چپ باز می‌شد) */}
@@ -231,11 +302,11 @@ export function PanelShell({
 export function PanelHeading({ title, desc, action }: { title: string; desc?: string; action?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-      <div>
+      <div className="min-w-0 flex-1">
         <h2 className="text-[17px] font-black-fa text-ink">{title}</h2>
-        {desc && <p className="text-[13px] text-ink-soft mt-1">{desc}</p>}
+        {desc && <p className="mt-1 text-[13px] leading-6 text-ink-soft">{desc}</p>}
       </div>
-      {action}
+      {action && <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">{action}</div>}
     </div>
   );
 }
@@ -277,11 +348,11 @@ export function PageHeader({
         ))}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="text-[17px] font-black-fa text-ink">{title}</h2>
-          {desc && <p className="text-[13px] text-ink-soft mt-1">{desc}</p>}
+          {desc && <p className="mt-1 text-[13px] leading-6 text-ink-soft">{desc}</p>}
         </div>
-        {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+        {actions && <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">{actions}</div>}
       </div>
     </div>
   );
@@ -354,15 +425,15 @@ export function PanelSearch({ role }: { role: "admin" | "teacher" | "student" })
               </CommandItem>
             ))}
           </CommandGroup>
-          {role !== "student" ? (
+          {role === "teacher" ? (
             <CommandGroup heading="تکالیف">
               {assignments.slice(0, 5).map((a) => (
-                <CommandItem key={a.id} onSelect={() => run(role === "admin" ? `/admin/assignments/${a.id}` : `/teacher/assignments/${a.id}`)}>
+                <CommandItem key={a.id} onSelect={() => run(`/teacher/assignments/${a.id}`)}>
                   <FileText className="size-4 me-2 text-ink-soft" /> {a.title}
                 </CommandItem>
               ))}
             </CommandGroup>
-          ) : (
+          ) : role === "student" ? (
             <CommandGroup heading="تکالیف من">
               {assignments.slice(0, 5).map((a) => (
                 <CommandItem key={a.id} onSelect={() => run(`/student/assignments/${a.id}`)}>
@@ -370,7 +441,7 @@ export function PanelSearch({ role }: { role: "admin" | "teacher" | "student" })
                 </CommandItem>
               ))}
             </CommandGroup>
-          )}
+          ) : null}
         </CommandList>
       </CommandDialog>
     </>

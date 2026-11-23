@@ -14,6 +14,7 @@ export type SavedAddress = {
 };
 
 export const ADDRESS_KEY = "edc-addresses";
+export const addressStorageKey = (owner?: string) => owner ? `${ADDRESS_KEY}:${owner}` : ADDRESS_KEY;
 
 /* --------------------------- استان‌ها و شهرها --------------------------- */
 
@@ -62,9 +63,9 @@ export const CITIES_BY_PROVINCE: Record<string, string[]> = {
 /* ------------------------------ ذخیره‌سازی ----------------------------- */
 
 /** خواندن آدرس‌های ذخیره‌شده کاربر (بدون خطا در SSR/حالت خصوصی) */
-export function loadAddresses(): SavedAddress[] {
+export function loadAddresses(key: string = ADDRESS_KEY): SavedAddress[] {
   try {
-    const raw = window.localStorage.getItem(ADDRESS_KEY);
+    const raw = window.localStorage.getItem(key);
     const list = raw ? (JSON.parse(raw) as SavedAddress[]) : [];
     return Array.isArray(list) ? list : [];
   } catch {
@@ -73,27 +74,27 @@ export function loadAddresses(): SavedAddress[] {
 }
 
 /** ذخیرهٔ فهرست آدرس‌ها */
-export function saveAddresses(list: SavedAddress[]) {
+export function saveAddresses(list: SavedAddress[], key: string = ADDRESS_KEY) {
   try {
-    window.localStorage.setItem(ADDRESS_KEY, JSON.stringify(list));
+    window.localStorage.setItem(key, JSON.stringify(list));
   } catch {
     /* localStorage در دسترس نیست — آدرس فقط در همین نشست معتبر می‌ماند */
   }
 }
 
 /** افزودن آدرس جدید به فهرست ذخیره‌شده‌ها و برگرداندن فهرست جدید */
-export function addAddress(a: Omit<SavedAddress, "id">): SavedAddress[] {
-  const list = loadAddresses();
+export function addAddress(a: Omit<SavedAddress, "id">, key: string = ADDRESS_KEY): SavedAddress[] {
+  const list = loadAddresses(key);
   const item: SavedAddress = { ...a, id: `adr-${Date.now().toString(36)}` };
   const next = [item, ...list].slice(0, 12);
-  saveAddresses(next);
+  saveAddresses(next, key);
   return next;
 }
 
 /** حذف یک آدرس ذخیره‌شده */
-export function removeAddress(id: string): SavedAddress[] {
-  const next = loadAddresses().filter((a) => a.id !== id);
-  saveAddresses(next);
+export function removeAddress(id: string, key: string = ADDRESS_KEY): SavedAddress[] {
+  const next = loadAddresses(key).filter((a) => a.id !== id);
+  saveAddresses(next, key);
   return next;
 }
 

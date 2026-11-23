@@ -16,12 +16,12 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter, Link } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
-import { useStore, CURRENT_TEACHER_ID } from "@/lib/store";
+import { useStore } from "@/lib/store";
+import { useCurrentTeacherId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection, StudentMaterialsCell } from "@/components/panels/assignment-materials";
-import { grades as gradesData, studentSchedule } from "@/lib/data";
 import {
-  LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, FolderOpen, Users,
+  LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, Users,
   MessageSquare, UserCircle, FileText, CheckCircle2, Clock, ArrowLeft, Plus, Send,
   CalendarDays, TrendingUp, PhoneCall,
 } from "lucide-react";
@@ -32,15 +32,15 @@ const nav: PanelNavItem[] = [
   { key: "attendance", label: "حضور و غیاب", icon: UserCheck, href: "/teacher/attendance" },
   { key: "assignments", label: "تکالیف و نمره‌دهی", icon: ClipboardList, href: "/teacher/assignments" },
   { key: "students", label: "دانشجویان", icon: Users, href: "/teacher/students" },
-  { key: "content", label: "محتوای کلاس", icon: FolderOpen, href: "/teacher/content" },
   { key: "feedback", label: "بازخوردها", icon: Star, href: "/teacher/feedback" },
   { key: "messages", label: "پیام‌ها", icon: MessageSquare, href: "/teacher/messages" },
   { key: "profile", label: "پروفایل", icon: UserCircle, href: "/teacher/profile" },
 ];
 
 export function TeacherPagesPanel({ mode, id }: { mode: string; id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { courses } = useStore();
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
   const titles: Record<string, string> = {
     "class": "جزئیات کلاس",
     "assignment": "نمره‌دهی تکلیف",
@@ -59,13 +59,15 @@ export function TeacherPagesPanel({ mode, id }: { mode: string; id?: string }) {
 
 /** کلاس‌های استاد فعلی */
 function useMyCourses() {
+  const currentTeacherId = useCurrentTeacherId();
   const courses = useStore((s) => s.courses);
-  return courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID);
+  return courses.filter((c) => c.teacherId === currentTeacherId);
 }
 
 /* ========================= جزئیات تکلیف + نمره‌دهی ========================= */
 
 export function TeacherAssignmentDetail({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { assignments, courses, students, submissions, gradeSubmission } = useStore();
@@ -83,7 +85,15 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
   }
 
   const course = courses.find((c) => c.id === a.courseId);
-  const roster = course?.studentIds ?? [];
+  if (!course || course.teacherId !== currentTeacherId) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "تکالیف", href: "/teacher/assignments" }]} title="دسترسی به تکلیف ممکن نیست" />
+        <EmptyState title="این تکلیف در کلاس‌های شما نیست" desc="فقط می‌توانید تکالیف دوره‌هایی را مدیریت کنید که به شما تخصیص داده شده‌اند." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/assignments")}>بازگشت به تکالیف</Button>} />
+      </div>
+    );
+  }
+  const roster = course.studentIds;
   const subs = submissions.filter((s) => s.assignmentId === a.id);
   const graded = subs.filter((s) => s.status === "نمره‌داده‌شده");
   const pending = subs.filter((s) => s.status === "در انتظار بررسی");
@@ -92,8 +102,8 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
   const doGrade = (subId: string) => {
     const raw = scores[subId];
     const num = Number(raw?.replace(/[^\d.]/g, ""));
-    if (raw === undefined || raw === "" || isNaN(num)) {
-      toast({ title: "نمره وارد نشده", description: `نمره بین ۰ تا ${a.max} وارد کنید.`, variant: "destructive" });
+    if (raw === undefined || raw.trim() === "" || !Number.isFinite(num) || num < 0 || num > a.max) {
+      toast({ title: "نمره معتبر نیست", description: `نمره باید عددی بین ۰ تا ${a.max} باشد.`, variant: "destructive" });
       return;
     }
     gradeSubmission(subId, { score: num, feedback: feedbacks[subId] || undefined });
@@ -216,6 +226,7 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
 /* ========================== تعریف تکلیف جدید (استاد) ========================== */
 
 export function TeacherAssignmentNew() {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { addAssignment } = useStore();
@@ -225,11 +236,16 @@ export function TeacherAssignmentNew() {
   const [desc, setDesc] = React.useState("");
   const [due, setDue] = React.useState("");
   const [max, setMax] = React.useState("10");
-  const me = useStore((s) => s.teachers.find((t) => t.id === CURRENT_TEACHER_ID));
+  const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
 
   const save = () => {
-    if (!courseId || !title.trim()) {
-      toast({ title: "تکمیل لازم است", description: "کلاس و عنوان تکلیف الزامی است.", variant: "destructive" });
+    const maxScore = Number(max.replace(/[^\d.]/g, ""));
+    if (!myCourses.some((course) => course.id === courseId) || !title.trim()) {
+      toast({ title: "تکمیل لازم است", description: "یک کلاس معتبر از بین کلاس‌های خودتان و عنوان تکلیف را انتخاب کنید.", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(maxScore) || maxScore <= 0) {
+      toast({ title: "نمره کل معتبر نیست", description: "نمره کل باید عددی بزرگ‌تر از صفر باشد.", variant: "destructive" });
       return;
     }
     const id = addAssignment({
@@ -237,13 +253,30 @@ export function TeacherAssignmentNew() {
       title: title.trim(),
       desc: desc.trim() || "شرح تکلیف در کلاس اعلام می‌شود.",
       due: due.trim() || "به‌زودی",
-      max: Number(max.replace(/[^\d.]/g, "")) || 10,
+      max: maxScore,
       createdByRole: "teacher",
       createdByName: me?.name ?? "استاد",
     });
     toast({ title: "تکلیف ایجاد شد ✓", description: "دانشجویان کلاس اعلان را دریافت می‌کنند و در پنل مدیریت هم قابل مشاهده است." });
     navigate(`/teacher/assignments/${id}`);
   };
+
+  if (myCourses.length === 0) {
+    return (
+      <div className="max-w-2xl">
+        <PageHeader
+          crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "تکالیف", href: "/teacher/assignments" }, { label: "تکلیف جدید" }]}
+          title="تعریف تکلیف جدید"
+          desc="برای ساخت تکلیف، ابتدا باید یک دوره به شما تخصیص داده شده باشد."
+        />
+        <EmptyState
+          title="هنوز کلاسی به شما تخصیص داده نشده"
+          desc="از مدیریت بخواهید ابتدا یک دوره را به شما واگذار کند؛ بعد از آن می‌توانید برای دانشجویان تکلیف بسازید."
+          action={<Button variant="outline" className="border-hairline text-ink" onClick={() => navigate("/teacher/classes")}>مشاهده کلاس‌ها</Button>}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl">
@@ -252,7 +285,7 @@ export function TeacherAssignmentNew() {
         title="تعریف تکلیف جدید"
         desc="تکلیف برای کلاس‌های تخصیص‌یافته شما ساخته می‌شود."
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
         <div>
           <Label>کلاس *</Label>
           <select
@@ -277,14 +310,14 @@ export function TeacherAssignmentNew() {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>مهلت تحویل</Label>
-            <Input value={due} onChange={(e) => setDue(e.target.value)} className="mt-1.5 h-11" placeholder="۱۴۰۴/۰۸/۱۵" />
+            <Input value={due} onChange={(e) => setDue(e.target.value)} className="mt-1.5 h-11" placeholder="۱۴۰۵/۰۹/۱۵" />
           </div>
           <div>
             <Label>نمره کل</Label>
             <Input value={max} onChange={(e) => setMax(e.target.value)} dir="ltr" inputMode="numeric" className="mt-1.5 h-11" />
           </div>
         </div>
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <Send className="size-4 me-1.5" /> ایجاد و اعلان به دانشجویان
           </Button>
@@ -298,6 +331,7 @@ export function TeacherAssignmentNew() {
 /* ========================== پروفایل تحصیلی دانشجو ========================== */
 
 export function TeacherStudentProfile({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { students, courses, submissions, assignments } = useStore();
   const s = students.find((x) => x.id === id);
@@ -311,8 +345,23 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
     );
   }
 
-  const sharedCourses = courses.filter((c) => c.teacherId === CURRENT_TEACHER_ID && s.courseIds.includes(c.id));
-  const mySubs = submissions.filter((x) => x.studentId === s.id);
+  const sharedCourses = courses.filter((c) => c.teacherId === currentTeacherId && s.courseIds.includes(c.id));
+  if (sharedCourses.length === 0) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "دانشجویان", href: "/teacher/students" }]} title="دسترسی به پرونده ممکن نیست" />
+        <EmptyState title="این دانشجو در کلاس‌های شما نیست" desc="فقط اطلاعات آموزشی دانشجویان کلاس‌های تخصیص‌یافته به شما نمایش داده می‌شود." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/students")}>بازگشت به دانشجویان</Button>} />
+      </div>
+    );
+  }
+  const sharedCourseIds = sharedCourses.map((course) => course.id);
+  const sharedAssignmentIds = assignments.filter((assignment) => sharedCourseIds.includes(assignment.courseId)).map((assignment) => assignment.id);
+  const mySubs = submissions.filter((submission) => submission.studentId === s.id && sharedAssignmentIds.includes(submission.assignmentId));
+  const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+  }, 0) / gradedSubs.length : null;
 
   return (
     <div>
@@ -337,14 +386,18 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard icon={BookOpenCheck} label="کلاس‌های مشترک با شما" value={`${faNum(sharedCourses.length)} کلاس`} />
-        <StatCard icon={TrendingUp} label="درصد حضور" value={s.attendance ? `${fa(s.attendance)}٪` : "—"} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره" value={s.avg ? fa(s.avg.toFixed(1)) : "—"} tint="green" />
+        <StatCard icon={FileText} label="پاسخ‌های ثبت‌شده" value={`${faNum(mySubs.length)} پاسخ`} tint="yellow" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪"} tint="green" />
       </div>
 
       {/* کلاس‌های مشترک */}
       <div className="grid gap-4 md:grid-cols-2 mb-6">
         {sharedCourses.map((c) => {
-          const rows = gradesData[c.id] ?? [];
+          const courseAssignments = assignments.filter((assignment) => assignment.courseId === c.id);
+          const rows = courseAssignments.flatMap((assignment) => {
+            const submission = mySubs.find((item) => item.assignmentId === assignment.id && item.status === "نمره‌داده‌شده");
+            return submission ? [{ item: assignment.title, score: submission.score ?? 0, max: assignment.max }] : [];
+          });
           return (
             <div key={c.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
               <div className="flex items-center justify-between mb-3">
@@ -402,6 +455,7 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
 /* ============================== جزئیات کلاس ============================== */
 
 export function TeacherClassDetail({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { courses, students, assignments, submissions } = useStore();
   const c = courses.find((x) => x.id === id);
@@ -417,7 +471,16 @@ export function TeacherClassDetail({ id }: { id?: string }) {
 
   const roster = c.studentIds.map((sid) => students.find((s) => s.id === sid)).filter(Boolean) as typeof students;
   const courseAssignments = assignments.filter((a) => a.courseId === c.id);
-  const isMine = c.teacherId === CURRENT_TEACHER_ID;
+  const isMine = c.teacherId === currentTeacherId;
+
+  if (!isMine) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "کلاس‌های من", href: "/teacher/classes" }, { label: c.title }]} title={c.title} />
+        <EmptyState title="این کلاس به شما تخصیص داده نشده" desc="فقط می‌توانید اطلاعات کلاس‌هایی را ببینید که مدیریت به شما سپرده است." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/classes")}>بازگشت به کلاس‌های من</Button>} />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -479,13 +542,20 @@ export function TeacherClassDetail({ id }: { id?: string }) {
             <thead>
               <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                 <th className="text-start p-4 font-semibold">دانشجو</th>
-                <th className="text-start p-4 font-semibold">حضور</th>
+                <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
                 <th className="text-start p-4 font-semibold">میانگین نمره</th>
                 <th className="p-4"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {roster.map((s, i) => (
+              {roster.map((s, i) => {
+                const studentSubs = submissions.filter((submission) => submission.studentId === s.id && courseAssignments.some((assignment) => assignment.id === submission.assignmentId));
+                const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+                const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                  const assignment = courseAssignments.find((item) => item.id === submission.assignmentId);
+                  return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+                }, 0) / gradedSubs.length : null;
+                return (
                 <tr key={s.id} className={`hover:bg-canvas-soft/60 transition-colors ${i % 2 ? "bg-canvas-soft/50" : ""}`}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
@@ -496,19 +566,20 @@ export function TeacherClassDetail({ id }: { id?: string }) {
                       </div>
                     </div>
                   </td>
-                  <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span></td>
-                  <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                  <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                  <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                   <td className="p-4 text-end">
                     <Button size="sm" variant="outline" className="h-8 border-hairline text-ink" onClick={() => navigate(`/teacher/students/${s.id}`)}>پروفایل تحصیلی</Button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
       <p className="mt-4 text-[11px] text-ink-soft leading-6">
-        برنامه این کلاس در تقویم هفتگی دانشجویان: {studentSchedule.filter((x) => x.course.includes(c.title.slice(0, 6))).map((x) => `${x.day} ${x.time}`).join("، ") || "—"}
+        برنامه این کلاس: {c.schedule || "زمان‌بندی در اطلاعات دوره ثبت نشده است"}
       </p>
     </div>
   );

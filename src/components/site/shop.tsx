@@ -15,13 +15,25 @@ function productWaLink(title: string) {
   return `https://wa.me/989120000000?text=${text}`;
 }
 
+/* سرتیتر سکشن — هم‌الگوی CourseHead پروفایل دوره */
+function ProductHead({ icon, title }: { icon: React.ReactNode; title: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="rd-inside grid size-10 shrink-0 place-items-center rounded-[8px] bg-white text-rd-accent">
+        <span className="[&_svg]:size-4">{icon}</span>
+      </span>
+      <h2 className="font-black-fa text-[16px] text-ink">{title}</h2>
+    </div>
+  );
+}
+
 /* کارت محصول فروشگاه — هم‌الگوی کارت دوره‌ها (درخواست کاربر): RdCard با قاب چهارمربعی،
    تصویر ۱۶:۹، چیپ مونو برچسب، عنوان، توضیح دومخط، چیپ‌ها، RdLabel و قیمت + دکمهٔ جزئیات */
 function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
   const off = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
   return (
     <RdCard
-      className="group flex flex-col p-2 transition-colors hover:bg-canvas-soft/70 sm:p-3"
+      className="group flex min-w-0 flex-col p-2 transition-colors hover:bg-canvas-soft/70 sm:p-3"
       marks
       radius="rounded-[8px]"
     >
@@ -48,7 +60,7 @@ function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
             EDC SHOP
           </span>
         </div>
-        <h3 className="mt-2 text-[15px] font-black-fa leading-6 text-ink sm:mt-3 max-sm:text-[14px] max-sm:leading-5">
+        <h3 className="mt-2 min-h-[2.5rem] line-clamp-2 text-[14px] font-black-fa leading-5 text-ink sm:mt-3 sm:min-h-[3rem] sm:text-[15px] sm:leading-6">
           {p.title}
         </h3>
         <p className="mt-1 line-clamp-2 text-[13px] leading-6 text-ink-soft max-sm:text-[12px] max-sm:leading-5">
@@ -93,6 +105,8 @@ function ProductCard({ p, n }: { p: ShopProduct; n: string }) {
 }
 
 export function ShopPage() {
+  const products = shopProducts;
+
   return (
     <>
       <PageHero
@@ -105,9 +119,8 @@ export function ShopPage() {
       <RdSection id="shop-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-          {/* ۸ محصول در دو ردیف ۴تایی (درخواست کاربر — هم‌ریتم صفحهٔ دوره‌ها) */}
-          <div className="mt-3.5 grid gap-3.5 sm:mt-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
-            {shopProducts.map((p, i) => (
+          <div id="shop-product-list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
+            {products.map((p, i) => (
               <ProductCard key={p.id} p={p} n={faNum(i + 1)} />
             ))}
           </div>
@@ -158,16 +171,6 @@ export function ShopProductPage({ id }: { id: string }) {
     toast({ title: "به سبد خرید اضافه شد ✔", description: p.title });
   };
 
-  /* سرتیتر سکشن — هم‌الگوی CourseHead پروفایل دوره */
-  const ProductHead = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
-    <div className="flex items-center gap-3">
-      <span className="rd-inside grid size-10 shrink-0 place-items-center rounded-[8px] bg-white text-rd-accent">
-        <span className="[&_svg]:size-4">{icon}</span>
-      </span>
-      <h2 className="font-black-fa text-[16px] text-ink">{title}</h2>
-    </div>
-  );
-
   /* استپر تعداد — الگوی استپر فروشگاه‌ها: + راست، عدد وسط، − چپ (RTL) */
   const qtyStepper = (
     <div className="flex items-center gap-1.5">
@@ -197,9 +200,17 @@ export function ShopProductPage({ id }: { id: string }) {
           گرید محتوا + کارت قیمت چسبان، تصویر ۵۰٪ کوچک‌تر، سکشن «معرفی کتاب» و تعداد به سبد */}
       <RdSection id="shop-product" fadeTop>
         <RdBand className="top-0" />
-        <h1 className="sr-only">{p.title}</h1>
-        {/* پدینگ پایین موبایل/تبلت جای نوار ثابت پایین را نگه می‌دارد */}
+        {/* معرفی فشرده محصول برای روشن‌شدن هویت و کاربرد آن از ابتدای صفحه */}
         <RdWrap pb="pb-[110px] lg:pb-[62px] xl:pb-[79px]">
+        <section className="mb-5 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+          <span className="inline-flex rounded-full bg-canvas-soft px-3 py-1 text-[11px] font-bold text-rd-accent">{p.tag}</span>
+          <h1 className="mt-3 font-black-fa text-[19px] leading-8 text-ink sm:text-[24px]">{p.title}</h1>
+          <p className="mt-1.5 max-w-4xl text-[12.5px] leading-7 text-ink-soft sm:text-[13px]">{p.desc}</p>
+          <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-ink-soft">
+            <span className="rounded-full bg-canvas-soft px-3 py-1">ارسال سراسری</span>
+            <span className="rounded-full bg-canvas-soft px-3 py-1">افزودن به سبد خرید</span>
+          </div>
+        </section>
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
           <div className="min-w-0 space-y-5">
             {/* کارت رسانه محصول — هم‌الگوی کارت ویدئوی پروفایل دوره؛ تصویر ۵۰٪ کوچک‌تر (وسط‌چین) */}
@@ -230,7 +241,7 @@ export function ShopProductPage({ id }: { id: string }) {
               </div>
               <div className="relative overflow-hidden rounded-[8px] bg-canvas-soft/50 py-4">
                 {/* تصویر ۵۰٪ کوچک‌تر از پروفایل دوره — وسط‌چین با عرض نصف کارت */}
-                <div className="relative mx-auto w-full max-w-[50%] max-sm:max-w-[72%]">
+                <div className="relative mx-auto w-full max-w-[72%] max-sm:max-w-[92%]">
                   <img src={p.image} alt={p.title} className="aspect-[4/3] w-full rounded-[8px] object-cover" />
                   {off > 0 && (
                     <span className="absolute start-3 top-3 rounded-full bg-brand-500 px-2 py-0.5 text-[9.5px] font-extrabold text-navy-900">
@@ -333,19 +344,19 @@ export function ShopProductPage({ id }: { id: string }) {
       </RdSection>
 
       {/* قیمت + تعداد + افزودن — فیکس در انتهای صفحه در موبایل؛ هم‌الگوی پروفایل دوره */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-2.5">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline-soft bg-white/95 px-2.5 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-1">
           <div className="min-w-0 leading-tight">
             <p className="text-[10px] text-ink-faint">هزینه</p>
-            <p className="whitespace-nowrap text-[14px] font-black-fa leading-6 text-ink">
+            <p className="whitespace-nowrap text-[13px] font-black-fa leading-6 text-ink">
               {formatToman(p.price)} <span className="text-[10px] font-bold text-ink-soft">تومان</span>
             </p>
           </div>
-          <div className="shrink-0">{qtyStepper}</div>
+          <div className="shrink-0 [&_button]:size-8 [&_span]:min-w-[44px] [&_span]:text-[12px]">{qtyStepper}</div>
           <button
             type="button"
             onClick={addToCart}
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-rd-deep px-4 text-[12.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-1 rounded-full bg-rd-deep px-2.5 text-[11.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.985]"
           >
             <ShoppingBag className="size-4" />
             افزودن

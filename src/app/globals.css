@@ -3,59 +3,29 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ---------- Vazirmatn UI FD (self-hosted — ارقام فارسی) ---------- */
+/* ---------- IRANSans (فونت‌های موجود در public/fonts) ---------- */
 @font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-thin.ttf") format("truetype");
-  font-weight: 100;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-extralight.ttf") format("truetype");
-  font-weight: 200;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-light.ttf") format("truetype");
+  font-family: "IRANSans";
+  src: url("/fonts/iransans/iransans-300.woff2") format("woff2");
   font-weight: 300;
   font-display: swap;
 }
 @font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-regular.ttf") format("truetype");
+  font-family: "IRANSans";
+  src: url("/fonts/iransans/iransans-400.woff2") format("woff2");
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-medium.ttf") format("truetype");
+  font-family: "IRANSans";
+  src: url("/fonts/iransans/iransans-500.woff2") format("woff2");
   font-weight: 500;
   font-display: swap;
 }
 @font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-semibold.ttf") format("truetype");
-  font-weight: 600;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-bold.ttf") format("truetype");
+  font-family: "IRANSans";
+  src: url("/fonts/iransans/iransans-700.woff2") format("woff2");
   font-weight: 700;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-extrabold.ttf") format("truetype");
-  font-weight: 800;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Vazirmatn UI FD";
-  src: url("/fonts/vazirmatn/vazirmatn-ui-fd-black.ttf") format("truetype");
-  font-weight: 900;
   font-display: swap;
 }
 
@@ -70,8 +40,8 @@ body {
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Vazirmatn UI FD", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Vazirmatn UI FD", ui-monospace, monospace;
+  --font-sans: "IRANSans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IRANSans", ui-monospace, monospace;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -108,18 +78,23 @@ body {
 }
 
 /* ---------------------------------------------------------------
-   Design System — «سرمه‌ای و زرد» (Navy & Yellow Academy)
-   برند: لوگو ELMIRA DEUTSCH — سرمه‌ای #001040 / فیروزه‌ای #00C0F0 / قرمز #F00050
+   Design System — پالت چهاررنگ برند ELMIRA DEUTSCH
+   رنگ‌های هویتی: سرمه‌ای، صورتی، آبی فیروزه‌ای و زرد.
+   فونت سراسری رابط: IRANSans
 
-   نقش‌های رنگی (قانون ۶۰/۳۰/۱۰):
-   • ۶۰٪ سطح روشن: سفید و navy-50 — زمینه صفحه و کارت
-   • ۳۰٪ سرمه‌ای: متن، دکمه ثانویه، هدر و فوتر تیره، اسکلت پنل‌ها
-   • ۱۰٪ زرد: فقط تأکید — دکمه اصلی CTA، نشان‌ها، ستاره‌ها، هایلایت
-   • فیروزه‌ای (سکندری): لینک، حالت اطلاع‌رسانی، نمودار، لحظه‌های برند
-   • قرمز (سکندری): خطر، حذف، خطا، تخفیف ویژه
-   قواعد: روی زمینه زرد همیشه متن سرمه‌ای؛ متن زرد روی سفید ممنوع؛
-   در هر صفحه فقط یک دکمه اصلی زرد. کارت‌های گرد، حاشیه نازک،
-   سایه فقط برای عناصر شناور — «نرم و تمیز».
+   نقش‌های رنگی:
+   • سرمه‌ای: رنگ پایه؛ تیترها، متن اصلی، ناوبری و سطوح تیره
+   • زرد: تأکید اصلی؛ CTA مهم، نشان‌های منتخب و هایلایت
+   • فیروزه‌ای: تأکید مکمل؛ لینک‌ها، اطلاعات، نمودارها و عناصر آموزشی
+   • صورتی: امضای بصری برند؛ آیکون‌ها، جزئیات شاخص و تأکیدهای ثانویه
+   • قرمز/زرشکیِ خطا فقط برای وضعیت‌های معنایی مانند حذف و خطا؛
+     نباید جای صورتیِ هویتی را در اجزای برند بگیرد.
+
+   قواعد کاربرد:
+   • روی زمینه زرد همیشه متن سرمه‌ای؛ متن زرد روی سفید ممنوع
+   • رنگ صورتی و فیروزه‌ای نقش مکمل دارند و جای رنگ پایه را نمی‌گیرند
+   • رنگ‌های چهارگانه در سایت و تمام پنل‌ها از همین توکن‌ها استفاده کنند
+   • کارت‌های گرد، حاشیه نازک و سایه فقط برای عناصر شناور
    --------------------------------------------------------------- */
 @theme {
   /* PRIMARY — Navy / سرمه‌ای */
@@ -153,10 +128,10 @@ body {
   --color-turquoise-100: #d9f5fc; /* زمینه نشان اطلاعاتی */
   --color-turquoise-50: #edfafe;
 
-  /* SECONDARY — Crimson / قرمز — خطر و فوریت */
+  /* FUNCTIONAL — Crimson / قرمز-زرشکی — فقط وضعیت‌های خطا و فوریت؛ صورتی برند نیست */
   --color-crimson-700: #a80039;
   --color-crimson-600: #d00048;   /* دکمه خطرناک */
-  --color-crimson-500: #f00050;   /* قرمز لوگو */
+  --color-crimson-500: #f00050;   /* قرمز عملکردی؛ صورتی برند در rd-accent تعریف شده */
   --color-crimson-400: #f43e77;
   --color-crimson-300: #f87ca0;
   --color-crimson-100: #fdd9e5;
@@ -189,19 +164,19 @@ body {
   --color-navy-deep: #00033f;    /* پنل هیرو = blue-12 */
   --color-hero-dot: #4da7f9;     /* دات‌های تقاطع شبکه */
   --color-hero-sky: #54a8e8;     /* واژه تأکیدی تیتر */
-  --color-agent-blue: #4e62ff;   /* دکمه آبی نوار CTA */
+  --color-agent-blue: #4e62ff;   /* فیروزه‌ای نوار CTA */
   --color-skyc: #68cdff;         /* باتن فیروزه‌ای روی بکگراند تیره */
 
-  /* readme.com — توکن‌های استخراج‌شده از باندل رسمی (primary = blue) */
+  /* توکن‌های اجزای شاخص سایت؛ rd-accent از خانواده صورتی برند است */
   --color-rd-accent: #f80559;        /* primary-accent — ابرو، مربع ۶px، واژه تأکیدی؛ به درخواست کاربر #f80559 (پیش‌تر #213aff و سپس #248fe8 بود) */
   --color-rd-title: #060b75;         /* رنگ تیترها (به درخواست کاربر از صورتی به سرمه‌ای) — PageHero/RdEyebrow/واژهٔ تأکیدی h2 ها؛ آیکون‌ها صورتی می‌مانند */
   --color-rd-deep: #00033f;          /* primary-7 — دکمه اصلی و پیل تب فعال (باتن سرمه‌ای = navy-deep) */
-  --color-rd-sky: #82cbff;           /* primary-3 — بج «جدید» روی سرمه‌ای */
-  --color-rd-sky2: #4facff;          /* primary-4 — fill-loud روی سرمه‌ای */
+  --color-rd-sky: #82cbff;           /* فیروزه‌ای روشن — بج «جدید» روی سرمه‌ای */
+  --color-rd-sky2: #4facff;          /* فیروزه‌ای اصلی — fill-loud روی سرمه‌ای */
   --color-rd-night: #00033f;         /* blue-12 — سطح تیره سکشن‌ها */
   --color-rd-night-line: #021259;    /* blue-11 — خط شبکه و قاب روی تیره */
   --color-rd-night-soft: #001361;    /* خطوط مدار هیرو روی سرمه‌ای */
-  /* نکته: تغییر accent (#248fe8 → #f80559) باید در کل پروژه اعمال شود (درخواست کاربر) */
+  /* صورتی برند در اجزای شاخص با rd-accent استفاده می‌شود؛ خطاها از crimson می‌آیند. */
 }
 
 :root {
@@ -279,7 +254,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Vazirmatn UI FD", ui-sans-serif, system-ui, sans-serif;
+    font-family: "IRANSans", ui-sans-serif, system-ui, sans-serif;
     line-height: 1.8;
     -webkit-font-smoothing: antialiased;
   }

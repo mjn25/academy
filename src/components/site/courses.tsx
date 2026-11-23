@@ -126,7 +126,7 @@ function CourseCard({ c, n }: { c: SiteCourse; n: string }) {
             {c.trackLabel}
           </span>
         </div>
-        <h3 className="mt-2 text-[15px] font-black-fa leading-6 text-ink sm:mt-3 sm:truncate max-sm:line-clamp-2 max-sm:text-[14px] max-sm:leading-5">
+        <h3 className="mt-2 min-h-[2.5rem] line-clamp-2 text-[14px] font-black-fa leading-5 text-ink sm:mt-3 sm:min-h-[3rem] sm:text-[15px] sm:leading-6">
           {c.title}
         </h3>
         <p className="mt-1 line-clamp-2 text-[13px] leading-6 text-ink-soft max-sm:text-[12px] max-sm:leading-5">
@@ -198,19 +198,8 @@ function PlacementBanner() {
 }
 
 export function CoursesIndex() {
-  /* فیلتر کتگوری — فهرست واحد دوره‌ها؛ همهٔ ۸ کارت همیشه در «یک صفحه» دیده می‌شوند
-     (درخواست کاربر: ۸ کارت در یک صفحه، نه کمتر — بدون صفحه‌بندی وابسته به عرض) */
-  const [cat, setCat] = React.useState<"all" | SiteCourse["track"]>("all");
-  const catTabs: { id: "all" | SiteCourse["track"]; label: string }[] = [
-    { id: "all", label: "همهٔ دوره‌ها" },
-    { id: "blitzdeutsch", label: "BlitzDeutsch — مسیر اصلی زبان" },
-    { id: "blitzjob", label: "BlitzJob — بازار کار" },
-    { id: "blitzzertifikat", label: "BlitzZertifikat — آزمون رسمی" },
-  ];
-
-  const filtered = cat === "all" ? siteCourses : siteCourses.filter((c) => c.track === cat);
-  const PER_PAGE = 8;
-  const pageItems = filtered.slice(0, PER_PAGE);
+  /* نمایش همهٔ دوره‌ها در یک فهرست؛ بدون فیلتر و صفحه‌بندی */
+  const pageItems = siteCourses.slice(0, 8);
 
   return (
     <>
@@ -223,39 +212,8 @@ export function CoursesIndex() {
       <RdSection id="courses-index" fadeTop>
         <RdBand className="top-0" />
         <RdWrap pb="pb-[62px] sm:pb-[72px] xl:pb-[79px]">
-<div className="rd-no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0" role="tablist" aria-label="کتگوری دوره‌ها">
-            {catTabs.map((t) => {
-              const on = cat === t.id;
-              const count =
-                t.id === "all" ? siteCourses.length : siteCourses.filter((c) => c.track === t.id).length;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={on}
-                  onClick={() => setCat(t.id)}
-                  className={`inline-flex h-9 shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 text-[12px] transition-colors sm:h-10 sm:px-5 sm:text-[13px] ${
-                    on
-                      ? "bg-navy-deep font-extrabold text-white"
-                      : "rd-inside bg-white font-bold text-ink hover:bg-canvas-soft"
-                  }`}
-                >
-                  {t.label}
-                  <span
-                    className={`grid h-5 min-w-5 place-items-center rounded-full px-1 text-[10px] font-bold ${
-                      on ? "bg-white/15 text-white" : "bg-canvas-soft text-ink-soft"
-                    }`}
-                  >
-                    {faNum(count)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* فهرست واحد دوره‌ها — کارت‌ها دقیقاً با الگوی کارت صفحهٔ اصلی؛ همهٔ ۸ کارت در یک صفحه */}
-          <div className="mt-3.5 grid gap-3.5 sm:mt-4 sm:grid-cols-2 lg:grid-cols-4 xl:gap-5">
+{/* فهرست همهٔ دوره‌ها — بدون فیلتر */}
+          <div id="course-list" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 xl:gap-5">
             {pageItems.map((c, i) => (
               <CourseCard key={c.slug} c={c} n={String(i + 1).padStart(2, "0")} />
             ))}
@@ -321,7 +279,7 @@ function CourseTabBar({ c }: { c: SiteCourse }) {
       aria-label="بخش‌های صفحه دوره"
       /* فیکس باگ استیکی: کلاس rd-inside با position:relative استایلِ sticky را خنثی می‌کرد
           (نوار هنگام اسکرول فیکس نمی‌شد) — جای آن بوردر مستقیم هم‌شکل همان قاب */
-      className="sticky top-[68px] z-40 rounded-[8px] border border-hairline-soft bg-white px-2 py-1.5"
+      className="sticky top-[68px] z-40 mb-5 rounded-[8px] border border-hairline-soft bg-white px-2 py-1.5"
     >
       <div className="flex gap-1 overflow-x-auto">
         {tabs.map((t) => (
@@ -436,11 +394,26 @@ export function CoursePage({ slug }: { slug: string }) {
       {/* هیروسکشن صفحه دوره حذف شد (درخواست کاربر) — صفحه مستقیم با نوار تب‌ها و سکشن‌ها شروع می‌شود */}
       <RdSection id="course-detail" fadeTop>
         <RdBand className="top-0" />
-        {/* تیتر واقعی صفحه برای SEO و دسترس‌پذیری — بصری نمی‌آید */}
-        <h1 className="sr-only">{c.title}</h1>
-        {/* پدینگ پایین موبایل/تبلت جای نوار قیمت ثابت را نگه می‌دارد؛ دسکتاپ بدون نوار ثابت */}
+        {/* معرفی فشرده و قابل‌دیدن دوره؛ بدون بازگشت به هیروی بزرگ */}
         <RdWrap pb="pb-[110px] lg:pb-[62px] xl:pb-[79px]">
-        {/* گرید مرجع: ویدئو و محتوا (راست) + کارت قیمت چسبان (چپ) */}
+        <section className="mb-5 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-navy-deep px-3 py-1 text-[11px] font-extrabold text-white">{c.code}</span>
+            <span className="rounded-full bg-canvas-soft px-3 py-1 text-[11px] font-bold text-ink-soft">{c.trackLabel}</span>
+            <span className="ms-auto inline-flex items-center gap-1 text-[11px] font-bold text-ink-soft">
+              <Star className="size-3.5 fill-brand-500 text-brand-500" /> {faRate(avg)} از {faNum(c.reviews.length)} نظر
+            </span>
+          </div>
+          <h1 className="mt-3 font-black-fa text-[19px] leading-8 text-ink sm:text-[24px]">{c.title}</h1>
+          <p className="mt-1.5 max-w-4xl text-[12.5px] leading-7 text-ink-soft sm:text-[13px]">{c.short}</p>
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-[11px] text-ink-soft">
+            <span className="inline-flex items-center gap-1.5"><GraduationCap className="size-3.5 text-rd-accent" /> {c.teacher}</span>
+            <span className="inline-flex items-center gap-1.5"><Clock3 className="size-3.5 text-rd-accent" /> {c.months}</span>
+            <span className="inline-flex items-center gap-1.5"><Users className="size-3.5 text-rd-accent" /> {faNum(c.sessions)} جلسه</span>
+          </div>
+        </section>
+        <CourseTabBar c={c} />
+        {/* گرید محتوا و کارت قیمت چسبان */}
         <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
           <div className="min-w-0 space-y-5">
           {/* ویدئو معرفی — سلول قاب‌دار با مربع‌های تاکیدی: سربرگ مونو + عکس + دکمهٔ پخش
@@ -501,9 +474,6 @@ export function CoursePage({ slug }: { slug: string }) {
               ))}
             </div>
           </RdCard>
-
-            {/* نوار تب‌ها — داخل ستون محتوا، زیر ویدئو، چسبان */}
-            <CourseTabBar c={c} />
 
             {/* کاشی‌های مشخصات + خدمات آموزشی — یک بوردر، بدون کاشی خاکستری خالی */}
             <section className="rd-inside rounded-[8px] bg-white p-3 sm:p-4">

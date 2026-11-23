@@ -19,9 +19,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PageHeader, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
+import { normalizePhone, DEMO_ACCOUNTS } from "@/lib/auth-context";
 import { fa, faNum, faPrice } from "@/lib/format";
 import { useStore, type UserStatus, type StoreStudent, type StoreTeacher, type StorePayment } from "@/lib/store";
-import { feedbackComments, grades as gradesData } from "@/lib/data";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { adminNav, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import {
@@ -85,9 +85,14 @@ export function AdminStudentProfile({ id }: { id?: string }) {
 
   const myCourses = courses.filter((c) => s.courseIds.includes(c.id));
   const mySubs = submissions.filter((x) => x.studentId === s.id);
+  const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+  }, 0) / gradedSubs.length : null;
   const myInvoices = invoices.filter((i) => i.studentId === s.id);
   const myPayments = payments.filter((p) => p.studentId === s.id);
-  const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id));
+  const availableCourses = courses.filter((c) => !s.courseIds.includes(c.id) && (!c.capacity || c.studentIds.length < c.capacity));
   const totalFee = myCourses.reduce((sum, c) => sum + c.price, 0);
 
   const addCourse = () => {
@@ -155,8 +160,8 @@ export function AdminStudentProfile({ id }: { id?: string }) {
       {/* آمار */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
         <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(myCourses.length)} دوره`} />
-        <StatCard icon={TrendingUp} label="درصد حضور" value={s.attendance ? `${fa(s.attendance)}٪` : "—"} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره" value={s.avg ? fa(s.avg.toFixed(1)) : "—"} tint="green" />
+        <StatCard icon={ClipboardList} label="پاسخ‌های ثبت‌شده" value={`${"${"}faNum(mySubs.length)} پاسخ`} tint="yellow" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1)) + "٪"} tint="green" />
         <StatCard icon={Wallet} label="مانده حساب" value={s.balance > 0 ? faPrice(s.balance) : "تسویه"} tint={s.balance > 0 ? "red" : "green"} />
       </div>
 
@@ -178,7 +183,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
                   <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب دوره…" /></SelectTrigger>
                   <SelectContent>
                     {availableCourses.length === 0 ? (
-                      <div className="px-3 py-2 text-xs text-ink-soft">همه دوره‌ها قبلاً اضافه شده‌اند</div>
+                      <div className="px-3 py-2 text-xs text-ink-soft">دوره دیگری با ظرفیت خالی وجود ندارد.</div>
                     ) : (
                       availableCourses.map((c) => (
                         <SelectItem key={c.id} value={c.id}>{c.title} — {faPrice(c.price)}</SelectItem>
@@ -256,7 +261,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
               {mySubs.map((sub) => {
                 const a = assignments.find((x) => x.id === sub.assignmentId);
                 return (
-                  <button key={sub.id} onClick={() => navigate(`/admin/assignments/${sub.assignmentId}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex flex-wrap items-center gap-3">
+                  <button key={sub.id} onClick={() => navigate(a?.courseId ? `/admin/classes/${a.courseId}` : `/admin/students/${s.id}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex flex-wrap items-center gap-3">
                     <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-5" /></span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold text-ink truncate">{a?.title ?? "—"}</span>
@@ -281,22 +286,33 @@ export function AdminStudentProfile({ id }: { id?: string }) {
           ) : (
             <div className="space-y-4">
               {s.courseIds.map((cid) => {
-                const rows = gradesData[cid];
-                const course = courses.find((c) => c.id === cid);
-                if (!rows) return null;
+                const course = courses.find((item) => item.id === cid);
+                const courseAssignments = assignments.filter((assignment) => assignment.courseId === cid);
+                const rows = courseAssignments.flatMap((assignment) => {
+                  const submission = gradedSubs.find((item) => item.assignmentId === assignment.id);
+                  return submission ? [{ assignment, submission }] : [];
+                });
+                if (!course) return null;
                 return (
                   <div key={cid} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-                    <p className="font-bold text-ink text-sm mb-3 flex items-center gap-2"><ShieldCheck className="size-4 text-ink" /> کارنامه {course?.title ?? cid}</p>
-                    <div className="space-y-2">
-                      {rows.map((g) => (
-                        <div key={g.item} className="flex flex-wrap items-center gap-3 rounded-[8px] bg-canvas-soft px-3.5 py-2.5">
-                          <span className="text-xs font-bold text-ink flex-1 min-w-40">{g.item}</span>
-                          <span className="text-[10px] rounded-full bg-white px-2 py-0.5 text-ink-soft border border-hairline-soft">{g.type}</span>
-                          <span className="text-xs font-black-fa text-ink">{fa(String(g.score))} <span className="text-ink-soft font-normal">از {fa(String(g.max))}</span></span>
-                          <span className={`text-[11px] font-bold ${g.score / g.max >= 0.8 ? "text-ok" : g.score / g.max >= 0.6 ? "text-warn" : "text-bad"}`}>{fa(Math.round((g.score / g.max) * 100))}٪</span>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="font-bold text-ink text-sm mb-3 flex items-center gap-2"><ShieldCheck className="size-4 text-ink" /> کارنامه {course.title}</p>
+                    {rows.length ? (
+                      <div className="space-y-2">
+                        {rows.map(({ assignment, submission }) => {
+                          const score = submission.score ?? 0;
+                          const ratio = assignment.max > 0 ? score / assignment.max : 0;
+                          return (
+                            <div key={submission.id} className="flex flex-wrap items-center gap-3 rounded-[8px] bg-canvas-soft px-3.5 py-2.5">
+                              <span className="text-xs font-bold text-ink flex-1 min-w-40">{assignment.title}</span>
+                              <span className="text-xs font-black-fa text-ink">{fa(score)} <span className="text-ink-soft font-normal">از {fa(assignment.max)}</span></span>
+                              <span className={`text-[11px] font-bold ${"${"}ratio >= 0.8 ? "text-ok" : ratio >= 0.6 ? "text-warn" : "text-bad"}`}>{fa(Math.round(ratio * 100))}٪</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-4 text-xs text-ink-soft">هنوز نمره‌ای برای این دوره ثبت نشده است.</p>
+                    )}
                   </div>
                 );
               })}
@@ -509,7 +525,7 @@ export function AdminStudentProfile({ id }: { id?: string }) {
 export function AdminStudentEdit({ id }: { id: string | null }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { students, courses, addStudent, updateStudent, addStudentToCourse, removeStudentFromCourse } = useStore();
+  const { students, teachers, courses, addStudent, updateStudent, addStudentToCourse, removeStudentFromCourse } = useStore();
   const existing = id ? students.find((x) => x.id === id) : null;
 
   const [name, setName] = React.useState(existing?.name ?? "");
@@ -529,7 +545,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   }
 
   const selectedCourses = courses.filter((c) => courseIds.includes(c.id));
-  const selectableCourses = courses.filter((c) => !courseIds.includes(c.id));
+  const selectableCourses = courses.filter((c) => !courseIds.includes(c.id) && (!c.capacity || c.studentIds.length < c.capacity));
   const totalFee = selectedCourses.reduce((sum, c) => sum + c.price, 0);
 
   /** افزودن دوره انتخاب‌شده — جمع شهریه در جدول پایین به‌روز می‌شود */
@@ -547,17 +563,31 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   };
 
   const save = () => {
-    if (!name.trim() || !phone.trim()) {
-      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل الزامی است.", variant: "destructive" });
+    const normalizedPhone = normalizePhone(phone);
+    if (!name.trim() || !normalizedPhone) {
+      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل معتبر الزامی است.", variant: "destructive" });
       return;
     }
-    /* مانده حساب خودکار = جمع شهریه دوره‌های انتخابی */
+    const duplicateStudent = students.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
+    const duplicateTeacher = teachers.some((item) => normalizePhone(item.phone) === normalizedPhone);
+    const reservedDemoPhone = Boolean(DEMO_ACCOUNTS[normalizedPhone] && normalizePhone(existing?.phone ?? "") !== normalizedPhone);
+    if (duplicateStudent || duplicateTeacher || reservedDemoPhone) {
+      toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
+      return;
+    }
+    const fullCourse = courseIds
+      .map((courseId) => courses.find((course) => course.id === courseId))
+      .find((course) => course && course.capacity && course.studentIds.length >= course.capacity && !existing?.courseIds.includes(course.id));
+    if (fullCourse) {
+      toast({ title: "ظرفیت دوره تکمیل شده", description: `ظرفیت «${fullCourse.title}» تکمیل است؛ آن را از انتخاب‌ها بردارید یا ابتدا ظرفیت دوره را افزایش دهید.`, variant: "destructive" });
+      return;
+    }
+    /* مانده حساب با تغییر دوره‌ها به‌صورت افزایشی/کاهشی اصلاح می‌شود؛ پرداخت‌های قبلی حفظ می‌شوند. */
     const patch = {
       name: name.trim(),
-      phone: phone.trim(),
+      phone: normalizedPhone,
       email: email.trim(),
       status,
-      balance: totalFee,
       courseIds,
     };
     if (existing) {
@@ -579,13 +609,21 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full min-w-0 max-w-2xl">
       <PageHeader
         crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "دانشجویان", href: "/admin/students" }, { label: existing ? "ویرایش پرونده" : "ثبت‌نام دستی" }]}
         title={existing ? `ویرایش پرونده ${existing.name}` : "ثبت‌نام دستی دانشجو"}
         desc={existing ? "اطلاعات هویتی و وضعیت مالی دانشجو را ویرایش کنید." : "برای پرداخت حضوری/نقدی، دانشجو را مستقیم ثبت‌نام کنید."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
+            <div>
+              <h2 className="text-sm font-black-fa text-ink">اطلاعات دانشجو</h2>
+              <p className="text-[11px] text-ink-soft">مشخصات تماس و وضعیت پرونده را وارد کنید.</p>
+            </div>
+          </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Label>نام و نام خانوادگی *</Label>
@@ -611,21 +649,26 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
             </Select>
           </div>
         </div>
+        </section>
 
-        {/* ثبت‌نام در دوره‌ها — بخش مستقل و شفاف: انتخاب، افزودن، جدول جمع شهریه */}
+        {/* ثبت‌نام در دوره‌ها — بخش دوم فرایند */}
+        <section>
         <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
-          <p className="flex items-center gap-2 text-sm font-black-fa text-ink">
-            <BookOpenCheck className="size-4 text-rd-accent" />
-            دوره‌های ثبت‌نام
-          </p>
-          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">دوره یا دوره‌هایی که این دانشجو ثبت‌نام می‌شود را انتخاب و «افزودن دوره» را بزنید؛ جمع شهریه خودکار حساب می‌شود.</p>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۲</span>
+            <div>
+              <h2 className="text-sm font-black-fa text-ink">انتخاب دوره‌ها</h2>
+              <p className="text-[11px] text-ink-soft">دوره‌های موردنظر را اضافه کنید؛ جمع شهریه پایین همین بخش محاسبه می‌شود.</p>
+            </div>
+          </div>
+          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">یک یا چند دوره را انتخاب و اضافه کنید؛ جمع شهریه به‌صورت خودکار محاسبه می‌شود.</p>
           <div className="mt-3 flex flex-wrap items-end gap-3">
             <div className="flex-1 min-w-56">
               <Select value={pickCourse} onValueChange={setPickCourse}>
                 <SelectTrigger className="h-11 bg-white"><SelectValue placeholder="یک دوره انتخاب کنید…" /></SelectTrigger>
                 <SelectContent>
                   {selectableCourses.length === 0 ? (
-                    <div className="px-3 py-2 text-xs text-ink-soft">همه دوره‌ها اضافه شده‌اند</div>
+                    <div className="px-3 py-2 text-xs text-ink-soft">دوره دیگری با ظرفیت خالی وجود ندارد.</div>
                   ) : (
                     selectableCourses.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.title} — {faPrice(c.price)}</SelectItem>
@@ -671,11 +714,12 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
             <p className="mt-3 rounded-[8px] border border-dashed border-hairline-soft bg-white px-4 py-3 text-xs text-ink-soft">هنوز دوره‌ای اضافه نشده — یک دوره از لیست بالا انتخاب کنید و «افزودن دوره» را بزنید.</p>
           )}
           <p className="mt-2 text-[11px] text-ink-soft leading-6">
-            مانده حساب دانشجو برابر جمع شهریه دوره‌های انتخابی محاسبه می‌شود. پس از ذخیره، دانشجو در لیست هر دوره (پنل استاد و پنل دانشجو) هم ثبت می‌شود.
+            جمع شهریه دوره‌های انتخابی در همین فرم نمایش داده می‌شود. در ویرایش پرونده، تغییر دوره‌ها مانده حساب را به‌اندازه شهریه همان دوره‌ها تغییر می‌دهد و پرداخت‌های قبلی حفظ می‌شوند. پس از ذخیره، ثبت‌نام در فهرست دوره‌ها و پنل دانشجو و استاد هم به‌روزرسانی می‌شود.
           </p>
         </div>
+        </section>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <UserPlus className="size-4 me-1.5" /> {existing ? "ذخیره تغییرات" : "ثبت‌نام دانشجو"}
           </Button>
@@ -691,7 +735,7 @@ export function AdminStudentEdit({ id }: { id: string | null }) {
 export function AdminTeacherProfile({ id }: { id?: string }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { teachers, courses, students, assignments, updateTeacher, setCourseTeacher } = useStore();
+  const { teachers, courses, students, assignments, submissions, updateTeacher, setCourseTeacher } = useStore();
   const t = teachers.find((x) => x.id === id);
 
   const [assignOpen, setAssignOpen] = React.useState(false);
@@ -709,8 +753,8 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
   const myCourses = courses.filter((c) => c.teacherId === t.id);
   const rosterIds = Array.from(new Set(myCourses.flatMap((c) => c.studentIds)));
   const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
-  const myFeedback = feedbackComments.filter((f) => myCourses.some((c) => c.title === f.course));
-  const unassigned = courses.filter((c) => c.teacherId !== t.id);
+  const myFeedback: { id: string; student: string; course: string; score: number; text: string; criteria: Record<string, number> }[] = [];
+  const unassigned = courses.filter((c) => !c.teacherId);
 
   const doAssign = () => {
     if (!pickCourse) return;
@@ -751,7 +795,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
             <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-soft">
               <span className="flex items-center gap-1" dir="ltr"><PhoneCall className="size-3.5" /> {t.phone}</span>
               <span className="flex items-center gap-1" dir="ltr"><Mail className="size-3.5" /> {t.email}</span>
-              <span className="flex items-center gap-1"><Star className="size-3.5 fill-brand-500 text-brand-600" /> امتیاز {fa(t.rating)} از ۵</span>
+              
             </div>
           </div>
         </div>
@@ -805,7 +849,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                   <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                     <th className="text-start p-4 font-semibold">دانشجو</th>
                     <th className="text-start p-4 font-semibold">دوره</th>
-                    <th className="text-start p-4 font-semibold">حضور</th>
+                    <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
                     <th className="p-4"></th>
                   </tr>
                 </thead>
@@ -814,11 +858,13 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                     const s = students.find((x) => x.id === sid);
                     if (!s) return null;
                     const cs = courses.filter((c) => c.teacherId === t.id && c.studentIds.includes(sid));
+                    const assignmentIds = assignments.filter((assignment) => cs.some((course) => course.id === assignment.courseId)).map((assignment) => assignment.id);
+                    const responseCount = submissions.filter((submission) => submission.studentId === sid && assignmentIds.includes(submission.assignmentId)).length;
                     return (
                       <tr key={sid} className="hover:bg-canvas-soft/60 transition-colors">
                         <td className="p-4 font-bold text-ink">{s.name}</td>
                         <td className="p-4 text-ink-soft">{cs.map((c) => c.title).join("، ")}</td>
-                        <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{fa(s.attendance)}٪</span></td>
+                        <td className="p-4 text-ink-soft">{faNum(responseCount)} پاسخ</td>
                         <td className="p-4 text-end">
                           <Button size="sm" variant="outline" className="h-8 border-hairline text-ink" onClick={() => navigate(`/admin/students/${sid}`)}>پرونده</Button>
                         </td>
@@ -837,7 +883,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
           ) : (
             <div className="space-y-3">
               {myAssignments.map((a) => (
-                <button key={a.id} onClick={() => navigate(`/admin/assignments/${a.id}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex items-center gap-3">
+                <button key={a.id} onClick={() => navigate(`/admin/classes/${a.courseId}`)} className="w-full text-start rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 hover:border-navy-deep transition-colors flex items-center gap-3">
                   <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><ClipboardList className="size-5" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-bold text-ink truncate">{a.title}</span>
@@ -890,12 +936,13 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
                 <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب دوره…" /></SelectTrigger>
                 <SelectContent>
                   {unassigned.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title} {c.teacherId ? `— استاد فعلی: ${useStore.getState().teachers.find((x) => x.id === c.teacherId)?.name}` : "— بدون استاد"}</SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.title} — بدون استاد</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {unassigned.length === 0 && <p className="mt-2 text-[11px] leading-5 text-ink-soft">در حال حاضر دورهٔ بدون استاد وجود ندارد. برای جابه‌جایی، ابتدا دوره را از پرونده استاد فعلی بردارید.</p>}
             </div>
-            <Button className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" disabled={!pickCourse} onClick={doAssign}>
+            <Button className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" disabled={!pickCourse || unassigned.length === 0} onClick={doAssign}>
               <CheckCircle2 className="size-4 me-1.5" /> تخصیص دوره
             </Button>
           </div>
@@ -910,7 +957,7 @@ export function AdminTeacherProfile({ id }: { id?: string }) {
 export function AdminTeacherEdit({ id }: { id: string | null }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { teachers, courses, addTeacher, updateTeacher, setCourseTeacher } = useStore();
+  const { teachers, students, courses, addTeacher, updateTeacher, setCourseTeacher } = useStore();
   const existing = id ? teachers.find((x) => x.id === id) : null;
 
   /* درخواست کاربر: فرم استاد فقط نام + موبایل + درس‌هایی که تدریس می‌کند — ایمیل/مدرک/سابقه/بیوگرافی نیست */
@@ -930,15 +977,23 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
   }
 
   const save = () => {
-    if (!name.trim() || !phone.trim()) {
-      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل الزامی است.", variant: "destructive" });
+    const normalizedPhone = normalizePhone(phone);
+    if (!name.trim() || !normalizedPhone) {
+      toast({ title: "اطلاعات ناقص", description: "نام و شماره موبایل معتبر الزامی است.", variant: "destructive" });
+      return;
+    }
+    const duplicateTeacher = teachers.some((item) => item.id !== existing?.id && normalizePhone(item.phone) === normalizedPhone);
+    const duplicateStudent = students.some((item) => normalizePhone(item.phone) === normalizedPhone);
+    const reservedDemoPhone = Boolean(DEMO_ACCOUNTS[normalizedPhone] && normalizePhone(existing?.phone ?? "") !== normalizedPhone);
+    if (duplicateTeacher || duplicateStudent || reservedDemoPhone) {
+      toast({ title: "این شماره قبلاً ثبت شده", description: "برای هر حساب، شماره موبایل باید یکتا باشد.", variant: "destructive" });
       return;
     }
     /* بقیهٔ مشخصات استاد (عنوان، مدرک، سابقه، بیوگرافی) دست‌نخورده می‌ماند */
     const patch = {
       name: name.trim(),
       title: existing?.title || "مدرس",
-      phone: phone.trim(),
+      phone: normalizedPhone,
       email: existing?.email ?? "",
       degree: existing?.degree ?? "",
       experience: existing?.experience ?? 1,
@@ -962,13 +1017,18 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full min-w-0 max-w-2xl">
       <PageHeader
         crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "اساتید", href: "/admin/teachers" }, { label: existing ? "ویرایش پرونده" : "استاد جدید" }]}
         title={existing ? `ویرایش پرونده ${existing.name}` : "افزودن استاد جدید"}
         desc={existing ? "نام، موبایل و درس‌های تدریس استاد را ویرایش کنید." : "فقط نام، موبایل و درس‌های تدریس — پس از ثبت، حساب کاربری استاد ساخته می‌شود."}
       />
-      <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-6 space-y-5">
+      <div className="rd-inside min-w-0 rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-6 space-y-5">
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۱</span>
+            <div><h2 className="text-sm font-black-fa text-ink">اطلاعات استاد</h2><p className="text-[11px] text-ink-soft">نام و شماره تماس استاد را وارد کنید.</p></div>
+          </div>
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
             <Label>نام و نام خانوادگی *</Label>
@@ -979,32 +1039,35 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" inputMode="tel" className="mt-1.5 h-11" placeholder="09xxxxxxxxx" />
           </div>
         </div>
+        </section>
 
         {/* درس‌های تدریس — انتخاب مستقیم با تیک، بدون دراپ‌داون گم‌شده */}
-        <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
-          <p className="flex items-center gap-2 text-sm font-black-fa text-ink">
-            <BookOpenCheck className="size-4 text-rd-accent" />
-            درس‌هایی که تدریس می‌کند
-          </p>
-          <p className="mt-1 text-[11.5px] leading-5 text-ink-soft">یک یا چند دوره را تیک بزنید؛ پس از ذخیره، استاد در پروندهٔ همان دوره‌ها ثبت و در کلاس‌های آن‌ها نمایش داده می‌شود.</p>
-          <div className="mt-3 grid sm:grid-cols-2 gap-2">
+        <section className="min-w-0 rounded-[8px] border border-hairline-soft bg-canvas-soft/40 p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="grid size-7 place-items-center rounded-full bg-navy-deep text-[11px] font-bold text-white">۲</span>
+            <div><h2 className="text-sm font-black-fa text-ink">تخصیص دوره‌ها</h2><p className="text-[11px] text-ink-soft">فقط دوره‌های بدون استاد یا دوره‌های فعلی همین استاد قابل انتخاب‌اند.</p></div>
+          </div>
+          <div className="mt-3 grid min-w-0 sm:grid-cols-2 gap-2">
             {courses.map((c) => {
               const on = teachCourseIds.includes(c.id);
+              const assignedElsewhere = Boolean(c.teacherId && c.teacherId !== existing?.id);
+              const assignedName = assignedElsewhere ? teachers.find((teacher) => teacher.id === c.teacherId)?.name : null;
               return (
                 <button
                   type="button"
                   key={c.id}
+                  disabled={assignedElsewhere}
                   onClick={() => setTeachCourseIds((v) => (on ? v.filter((x) => x !== c.id) : [...v, c.id]))}
-                  className={`flex items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors ${
+                  className={`flex w-full min-w-0 items-center gap-2.5 rounded-[8px] border bg-white px-3.5 py-3 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-55 ${
                     on ? "border-rd-accent/50 ring-1 ring-rd-accent/30" : "border-hairline-soft hover:bg-canvas-soft"
                   }`}
                 >
                   <span className={`grid size-5 shrink-0 place-items-center rounded-[6px] border transition-colors ${on ? "border-rd-accent bg-rd-accent text-white" : "border-hairline bg-white text-transparent"}`}>
                     <Check className="size-3.5" />
                   </span>
-                  <span className="min-w-0">
+                  <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-bold text-ink">{c.title}</span>
-                    <span className="block text-[11px] text-ink-soft">{c.level}</span>
+                    <span className="block text-[11px] text-ink-soft">{assignedElsewhere ? `در اختیار ${assignedName ?? "استاد دیگر"}` : c.level}</span>
                   </span>
                 </button>
               );
@@ -1013,9 +1076,9 @@ export function AdminTeacherEdit({ id }: { id: string | null }) {
           {teachCourseIds.length > 0 && (
             <p className="mt-2.5 text-[11px] font-bold text-ink">{faNum(teachCourseIds.length)} دوره انتخاب شده — با ذخیره به پروندهٔ استاد اضافه می‌شود.</p>
           )}
-        </div>
+        </section>
 
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
           <Button className="flex-1 h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={save}>
             <UserPlus className="size-4 me-1.5" /> {existing ? "ذخیره تغییرات" : "ایجاد استاد"}
           </Button>

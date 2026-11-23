@@ -21,8 +21,8 @@ import { useStore } from "@/lib/store";
 import { adminNav, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import {
-  BookOpenCheck, ClipboardList, Users, Plus, Pencil, UserPlus, UserMinus,
-  ArrowLeft, GraduationCap, FileText, Wallet, CalendarDays,
+  BookOpenCheck, Users, Plus, Pencil, UserPlus, UserMinus,
+  ArrowLeft, GraduationCap, Wallet, CalendarDays,
 } from "lucide-react";
 
 const nav = adminNav;
@@ -38,7 +38,7 @@ export function AdminClassPanel({ id }: { id?: string }) {
 function AdminClassDetail({ id }: { id?: string }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { courses, teachers, students, assignments, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
+  const { courses, teachers, students, assignments, submissions, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
   const c = courses.find((x) => x.id === id);
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -59,8 +59,8 @@ function AdminClassDetail({ id }: { id?: string }) {
 
   const teacher = teachers.find((t) => t.id === c.teacherId);
   const roster = c.studentIds.map((sid) => students.find((s) => s.id === sid)).filter(Boolean) as typeof students;
-  const courseAssignments = assignments.filter((a) => a.courseId === c.id);
-  const notInCourse = students.filter((s) => !c.studentIds.includes(s.id));
+  const hasCapacity = !c.capacity || c.studentIds.length < c.capacity;
+  const notInCourse = hasCapacity ? students.filter((s) => !c.studentIds.includes(s.id)) : [];
 
   const openEdit = () => {
     setForm({
@@ -76,7 +76,7 @@ function AdminClassDetail({ id }: { id?: string }) {
   return (
     <div>
       <PageHeader
-        crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "کلاس‌ها و دوره‌ها", href: "/admin/classes" }, { label: c.title }]}
+        crumbs={[{ label: "پنل مدیریت", href: "/admin" }, { label: "کلاس‌ها", href: "/admin/classes" }, { label: c.title }]}
         title={c.title}
         desc={`${c.language} — سطح ${c.level} — ${c.type === "online" ? "آنلاین" : "حضوری"}`}
         actions={
@@ -84,17 +84,13 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button variant="outline" className="border-hairline text-ink h-10" onClick={openEdit}>
               <Pencil className="size-4 me-1.5" /> ویرایش دوره
             </Button>
-            <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold h-10" onClick={() => navigate(`/admin/assignments/new?course=${c.id}`)}>
-              <Plus className="size-4 me-1.5" /> تخصیص تکلیف به این دوره
-            </Button>
           </>
         }
       />
 
       {/* آمار */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
         <StatCard icon={Users} label="دانشجویان ثبت‌نامی" value={`${faNum(roster.length)} نفر`} />
-        <StatCard icon={ClipboardList} label="تکالیف فعال" value={faNum(courseAssignments.length)} tint="yellow" />
         <StatCard icon={Wallet} label="شهریه دوره" value={faPrice(c.price)} />
         <StatCard icon={CalendarDays} label="جلسات" value={`${faNum(c.sessions)} جلسه`} tint="green" />
       </div>
@@ -108,7 +104,7 @@ function AdminClassDetail({ id }: { id?: string }) {
             {teacher ? (
               <>
                 <p className="font-bold text-ink">{teacher.name}</p>
-                <p className="text-[11px] text-ink font-semibold">{teacher.title} — امتیاز {fa(teacher.rating)} از ۵</p>
+                <p className="text-[11px] text-ink font-semibold">{teacher.title}</p>
               </>
             ) : (
               <p className="font-bold text-bad text-sm">بدون استاد — دوره نمی‌تواند فعال شود</p>
@@ -145,40 +141,13 @@ function AdminClassDetail({ id }: { id?: string }) {
             ))}
           </div>
         </div>
-
-        {/* تکالیف دوره */}
-        <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm">تکالیف این دوره</p>
-            <Link href={`/admin/assignments/new?course=${c.id}`} className="text-[11px] font-bold text-ink">تخصیص تکلیف جدید</Link>
-          </div>
-          {courseAssignments.length === 0 ? (
-            <EmptyState title="تکلیفی تخصیص نیافته" desc="برای این دوره تکلیف تعریف کنید." />
-          ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto scroll-thin">
-              {courseAssignments.map((a) => {
-                const subs = useStore.getState().submissions.filter((s) => s.assignmentId === a.id);
-                return (
-                  <button key={a.id} onClick={() => navigate(`/admin/assignments/${a.id}`)} className="w-full text-start flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3 hover:border-navy-deep transition-colors">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-xs font-bold text-ink truncate">{a.title}</span>
-                      <span className="block text-[11px] text-ink-soft">مهلت {a.due} — {faNum(subs.length)} تحویل</span>
-                    </span>
-                    <ArrowLeft className="size-4 text-ink-soft" />
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
       </div>
 
       {/* لیست دانشجویان */}
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 p-5 pb-3">
           <p className="font-bold text-ink text-sm flex items-center gap-2"><Users className="size-4 text-ink" /> لیست دانشجویان ({faNum(roster.length)})</p>
-          <Button size="sm" className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}>
+          <Button size="sm" disabled={!hasCapacity || notInCourse.length === 0} className="h-9 bg-navy-deep text-white hover:bg-navy-700" onClick={() => { setPickStudent(""); setAddOpen(true); }}>
             <UserPlus className="size-4 me-1" /> افزودن دانشجو به دوره
           </Button>
         </div>
@@ -192,14 +161,22 @@ function AdminClassDetail({ id }: { id?: string }) {
               <thead>
                 <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
                   <th className="text-start p-4 font-semibold">دانشجو</th>
-                  <th className="text-start p-4 font-semibold">حضور</th>
-                  <th className="text-start p-4 font-semibold">میانگین</th>
+                  <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
+                  <th className="text-start p-4 font-semibold">میانگین نمره</th>
                   <th className="text-start p-4 font-semibold">وضعیت</th>
                   <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {roster.map((s, i) => (
+                {roster.map((s, i) => {
+                  const assignmentIds = assignments.filter((assignment) => assignment.courseId === c.id).map((assignment) => assignment.id);
+                  const studentSubs = submissions.filter((submission) => submission.studentId === s.id && assignmentIds.includes(submission.assignmentId));
+                  const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+                  const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                    const assignment = assignments.find((item) => item.id === submission.assignmentId);
+                    return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+                  }, 0) / gradedSubs.length : null;
+                  return (
                   <tr key={s.id} className={`hover:bg-canvas-soft/60 transition-colors ${i % 2 ? "bg-canvas-soft/50" : ""}`}>
                     <td className="p-4">
                       <button onClick={() => navigate(`/admin/students/${s.id}`)} className="flex items-center gap-3 text-start hover:underline">
@@ -210,8 +187,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                         </span>
                       </button>
                     </td>
-                    <td className="p-4"><span className={`font-bold ${s.attendance >= 75 ? "text-ok" : s.attendance >= 50 ? "text-warn" : "text-bad"}`}>{s.attendance ? `${fa(s.attendance)}٪` : "—"}</span></td>
-                    <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                    <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                    <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                     <td className="p-4"><StatusBadge status={s.status} /></td>
                     <td className="p-4">
                       <div className="flex gap-1.5 justify-end">
@@ -238,7 +215,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -262,8 +240,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                 <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" />
               </div>
               <div>
-                <Label>ظرفیت (خالی = نامحدود)</Label>
-                <Input value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" />
+                <Label>ظرفیت کلاس حضوری</Label>
+                <Input value={c.type === "online" ? "" : form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value.replace(/[^\d]/g, "") }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" disabled={c.type === "online"} placeholder={c.type === "online" ? "نامحدود" : "مثلاً ۱۵"} />
               </div>
             </div>
             <div>
@@ -283,10 +261,29 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button
               className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
               onClick={() => {
+                const nextTitle = form.title.trim();
+                const nextPrice = Number(form.price.replace(/[^\d]/g, ""));
+                const nextCapacity = c.type === "online" ? undefined : Number(form.capacity.replace(/[^\d]/g, ""));
+                if (!nextTitle) {
+                  toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
+                  return;
+                }
+                if (!Number.isFinite(nextPrice) || nextPrice < 0) {
+                  toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
+                  return;
+                }
+                if (c.type === "offline" && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, c.studentIds.length))) {
+                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت کلاس حضوری باید حداقل ${faNum(c.studentIds.length)} نفر و بزرگ‌تر از صفر باشد.`, variant: "destructive" });
+                  return;
+                }
+                if (form.status === "فعال" && (!teacher || teacher.status !== "فعال")) {
+                  toast({ title: "ابتدا استاد دوره را مشخص کنید", description: "برای فعال‌کردن دوره، یک استاد فعال تخصیص دهید.", variant: "destructive" });
+                  return;
+                }
                 updateCourse(c.id, {
-                  title: form.title.trim() || c.title,
-                  price: Number(form.price.replace(/[^\d]/g, "")) || c.price,
-                  capacity: form.capacity ? Number(form.capacity.replace(/[^\d]/g, "")) : undefined,
+                  title: nextTitle,
+                  price: nextPrice,
+                  capacity: nextCapacity,
                   schedule: form.schedule.trim() || undefined,
                   status: form.status as "فعال" | "پیش‌نویس",
                 });
@@ -312,8 +309,9 @@ function AdminClassDetail({ id }: { id?: string }) {
               <Select value={pickTeacher} onValueChange={setPickTeacher}>
                 <SelectTrigger className="mt-1.5 h-11"><SelectValue placeholder="انتخاب استاد…" /></SelectTrigger>
                 <SelectContent>
-                  {teachers.filter((t) => t.status === "فعال").map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.name} — {t.title}</SelectItem>
+                  <SelectItem value="__none__">بدون استاد</SelectItem>
+                  {teachers.filter((t) => t.status === "فعال" || t.id === c.teacherId).map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name} — {t.title}{t.status !== "فعال" ? " (غیرفعال)" : ""}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -321,9 +319,14 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button
               className="w-full h-11 bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold"
               onClick={() => {
-                setCourseTeacher(c.id, pickTeacher || null);
+                const nextTeacherId = pickTeacher === "__none__" || !pickTeacher ? null : pickTeacher;
+                if (nextTeacherId && teachers.find((item) => item.id === nextTeacherId)?.status !== "فعال") {
+                  toast({ title: "استاد انتخاب‌شده غیرفعال است", description: "برای تخصیص جدید، یک استاد فعال انتخاب کنید.", variant: "destructive" });
+                  return;
+                }
+                setCourseTeacher(c.id, nextTeacherId);
                 setTeacherOpen(false);
-                toast({ title: "استاد تخصیص یافت ✓", description: "در پرونده استاد و داشبورد او نمایش داده می‌شود." });
+                toast({ title: nextTeacherId ? "استاد تخصیص یافت ✓" : "استاد از دوره برداشته شد", description: "اطلاعات دوره و پرونده استاد هم‌زمان به‌روزرسانی شد." });
               }}
             >
               تأیید تخصیص
@@ -339,7 +342,7 @@ function AdminClassDetail({ id }: { id?: string }) {
             <DialogTitle className="font-black-fa text-ink">افزودن دانشجو به دوره</DialogTitle>
           </DialogHeader>
           {notInCourse.length === 0 ? (
-            <p className="text-sm text-ink-soft py-4 text-center">همه دانشجویان ثبت‌نامی قبلاً عضو این دوره هستند.</p>
+            <p className="text-sm text-ink-soft py-4 text-center">{hasCapacity ? "همه دانشجویان ثبت‌نامی قبلاً عضو این دوره هستند." : "ظرفیت این دوره تکمیل شده است؛ ابتدا ظرفیت دوره را افزایش دهید."}</p>
           ) : (
             <div className="space-y-4">
               <div>

@@ -27,6 +27,7 @@ import {
   CITIES_BY_PROVINCE,
   IRAN_PROVINCES,
   addAddress,
+  addressStorageKey,
   addrOneLine,
   loadAddresses,
   removeAddress,
@@ -36,6 +37,7 @@ import { SiteLink } from "@/components/site/shared";
 import { faNum } from "@/components/site/pages-shared";
 import { RdBand, RdSection, RdWrap } from "@/components/site/home";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/lib/auth-context";
 
 const WA_NUMBER = "989120000000";
 const ORDERS_KEY = "edc-orders";
@@ -77,7 +79,7 @@ function orderMessage(o: PlacedOrder) {
       (o.discount ? `تخفیف‌ها (${o.discountCode}): −${formatToman(o.discount)} تومان\n` : "") +
       (o.shipping ? `هزینه ارسال: ${formatToman(o.shipping)} تومان\n` : "") +
       `مبلغ کل: ${formatToman(o.total)} تومان\n` +
-      `روش پرداخت: آنلاین\nنام: ${o.name}\nموبایل: ${o.phone}` +
+      `روش پرداخت: آنلاین (نمایشی؛ پرداخت واقعی انجام نشده)\nنام: ${o.name}\nموبایل: ${o.phone}` +
       (o.addressTitle ? `\nعنوان آدرس: ${o.addressTitle}` : "") +
       (place ? `\nاستان/شهر: ${place}` : "") +
       (o.address ? `\nآدرس ارسال: ${o.address}` : "") +
@@ -119,17 +121,16 @@ function SummaryLines({
           <span className="font-bold">−{formatToman(discount)}</span>
         </li>
       )}
-      <li className="flex items-center justify-between gap-3 text-ink-soft">
-        <span>
-          هزینه ارسال
-          {!hasBooks && <span className="ms-1.5 text-[10.5px] text-ink-faint">(فقط کتاب‌ها)</span>}
-        </span>
-        {shipping === 0 && hasBooks ? (
-          <span className="font-bold text-ok">رایگان</span>
-        ) : (
-          <span className="font-bold text-ink">{formatToman(shipping)}</span>
-        )}
-      </li>
+      {hasBooks && (
+        <li className="flex items-center justify-between gap-3 text-ink-soft">
+          <span>هزینه ارسال</span>
+          {shipping === 0 ? (
+            <span className="font-bold text-ok">رایگان</span>
+          ) : (
+            <span className="font-bold text-ink">{formatToman(shipping)}</span>
+          )}
+        </li>
+      )}
       {addressTitle && (
         <li className="flex items-center justify-between gap-3 text-ink-soft">
           <span>عنوان آدرس</span>
@@ -152,6 +153,8 @@ const fieldCls =
 
 export function CartPage() {
   const { items, remove, setQty, clear, total } = useCart();
+  const { user } = useAuth();
+  const addressKey = addressStorageKey(user?.phone);
   const { toast } = useToast();
   /* فرم ثبت سفارش */
   const [name, setName] = React.useState("");
@@ -178,10 +181,10 @@ export function CartPage() {
 
   /* آدرس‌های ذخیره‌شده از localStorage — مشترک با «آدرس‌های من» پنل دانشجو */
   React.useEffect(() => {
-    const list = loadAddresses();
+    const list = loadAddresses(addressKey);
     setAddresses(list);
     if (list.length > 0) setSelectedId(list[0].id);
-  }, []);
+  }, [addressKey]);
 
   const hasBooks = items.some((it) => it.type === "book");
   const subtotal = total;
@@ -245,7 +248,7 @@ export function CartPage() {
       const a = validateNewAddr();
       if (!a) return null;
       if (saveAddr) {
-        const next = addAddress(a);
+        const next = addAddress(a, addressKey);
         setAddresses(next);
       }
       return {
@@ -358,7 +361,7 @@ export function CartPage() {
                     className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-rd-deep text-[13.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.99]"
                   >
                     <Check className="size-4" strokeWidth={3} />
-                    پرداخت
+                    تأیید پرداخت نمایشی
                   </button>
                   <button
                     type="button"
@@ -387,7 +390,12 @@ export function CartPage() {
                   <span className="ms-2 text-[12px] text-ink-faint">({placed.at})</span>
                 </p>
                 <p className="mx-auto mt-3 max-w-[520px] text-[12.5px] leading-6 text-ink-soft">
-                  پرداخت آنلاین نمایشی انجام شد؛ کارشناس کلینیک برای نهایی‌کردن ثبت‌نام با شما تماس می‌گیرد.
+                  {placed.items.some((it) => it.type === "course") && placed.items.some((it) => it.type === "book")
+                    ? "سفارش شما شامل ثبت‌نام دوره و ارسال کتاب است؛ برای پیگیری با شما تماس می‌گیریم."
+                    : placed.items.some((it) => it.type === "course")
+                      ? "درخواست ثبت‌نام شما ثبت شد؛ برای هماهنگی مراحل بعد با شما تماس می‌گیریم."
+                      : "سفارش کتاب شما ثبت شد؛ برای هماهنگی ارسال با شما تماس می‌گیریم."}
+                  {" "}پرداخت این نسخه نمایشی است و مبلغی کسر نشده است.
                 </p>
                 {/* خلاصهٔ سفارش — کالاهای انتخابی + تخفیف/ارسال/مبلغ کل */}
                 <div className="rd-inside mx-auto mt-5 max-w-[560px] rounded-[8px] bg-canvas-soft/60 p-4 text-start">
@@ -438,10 +446,10 @@ export function CartPage() {
                     ارسال سفارش به واتساپ
                   </a>
                   <SiteLink
-                    href="/shop"
+                    href={placed.items.some((it) => it.type === "book") ? "/shop" : "/courses"}
                     className="rd-inside inline-flex h-10 items-center gap-2 rounded-full bg-white px-5 text-[13px] font-bold text-ink transition-colors hover:bg-canvas-soft"
                   >
-                    ادامهٔ خرید
+                    {placed.items.some((it) => it.type === "book") ? "فروشگاه کتاب‌ها" : "مشاهده دوره‌ها"}
                     <ArrowLeft className="size-4" />
                   </SiteLink>
                 </div>
@@ -520,8 +528,8 @@ export function CartPage() {
                                   <span className="text-ink-faint"> × {faNum(it.qty)} = {formatToman(it.price * it.qty)}</span>
                                 </p>
                               </div>
-                              {/* استپر تعداد — هم‌الگوی صفحهٔ محصول */}
-                              <div className="flex shrink-0 items-center gap-1 rounded-full border border-hairline-soft p-1">
+                              {/* تعداد کتاب قابل تغییر است؛ ثبت‌نام هر دوره یک‌بار انجام می‌شود */}
+                              {it.type === "book" && <div className="flex shrink-0 items-center gap-1 rounded-full border border-hairline-soft p-1">
                                 <button
                                   type="button"
                                   onClick={() => setQty(it.id, it.qty - 1)}
@@ -541,7 +549,7 @@ export function CartPage() {
                                 >
                                   <Plus className="size-3.5" />
                                 </button>
-                              </div>
+                              </div>}
                               <button
                                 type="button"
                                 title="حذف از سبد"
@@ -602,8 +610,8 @@ export function CartPage() {
                         </div>
                       </section>
 
-                      {/* آدرس ارسال — انتخاب از آدرس‌های قبلی یا افزودن آدرس جدید (استان/شهر/نشانی/توضیحات) */}
-                      <section aria-label="آدرس ارسال" className="rounded-[8px] border border-hairline-soft p-4">
+                      {/* آدرس فقط برای سفارش‌هایی که کتاب دارند لازم است */}
+                      {hasBooks && <section aria-label="آدرس ارسال" className="rounded-[8px] border border-hairline-soft p-4">
                         <h2 className="flex items-center gap-2 text-[13px] font-black-fa text-ink">
                           <MapPin className="size-4 text-rd-accent" />
                           آدرس ارسال
@@ -649,7 +657,7 @@ export function CartPage() {
                                     aria-label={`حذف آدرس ${a.title}`}
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      const next = removeAddress(a.id);
+                                      const next = removeAddress(a.id, addressKey);
                                       setAddresses(next);
                                       if (selectedId === a.id) setSelectedId(next[0]?.id ?? "");
                                       toast({ title: "آدرس حذف شد" });
@@ -776,7 +784,7 @@ export function CartPage() {
                             کتاب‌های سبد با پست پیشتاز ارسال می‌شود.
                           </p>
                         )}
-                      </section>
+                      </section>}
 
                       {/* کد تخفیف دارید؟ — درج کد در همین بخش */}
                       <section aria-label="کد تخفیف" className="rounded-[8px] border border-hairline-soft p-4">
@@ -841,16 +849,16 @@ export function CartPage() {
                           shipping={shipping}
                           total={grand}
                           hasBooks={hasBooks}
-                          addressTitle={selectedSaved?.title ?? (addrTitle || undefined)}
+                          addressTitle={hasBooks ? selectedSaved?.title ?? (addrTitle || undefined) : undefined}
                         />
                       </div>
                       {/* روش پرداخت — فقط آنلاین (درخواست کاربر) */}
                       <div className="mt-4 flex items-center gap-2.5 rounded-[8px] border border-rd-accent/40 bg-rd-accent/[0.04] p-3">
                         <CreditCard className="size-4 shrink-0 text-rd-accent" />
                         <span className="min-w-0">
-                          <span className="block text-[12.5px] font-bold text-ink">پرداخت آنلاین</span>
+                          <span className="block text-[12.5px] font-bold text-ink">پرداخت آنلاین (نمایشی)</span>
                           <span className="mt-0.5 block text-[11px] leading-5 text-ink-faint">
-                            تسویه فوری در درگاه پرداخت امن
+                            این مرحله فقط برای نمایش روند خرید است.
                           </span>
                         </span>
                       </div>
@@ -859,10 +867,10 @@ export function CartPage() {
                         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-rd-deep text-[13.5px] font-extrabold text-white transition-colors hover:bg-navy-700 active:scale-[0.99]"
                       >
                         <Check className="size-4" strokeWidth={3} />
-                        تایید نهایی و پرداخت
+                        ادامه به پرداخت نمایشی
                       </button>
                       <p className="mt-2.5 text-center text-[10.5px] leading-5 text-ink-faint">
-                        پس از تأیید، به درگاه پرداخت هدایت می‌شوید.
+                        مرحله بعد، صفحه پرداخت نمایشی است و مبلغی کسر نمی‌شود.
                       </p>
                       <div className="mt-3 flex gap-2 border-t border-hairline-soft pt-3">
                         <SiteLink

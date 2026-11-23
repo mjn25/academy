@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PanelShell, PanelHeading, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
 import { fa, faNum, faPrice } from "@/lib/format";
-import { useStore, type StorePayment } from "@/lib/store";
+import { useStore } from "@/lib/store";
 import { adminNav, adminTitles, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import {
   courses,
@@ -26,19 +26,12 @@ import {
   Users,
   UserCheck,
   GraduationCap,
-  ClipboardCheck,
-  ShoppingBag,
-  FileText,
-  Settings,
-  TrendingUp,
   TriangleAlert,
   Plus,
   Search,
   PackageCheck,
-  Eye,
   ArrowLeft,
   Zap,
-  Info,
 } from "lucide-react";
 
 const nav = adminNav;
@@ -46,7 +39,7 @@ const nav = adminNav;
 const titles = adminTitles;
 
 /* بخش‌های حذف‌شده (مشاوره، مالی، محتوا، پیام و...) — مسیرهای قدیمی به داشبورد برمی‌گردند */
-const KNOWN_SECTIONS = ["dash", "classes", "students", "teachers", "shop", "settings"];
+const KNOWN_SECTIONS = ["dash", "classes", "students", "teachers", "shop"];
 
 export function AdminPanel({ section }: { section: string }) {
   const known = KNOWN_SECTIONS.includes(section);
@@ -57,7 +50,6 @@ export function AdminPanel({ section }: { section: string }) {
       {section === "students" && <AdminStudents />}
       {section === "teachers" && <AdminTeachers />}
       {section === "shop" && <AdminShop />}
-      {section === "settings" && <AdminSettings />}
       {!known && <AdminDashboard />}
     </PanelShell>
   );
@@ -67,7 +59,12 @@ export function AdminPanel({ section }: { section: string }) {
 
 function AdminDashboard() {
   const { navigate } = useRouter();
-  const { students, teachers, courses, assignments, submissions, activity } = useStore();
+  const { students, courses, activity, assignments, submissions } = useStore();
+  const now = Date.now();
+  const newStudentsThisWeek = students.filter((student) => student.createdAt && now - Date.parse(student.createdAt) >= 0 && now - Date.parse(student.createdAt) <= 7 * 24 * 60 * 60 * 1000).length;
+  const pendingGrades = submissions.filter((submission) => submission.status === "در انتظار بررسی" && assignments.some((assignment) => assignment.id === submission.assignmentId)).length;
+  const capacityWarnings = courses.filter((course) => course.capacity && course.studentIds.length / course.capacity >= 0.8);
+  const unassignedCourses = courses.filter((course) => !course.teacherId && course.status === "فعال");
 
   const roleBadge: Record<string, { label: string; cls: string }> = {
     admin: { label: "مدیریت", cls: "bg-navy-deep text-white" },
@@ -79,17 +76,15 @@ function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* کارت‌های آماری */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={UserCheck} label="ثبت‌نام جدید (این هفته)" value="۱۸ نفر" trend="+۲۳٪" />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <StatCard icon={UserCheck} label="ثبت‌نام جدید (۷ روز اخیر)" value={`${faNum(newStudentsThisWeek)} نفر`} />
         <StatCard icon={Users} label="دانشجویان فعال" value={`${faNum(students.filter((s) => s.status === "فعال").length)} نفر`} tint="yellow" />
-        <StatCard icon={FileText} label="تکالیف فعال" value={`${faNum(assignments.length)} تکلیف — ${faNum(submissions.length)} پاسخ`} />
-        <StatCard icon={BookOpenCheck} label="کلاس‌های در حال برگزاری" value={`${faNum(courses.filter((c) => c.status === "فعال").length)} کلاس`} />
+        <StatCard icon={BookOpenCheck} label="دوره‌های فعال" value={`${faNum(courses.filter((c) => c.status === "فعال").length)} دوره`} />
       </div>
 
       {/* دسترسی سریع */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         {[
-          { t: "تخصیص تکلیف جدید", d: "به هر کلاس و هر استاد", href: "/admin/assignments/new", icon: FileText },
           { t: "ثبت‌نام دستی دانشجو", d: "پرداخت حضوری / نقدی", href: "/admin/students/new", icon: Plus },
           { t: "افزودن استاد", d: "ساخت حساب کاربری استاد", href: "/admin/teachers/new", icon: GraduationCap },
         ].map((qa) => (
@@ -102,32 +97,47 @@ function AdminDashboard() {
       </div>
 
       {/* Bento داشبورد */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {/* هشدارها */}
-        <div className="md:col-span-2 rounded-[8px] border border-warn/30 bg-warn/5 p-5">
+        <div className="sm:col-span-2 xl:col-span-2 min-w-0 rounded-[8px] border border-warn/30 bg-warn/5 p-5">
           <p className="font-bold text-ink text-sm flex items-center gap-1.5 mb-3"><TriangleAlert className="size-4 text-warn" /> هشدارها و اقدامات</p>
           <div className="space-y-2.5">
             {[
-              { t: "ظرفیت کلاس آلمانی A1 رو به پرشدن است", d: "۱۲ از ۱۵ نفر ثبت‌نام کرده‌اند", href: "/admin/classes/a1" },
-              { t: "۳ سفارش فروشگاه در انتظار ارسال", d: "از دیروز بدون تحویل به پست", href: "/admin/shop" },
-              { t: "پرداخت ناموفق — آرش نوروزی", d: "پیش‌فاکتور PF-1043 منقضی شد", href: "/admin/students/st4" },
+              ...capacityWarnings.map((course) => ({
+                t: `ظرفیت «${course.title}» رو به تکمیل است`,
+                d: `${faNum(course.studentIds.length)} از ${faNum(course.capacity ?? 0)} نفر ثبت‌نام کرده‌اند`,
+                href: `/admin/classes/${course.id}`,
+              })),
+              ...unassignedCourses.map((course) => ({
+                t: `برای «${course.title}» استادی تعیین نشده`,
+                d: "تخصیص استاد را بررسی کنید",
+                href: `/admin/classes/${course.id}`,
+              })),
+              ...(pendingGrades > 0 ? [{
+                t: `${faNum(pendingGrades)} پاسخ در انتظار نمره‌دهی است`,
+                d: "وضعیت تکالیف و پاسخ‌ها را بررسی کنید",
+                href: "/admin/classes",
+              }] : []),
             ].map((w) => (
               <div key={w.t} className="flex flex-wrap items-center gap-2 rounded-[8px] bg-white border border-warn/20 px-3.5 py-2.5">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-ink">{w.t}</p>
                   <p className="text-[11px] text-ink-soft">{w.d}</p>
                 </div>
-                <Button size="sm" variant="outline" className="h-8 border-warn/40 text-warn text-[11px]" onClick={() => navigate(w.href)}>اقدام</Button>
+                <Button size="sm" variant="outline" className="h-8 border-warn/40 text-warn text-[11px]" onClick={() => navigate(w.href)}>بررسی</Button>
               </div>
             ))}
+            {capacityWarnings.length === 0 && unassignedCourses.length === 0 && pendingGrades === 0 && (
+              <p className="rounded-[8px] bg-white px-3.5 py-4 text-center text-xs text-ink-soft">موردی برای پیگیری ثبت نشده است.</p>
+            )}
           </div>
         </div>
 
         {/* فعالیت زنده سه پنل */}
-        <div className="md:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+        <div className="sm:col-span-2 xl:col-span-2 min-w-0 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Zap className="size-4 text-ink" /> فعالیت زنده هر سه پنل</p>
-            <span className="text-[10px] rounded-full bg-ok/10 text-ok px-2 py-0.5 font-bold">اتصال کامل</span>
+            <span className="text-[10px] rounded-full bg-canvas-soft text-ink-soft px-2 py-0.5 font-bold">داده‌های همین مرورگر</span>
           </div>
           <div className="space-y-2 max-h-52 overflow-y-auto scroll-thin">
             {activity.slice(0, 8).map((a) => (
@@ -159,11 +169,11 @@ function AdminClasses() {
   return (
     <div>
       <PanelHeading
-        title="کلاس‌ها و دوره‌ها"
-        desc="تعریف دوره، ظرفیت، شهریه، تخصیص استاد و انتشار در سایت — برای جزئیات روی هر ردیف کلیک کنید."
+        title="کلاس‌ها"
+        desc="مدیریت کلاس‌ها، ظرفیت، شهریه و تخصیص استاد — برای جزئیات روی هر ردیف کلیک کنید."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => { setForm({ title: "", type: "offline", capacity: "", price: "", teacherId: "" }); setOpen(true); }}>
-            <Plus className="size-4 me-1.5" /> دوره / کلاس جدید
+            <Plus className="size-4 me-1.5" /> کلاس جدید
           </Button>
         }
       />
@@ -224,14 +234,14 @@ function AdminClasses() {
         </table>
       </div>
       <p className="mt-4 text-[11px] text-ink-soft leading-6">
-        قوانین ظرفیت: با پر شدن ظرفیت، ثبت‌نام خودکار بسته می‌شود و فرم «لیست انتظار» فعال می‌گردد. دوره آنلاین محدودیت ظرفیت ندارد.
+        قوانین ظرفیت: با تکمیل ظرفیت، افزودن دانشجو بسته می‌شود. دوره آنلاین بدون محدودیت ظرفیت ثبت می‌شود.
       </p>
 
       {/* فرم دوره جدید */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-black-fa text-ink">تعریف دوره / کلاس جدید</DialogTitle>
+            <DialogTitle className="font-black-fa text-ink">تعریف کلاس جدید</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -260,9 +270,9 @@ function AdminClasses() {
               <div>
                 <Label>استاد</Label>
                 <Select value={form.teacherId} onValueChange={(v) => setForm((f) => ({ ...f, teacherId: v }))}>
-                  <SelectTrigger className="mt-1.5 h-10"><SelectValue placeholder="انتخاب" /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 h-10"><SelectValue placeholder="بدون استاد" /></SelectTrigger>
                   <SelectContent>
-                    {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                    {teachers.filter((t) => t.status === "فعال").map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -275,11 +285,26 @@ function AdminClasses() {
                   toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
                   return;
                 }
+                const capacity = form.type === "online" ? undefined : Number(form.capacity);
+                const price = form.price ? Number(form.price) : 0;
+                if (!Number.isFinite(price) || price < 0) {
+                  toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
+                  return;
+                }
+                if (form.type === "offline" && (!Number.isInteger(capacity) || (capacity ?? 0) < 1)) {
+                  toast({ title: "ظرفیت کلاس الزامی است", description: "برای کلاس حضوری ظرفیت را به‌صورت عدد صحیح بزرگ‌تر از صفر وارد کنید.", variant: "destructive" });
+                  return;
+                }
+                const selectedTeacher = teachers.find((teacher) => teacher.id === form.teacherId);
+                if (form.teacherId && selectedTeacher?.status !== "فعال") {
+                  toast({ title: "استاد انتخاب‌شده فعال نیست", variant: "destructive" });
+                  return;
+                }
                 const id = addCourse({
                   title: form.title.trim(),
                   type: form.type as "online" | "offline",
-                  capacity: form.capacity ? Number(form.capacity) : undefined,
-                  price: Number(form.price) || 0,
+                  capacity,
+                  price,
                   teacherId: form.teacherId || null,
                 });
                 setOpen(false);
@@ -300,7 +325,7 @@ function AdminClasses() {
 
 function AdminStudents() {
   const { navigate } = useRouter();
-  const { students } = useStore();
+  const { students, assignments, submissions } = useStore();
   const [q, setQ] = React.useState("");
   const [filter, setFilter] = React.useState("all");
   const list = students.filter((s) => (!q || s.name.includes(q)) && (filter === "all" || s.status === filter));
@@ -308,7 +333,7 @@ function AdminStudents() {
     <div>
       <PanelHeading
         title="مدیریت دانشجویان"
-        desc="پرونده هر دانشجو: کلاس‌ها، پرداخت‌ها، حضور و نمرات — برای مشاهده پرونده روی هر ردیف کلیک کنید."
+        desc="پرونده هر دانشجو: کلاس‌ها، پرداخت‌ها، پاسخ‌ها و نمرات — برای مشاهده پرونده روی هر ردیف کلیک کنید."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => navigate("/admin/students/new")}>
             <Plus className="size-4 me-1.5" /> ثبت‌نام دستی
@@ -331,9 +356,10 @@ function AdminStudents() {
         </Select>
       </div>
       {list.length === 0 ? (
-        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-10 text-center">
-          <p className="font-bold text-ink">دانشجویی پیدا نشد</p>
-          <p className="mt-1 text-sm text-ink-soft">جستجو یا فیلتر را تغییر دهید.</p>
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
+          <p className="font-bold text-ink">{students.length === 0 ? "هنوز دانشجویی ثبت نشده" : "دانشجویی پیدا نشد"}</p>
+          <p className="mt-1 text-sm text-ink-soft">{students.length === 0 ? "برای شروع، پرونده دانشجو را بسازید و در صورت نیاز دوره‌هایش را انتخاب کنید." : "عبارت جستجو یا وضعیت انتخاب‌شده را تغییر دهید."}</p>
+          {students.length === 0 && <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/admin/students/new")}>ثبت‌نام دانشجو</Button>}
         </div>
       ) : (
       <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white overflow-hidden overflow-x-auto">
@@ -342,15 +368,22 @@ function AdminStudents() {
             <tr className="bg-canvas-soft text-ink-soft text-xs border-b border-hairline-soft">
               <th className="text-start p-4 font-semibold">دانشجو</th>
               <th className="text-start p-4 font-semibold">دوره‌ها</th>
-              <th className="text-start p-4 font-semibold">حضور</th>
-              <th className="text-start p-4 font-semibold">میانگین</th>
+              <th className="text-start p-4 font-semibold">پاسخ‌ها</th>
+              <th className="text-start p-4 font-semibold">میانگین نمره</th>
               <th className="text-start p-4 font-semibold">مانده حساب</th>
               <th className="text-start p-4 font-semibold">وضعیت</th>
               <th className="p-4"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {list.map((s, i) => (
+            {list.map((s, i) => {
+              const studentSubs = submissions.filter((submission) => submission.studentId === s.id);
+              const gradedSubs = studentSubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+              const average = gradedSubs.length ? gradedSubs.reduce((sum, submission) => {
+                const assignment = assignments.find((item) => item.id === submission.assignmentId);
+                return sum + ((submission.score ?? 0) / Math.max(1, assignment?.max ?? 10)) * 100;
+              }, 0) / gradedSubs.length : null;
+              return (
               <tr
                 key={s.id}
                 className={`cursor-pointer transition-colors hover:bg-canvas-soft/60 ${i % 2 ? "bg-canvas-soft/50" : ""}`}
@@ -366,8 +399,8 @@ function AdminStudents() {
                   </div>
                 </td>
                 <td className="p-4 text-ink-soft">{s.courseIds.length ? faNum(s.courseIds.length) : "—"} دوره</td>
-                <td className="p-4 font-bold text-ink">{s.attendance ? `${fa(s.attendance)}٪` : "—"}</td>
-                <td className="p-4 font-black-fa text-ink">{s.avg ? fa(s.avg.toFixed(1)) : "—"}</td>
+                <td className="p-4 text-ink-soft">{faNum(studentSubs.length)} پاسخ</td>
+                <td className="p-4 font-black-fa text-ink">{average === null ? "—" : fa(average.toFixed(1)) + "٪"}</td>
                 <td className={`p-4 font-bold ${s.balance > 0 ? "text-bad" : "text-ok"}`}>{s.balance ? faPrice(s.balance) : "تسویه"}</td>
                 <td className="p-4"><StatusBadge status={s.status} /></td>
                 <td className="p-4" onClick={(e) => e.stopPropagation()}>
@@ -377,7 +410,8 @@ function AdminStudents() {
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -395,13 +429,20 @@ function AdminTeachers() {
     <div>
       <PanelHeading
         title="مدیریت اساتید"
-        desc="پرونده کامل هر استاد: دوره‌ها، دانشجویان، تکالیف و بازخوردها."
+        desc="پرونده هر استاد: دوره‌های تخصیص‌یافته، دانشجویان و تکالیف."
         action={
           <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold" onClick={() => navigate("/admin/teachers/new")}>
             <Plus className="size-4 me-1.5" /> استاد جدید
           </Button>
         }
       />
+      {teachers.length === 0 ? (
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 sm:p-10 text-center">
+          <p className="font-bold text-ink">هنوز استادی اضافه نشده</p>
+          <p className="mt-1 text-sm text-ink-soft">ابتدا مشخصات استاد را ثبت کنید؛ سپس می‌توانید دوره‌های بدون استاد را به او تخصیص دهید.</p>
+          <Button className="mt-4 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/admin/teachers/new")}>افزودن استاد</Button>
+        </div>
+      ) : (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {teachers.map((t) => (
           <div key={t.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 hover:border-hairline transition-colors">
@@ -410,43 +451,137 @@ function AdminTeachers() {
               <div className="min-w-0">
                 <p className="font-bold text-ink text-sm truncate">{t.name}</p>
                 <p className="text-[11px] text-ink font-semibold">{t.title}</p>
-                <p className="text-[11px] text-ink-soft mt-0.5">امتیاز {fa(t.rating)} — {faNum(courses.filter((c) => c.teacherId === t.id).length)} دوره</p>
+                <p className="text-[11px] text-ink-soft mt-0.5">{faNum(courses.filter((c) => c.teacherId === t.id).length)} دوره تخصیص‌یافته</p>
               </div>
             </button>
             <div className="mt-4 flex gap-2">
               <Button size="sm" variant="outline" className="flex-1 h-9 border-hairline text-ink" onClick={() => navigate(`/admin/teachers/${t.id}`)}>پرونده و تخصیص کلاس</Button>
               <Button size="sm" variant="outline" className="flex-1 h-9 border-hairline text-ink" onClick={() => navigate(`/admin/teachers/${t.id}/edit`)}>ویرایش</Button>
             </div>
-            <p className="mt-3 text-[10px] text-ink-soft">
-              تداخل زمانی کلاس‌های حضوری: <span className="text-ok font-bold">ندارد</span>
-            </p>
+            <p className="mt-3 text-[10px] text-ink-soft">وضعیت حساب: <span className={t.status === "فعال" ? "font-bold text-ok" : "font-bold text-bad"}>{t.status}</span></p>
           </div>
         ))}
       </div>
+      )}
     </div>
   );
 }
 
 /* -------------------------------- فروشگاه -------------------------------- */
 
+type LocalCheckoutOrder = {
+  code: string;
+  items: { type: "course" | "book"; title: string; price: number; qty: number }[];
+  total: number;
+  name: string;
+  phone: string;
+  address?: string;
+  at: string;
+};
+
 function AdminShop() {
   const { toast } = useToast();
   const [orders, setOrders] = React.useState(shopOrders);
+  const [checkoutOrders, setCheckoutOrders] = React.useState<LocalCheckoutOrder[]>([]);
+  const [ordersHydrated, setOrdersHydrated] = React.useState(false);
+
+  React.useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem("edc-orders");
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCheckoutOrders(parsed as LocalCheckoutOrder[]);
+      }
+      const shippingRaw = window.localStorage.getItem("edc-shop-shipping");
+      if (shippingRaw) {
+        const saved: unknown = JSON.parse(shippingRaw);
+        if (Array.isArray(saved)) setOrders(saved as ShopOrder[]);
+      }
+    } catch {
+      setCheckoutOrders([]);
+    } finally {
+      setOrdersHydrated(true);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (!ordersHydrated) return;
+    try {
+      window.localStorage.setItem("edc-shop-shipping", JSON.stringify(orders));
+    } catch {
+      toast({ title: "ذخیره وضعیت ارسال انجام نشد", description: "فضای ذخیره‌سازی مرورگر در دسترس نیست.", variant: "destructive" });
+    }
+  }, [orders, ordersHydrated, toast]);
 
   const nextShip: Partial<Record<ShopOrder["shipping"], ShopOrder["shipping"]>> = { "در حال آماده‌سازی": "ارسال‌شده", "ارسال‌شده": "تحویل‌شده" };
   const advance = (id: string) => {
     setOrders((os) => os.map((o) => (o.id === id && o.shipping in nextShip ? { ...o, shipping: nextShip[o.shipping]! } : o)));
-    toast({ title: "وضعیت ارسال به‌روزرسانی شد ✓" });
+    toast({ title: "وضعیت ارسال در این مرورگر ذخیره شد ✓" });
+  };
+  const exportOrders = () => {
+    const rows = [
+      ["شماره سفارش", "خریدار", "اقلام", "مبلغ (تومان)", "وضعیت پرداخت", "وضعیت ارسال", "شماره مرسوله"],
+      ...orders.map((order) => [order.id, order.customer, order.items, String(order.total), order.payment, order.shipping, order.tracking ?? ""]),
+    ];
+    const csv = "\uFEFF" + rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "academy-shop-orders.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast({ title: "فایل CSV سفارش‌ها دانلود شد ✓", description: "خروجی با Excel قابل باز کردن است." });
   };
 
   return (
     <div className="space-y-6">
       <div>
         <PanelHeading
+          title="سفارش‌های ثبت‌شده"
+          desc="سفارش‌های ثبت‌شده از سبد خرید در همین مرورگر؛ وضعیت پرداخت نمایشی است."
+        />
+        {checkoutOrders.length === 0 ? (
+          <div className="rd-inside rounded-[8px] border border-hairline-soft bg-white px-5 py-8 text-center text-[12px] text-ink-soft">
+            هنوز سفارشی از فرایند خرید ثبت نشده است.
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {[...checkoutOrders].reverse().map((order) => (
+              <article key={order.code} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[12px] font-bold text-ink">{order.name}</p>
+                    <p className="dc-mono mt-0.5 text-[10px] text-rd-accent" dir="ltr">{order.code}</p>
+                  </div>
+                  <span className="rounded-full bg-warn/10 px-2.5 py-1 text-[10px] font-bold text-warn">پرداخت نمایشی</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {order.items.map((item, index) => (
+                    <span key={`${item.type}-${item.title}-${index}`} className="rounded-full bg-canvas-soft px-2.5 py-1 text-[11px] text-ink-soft">
+                      {item.type === "course" ? "دوره" : "کتاب"}: {item.title}{item.qty > 1 ? ` × ${faNum(item.qty)}` : ""}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-hairline-soft pt-3 text-[11px] text-ink-soft">
+                  <span dir="ltr">{order.phone}</span>
+                  <span>{order.at}</span>
+                  <strong className="text-[13px] text-ink">{faPrice(order.total)}</strong>
+                </div>
+                {order.address && <p className="mt-2 text-[11px] leading-6 text-ink-soft">آدرس ارسال: {order.address}</p>}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <PanelHeading
           title="سفارش‌های فروشگاه"
-          desc="مدیریت وضعیت ارسال و ثبت شماره مرسوله."
+          desc="تغییر وضعیت ارسال سفارش‌های نمونه؛ تغییرات فقط در همین مرورگر ذخیره می‌شوند."
           action={
-            <Button variant="outline" className="border-hairline text-ink" onClick={() => toast({ title: "خروجی اکسل آماده شد ✓" })}>
+            <Button variant="outline" className="border-hairline text-ink" onClick={exportOrders}>
               خروجی اکسل
             </Button>
           }
@@ -474,7 +609,14 @@ function AdminShop() {
                   <td className="p-4"><StatusBadge status={o.payment === "پرداخت‌شده" ? "پرداخت‌شده" : "در انتظار"} /></td>
                   <td className="p-4">
                     <StatusBadge status={o.shipping} />
-                    {o.tracking && <p className="text-[10px] text-ink-soft mt-1" dir="ltr">{o.tracking}</p>}
+                    <Input
+                      value={o.tracking ?? ""}
+                      onChange={(event) => setOrders((current) => current.map((item) => item.id === o.id ? { ...item, tracking: event.target.value } : item))}
+                      placeholder="شماره مرسوله"
+                      aria-label={`شماره مرسوله سفارش ${o.id}`}
+                      dir="ltr"
+                      className="mt-2 h-8 w-36 text-xs"
+                    />
                   </td>
                   <td className="p-4">
                     {nextShip[o.shipping] ? (
@@ -514,29 +656,3 @@ function AdminShop() {
   );
 }
 
-/* -------------------------------- تنظیمات -------------------------------- */
-
-function AdminSettings() {
-  const { toast } = useToast();
-  return (
-    <div className="max-w-2xl space-y-5">
-      <PanelHeading title="تنظیمات" desc="اطلاعات موسسه و پنل پیامک." />
-      {[
-        { t: "اطلاعات موسسه", f: ["نام کلینیک: کلینیک تخصصی زبان آلمانی المیرا", "تلفن: ۰۲۱-۹۱۰۰۹۱۰۰", "آدرس: رشت، بلوار معلم"] },
-        { t: "پنل پیامک", f: ["سرویس: کاوه‌نگار", "خط: ۱۰۰۰۶۶۵۵", "اعتبار باقی‌مانده: ۱۲٬۴۰۰ پیامک"] },
-      ].map((g) => (
-        <div key={g.t} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-          <p className="font-bold text-ink text-sm mb-3">{g.t}</p>
-          <div className="space-y-2">
-            {g.f.map((f) => (
-              <div key={f} className="rounded-[8px] bg-canvas-soft px-3.5 py-2.5 text-xs text-ink">{f}</div>
-            ))}
-          </div>
-          <Button variant="outline" size="sm" className="mt-3 border-hairline text-ink" onClick={() => toast({ title: "تنظیمات ذخیره شد ✓" })}>
-            ویرایش
-          </Button>
-        </div>
-      ))}
-    </div>
-  );
-}

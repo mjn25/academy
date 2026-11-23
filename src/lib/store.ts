@@ -28,6 +28,7 @@ export interface StoreStudent {
   attendance: number;
   avg: number;
   joinedAt: string;
+  createdAt?: string;
 }
 
 export interface StoreTeacher {
@@ -44,6 +45,7 @@ export interface StoreTeacher {
   languages: string[];
   status: "فعال" | "غیرفعال";
   courseIds: string[];
+  createdAt?: string;
 }
 
 export interface StoreCourse {
@@ -86,6 +88,7 @@ export interface StoreSubmission {
   status: "در انتظار بررسی" | "نمره‌داده‌شده";
   score?: number;
   feedback?: string;
+  gradedAt?: string;
 }
 
 /** فایل‌های پیوست تکلیف — تمرین‌ها و ویدئوهایی که هر سه نقش آپلود می‌کنند */
@@ -124,6 +127,18 @@ export interface StorePayment {
   note: string;
   method: "نقدی" | "کارتخوان" | "کارت به کارت" | "لینک پرداخت";
   date: string;
+}
+
+export interface StoreMessage {
+  id: string;
+  courseId: string;
+  fromId: string;
+  fromRole: "teacher" | "student";
+  fromName: string;
+  toId: string;
+  toRole: "teacher" | "student";
+  text: string;
+  sentAt: string;
 }
 
 export interface ActivityItem {
@@ -281,10 +296,10 @@ const seedPayments: StorePayment[] = [
 ];
 
 const seedActivity: ActivityItem[] = [
-  { id: "ac1", text: "تکلیف «متن معرفی خود — Vorstellung» برای دورهٔ آلمانی A1 ایجاد شد", actor: teacherNameOf("a1"), role: "teacher", time: "۲ ساعت پیش", href: "/admin/assignments/a1" },
-  { id: "ac2", text: "پاسخ تکلیف معرفی خود تحویل شد", actor: "سارا محمدی", role: "student", time: "۳ ساعت پیش", href: "/admin/assignments/a1" },
+  { id: "ac1", text: "تکلیف «متن معرفی خود — Vorstellung» برای دورهٔ آلمانی A1 ایجاد شد", actor: teacherNameOf("a1"), role: "teacher", time: "۲ ساعت پیش", href: "/admin/classes" },
+  { id: "ac2", text: "پاسخ تکلیف معرفی خود تحویل شد", actor: "سارا محمدی", role: "student", time: "۳ ساعت پیش", href: "/admin/classes" },
   { id: "ac3", text: "پیش‌فاکتور PF-1042 صادر و لینک پرداخت ارسال شد", actor: "المیرا معرفت‌پور", role: "admin", time: "دیروز", href: "/admin/students" },
-  { id: "ac4", text: "نمرهٔ تکلیف ایمیل رسمی برای ۲ دانشجو ثبت شد", actor: teacherNameOf("b1"), role: "teacher", time: "دیروز", href: "/admin/assignments/a3" },
+  { id: "ac4", text: "نمرهٔ تکلیف ایمیل رسمی برای ۲ دانشجو ثبت شد", actor: teacherNameOf("b1"), role: "teacher", time: "دیروز", href: "/admin/classes" },
 ];
 
 /* -------------------------------- Store ------------------------------ */
@@ -300,9 +315,15 @@ interface AppState {
   invoices: StoreInvoice[];
   payments: StorePayment[];
   activity: ActivityItem[];
+  messages: StoreMessage[];
+  notificationReadIds: Record<string, string[]>;
+
+  /* پیام‌ها و اعلان‌ها */
+  sendMessage: (message: Omit<StoreMessage, "id" | "sentAt">) => void;
+  markNotificationsRead: (userKey: string, ids: string[]) => void;
 
   /* کاربران */
-  addStudent: (s: Partial<StoreStudent> & { name: string }) => string;
+  addStudent: (s: Partial<StoreStudent> & { name: string; createdBy?: "admin" | "self" }) => string;
   updateStudent: (id: string, patch: Partial<StoreStudent>) => void;
   setStudentStatus: (id: string, status: UserStatus) => void;
   addTeacher: (t: Partial<StoreTeacher> & { name: string }) => string;
@@ -351,6 +372,21 @@ export const useStore = create<AppState>()(
   invoices: seedInvoices,
   payments: seedPayments,
   activity: seedActivity,
+  messages: [],
+  notificationReadIds: {},
+
+  sendMessage: (message) =>
+    set((st) => ({
+      messages: [...st.messages, { ...message, id: nid("msg"), sentAt: new Date().toISOString() }],
+    })),
+
+  markNotificationsRead: (userKey, ids) =>
+    set((st) => ({
+      notificationReadIds: {
+        ...st.notificationReadIds,
+        [userKey]: Array.from(new Set([...(st.notificationReadIds[userKey] ?? []), ...ids])),
+      },
+    })),
 
   addStudent: (s) => {
     const id = nid("st");
@@ -368,12 +404,15 @@ export const useStore = create<AppState>()(
           attendance: s.attendance ?? 100,
           avg: s.avg ?? 0,
           joinedAt: s.joinedAt ?? "آبان ۱۴۰۴",
+          createdAt: new Date().toISOString(),
         },
       ],
-      activity: [
-        { id: nid("ac"), text: `دانشجوی جدید «${s.name}» ثبت‌نام شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/students/${id}` },
-        ...st.activity,
-      ],
+      activity: s.createdBy === "self"
+        ? st.activity
+        : [
+            { id: nid("ac"), text: `دانشجوی جدید «${s.name}» ثبت‌نام شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/students/${id}` },
+            ...st.activity,
+          ],
     }));
     return id;
   },
@@ -413,6 +452,7 @@ export const useStore = create<AppState>()(
           languages: t.languages ?? ["آلمانی"],
           status: t.status ?? "فعال",
           courseIds: t.courseIds ?? [],
+          createdAt: new Date().toISOString(),
         },
       ],
       activity: [
@@ -457,6 +497,11 @@ export const useStore = create<AppState>()(
           sessions: c.sessions ?? 16,
         },
       ],
+      teachers: c.teacherId
+        ? st.teachers.map((teacher) => teacher.id === c.teacherId && !teacher.courseIds.includes(id)
+            ? { ...teacher, courseIds: [...teacher.courseIds, id] }
+            : teacher)
+        : st.teachers,
       activity: [
         { id: nid("ac"), text: `دوره جدید «${c.title}» ساخته شد`, actor: "المیرا معرفت‌پور", role: "admin", time: "همین حالا", href: `/admin/classes/${id}` },
         ...st.activity,
@@ -477,10 +522,8 @@ export const useStore = create<AppState>()(
     set((st) => ({
       courses: st.courses.map((c) => (c.id === courseId ? { ...c, teacherId } : c)),
       teachers: st.teachers.map((t) => {
-        if (t.id === teacherId && !t.courseIds.includes(courseId)) return { ...t, courseIds: [...t.courseIds, courseId] };
-        if (!teacherId || (teacher && t.id !== teacherId && t.courseIds.includes(courseId) && course?.teacherId === t.id))
-          return { ...t, courseIds: t.courseIds.filter((x) => x !== courseId) };
-        return t;
+        if (t.id === teacherId) return t.courseIds.includes(courseId) ? t : { ...t, courseIds: [...t.courseIds, courseId] };
+        return t.courseIds.includes(courseId) ? { ...t, courseIds: t.courseIds.filter((x) => x !== courseId) } : t;
       }),
       activity: [
         {
@@ -500,19 +543,25 @@ export const useStore = create<AppState>()(
     const state = get();
     const course = state.courses.find((c) => c.id === courseId);
     if (!course) return;
-    const already = state.students.find((s) => s.id === studentId)?.courseIds.includes(courseId);
+    const student = state.students.find((s) => s.id === studentId);
+    if (!student) return;
+    const alreadyInCourse = course.studentIds.includes(studentId);
+    const alreadyInStudent = student.courseIds.includes(courseId);
+    if (alreadyInCourse && alreadyInStudent) return;
+    if (!alreadyInCourse && !alreadyInStudent && course.capacity && course.studentIds.length >= course.capacity) return;
+    const alreadyEnrolled = alreadyInCourse || alreadyInStudent;
     set((st) => ({
       courses: st.courses.map((c) =>
-        c.id === courseId && !c.studentIds.includes(studentId)
-          ? { ...c, studentIds: [...c.studentIds, studentId], enrolled: c.enrolled + 1 }
+        c.id === courseId
+          ? { ...c, studentIds: alreadyInCourse ? c.studentIds : [...c.studentIds, studentId], enrolled: alreadyInCourse ? c.enrolled : c.enrolled + 1 }
           : c
       ),
       students: st.students.map((s) =>
-        s.id === studentId && !s.courseIds.includes(courseId)
-          ? { ...s, courseIds: [...s.courseIds, courseId], balance: s.balance + course.price }
+        s.id === studentId
+          ? { ...s, courseIds: alreadyInStudent ? s.courseIds : [...s.courseIds, courseId], balance: alreadyEnrolled ? s.balance : s.balance + course.price }
           : s
       ),
-      activity: already
+      activity: alreadyEnrolled
         ? st.activity
         : [
             {
@@ -529,7 +578,10 @@ export const useStore = create<AppState>()(
   },
 
   removeStudentFromCourse: (courseId, studentId) => {
-    const course = get().courses.find((c) => c.id === courseId);
+    const state = get();
+    const course = state.courses.find((c) => c.id === courseId);
+    const student = state.students.find((s) => s.id === studentId);
+    if (!course || !student || (!course.studentIds.includes(studentId) && !student.courseIds.includes(courseId))) return;
     set((st) => ({
       courses: st.courses.map((c) =>
         c.id === courseId && c.studentIds.includes(studentId)
@@ -549,7 +601,7 @@ export const useStore = create<AppState>()(
     set((st) => ({
       assignments: [
         ...st.assignments,
-        { ...a, id, createdAt: "۱۴۰۴/۰۸/۰۴", due: a.due || "—" },
+        { ...a, id, createdAt: new Date().toISOString(), due: a.due || "—" },
       ],
       activity: [
         {
@@ -558,7 +610,7 @@ export const useStore = create<AppState>()(
           actor: a.createdByName,
           role: a.createdByRole,
           time: "همین حالا",
-          href: `/admin/assignments/${id}`,
+          href: `/admin/classes/${a.courseId}`,
         },
         ...st.activity,
       ],
@@ -599,7 +651,7 @@ export const useStore = create<AppState>()(
             actor: m.uploadedByName,
             role: m.uploadedByRole,
             time: "همین حالا",
-            href: m.uploadedByRole === "student" ? `/student/assignments/${m.assignmentId}` : m.uploadedByRole === "teacher" ? `/teacher/assignments/${m.assignmentId}` : `/admin/assignments/${m.assignmentId}`,
+            href: m.uploadedByRole === "student" ? `/student/assignments/${m.assignmentId}` : m.uploadedByRole === "teacher" ? `/teacher/assignments/${m.assignmentId}` : `/admin/classes/${asg?.courseId ?? ""}`,
           },
           ...st.activity,
         ],
@@ -615,17 +667,29 @@ export const useStore = create<AppState>()(
 
   submitAnswer: (s) =>
     set((st) => {
-      const existing = st.submissions.find((x) => x.assignmentId === s.assignmentId && x.studentId === s.studentId);
       const asg = st.assignments.find((a) => a.id === s.assignmentId);
+      const student = st.students.find((x) => x.id === s.studentId);
+      if (!asg || !student || !student.courseIds.includes(asg.courseId)) return {};
+      const existing = st.submissions.find((x) => x.assignmentId === s.assignmentId && x.studentId === s.studentId);
       if (existing) {
         return {
           submissions: st.submissions.map((x) =>
             x.id === existing.id
-              ? { ...x, text: s.text ?? x.text, file: s.file ?? x.file, submittedAt: "همین حالا", status: "در انتظار بررسی" as const }
+              ? {
+                  ...x,
+                  text: s.text ?? "",
+                  file: s.file,
+                  late: s.late ?? false,
+                  score: undefined,
+                  feedback: undefined,
+                  gradedAt: undefined,
+                  submittedAt: new Date().toISOString(),
+                  status: "در انتظار بررسی" as const,
+                }
               : x
           ),
           activity: [
-            { id: nid("ac"), text: `پاسخ تکلیف «${asg?.title ?? s.assignmentId}» به‌روزرسانی شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/assignments/${s.assignmentId}` },
+            { id: nid("ac"), text: `پاسخ تکلیف «${asg?.title ?? s.assignmentId}» به‌روزرسانی شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/classes/${asg?.courseId ?? ""}` },
             ...st.activity,
           ],
         };
@@ -639,13 +703,13 @@ export const useStore = create<AppState>()(
             studentId: s.studentId,
             text: s.text,
             file: s.file,
-            submittedAt: "همین حالا",
+            submittedAt: new Date().toISOString(),
             late: s.late ?? false,
             status: "در انتظار بررسی",
           },
         ],
         activity: [
-          { id: nid("ac"), text: `پاسخ جدید برای تکلیف «${asg?.title ?? s.assignmentId}» تحویل شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/assignments/${s.assignmentId}` },
+          { id: nid("ac"), text: `پاسخ جدید برای تکلیف «${asg?.title ?? s.assignmentId}» تحویل شد`, actor: st.students.find((x) => x.id === s.studentId)?.name ?? "دانشجو", role: "student", time: "همین حالا", href: `/admin/classes/${asg?.courseId ?? ""}` },
           ...st.activity,
         ],
       };
@@ -655,8 +719,9 @@ export const useStore = create<AppState>()(
     set((st) => {
       const sub = st.submissions.find((x) => x.id === id);
       const asg = st.assignments.find((a) => a.id === sub?.assignmentId);
+      if (!sub || !asg || !Number.isFinite(g.score) || g.score < 0 || g.score > asg.max) return {};
       return {
-        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback, status: "نمره‌داده‌شده" as const } : x)),
+        submissions: st.submissions.map((x) => (x.id === id ? { ...x, score: g.score, feedback: g.feedback?.trim() || undefined, gradedAt: new Date().toISOString(), status: "نمره‌داده‌شده" as const } : x)),
         activity: [
           {
             id: nid("ac"),
@@ -664,7 +729,7 @@ export const useStore = create<AppState>()(
             actor: g.byName ?? "المیرا معرفت‌پور",
             role: g.byRole ?? "teacher",
             time: "همین حالا",
-            href: `/admin/assignments/${sub?.assignmentId}`,
+            href: `/admin/classes/${asg?.courseId ?? ""}`,
           },
           ...st.activity,
         ],
