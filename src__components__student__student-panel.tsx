@@ -1161,11 +1161,11 @@ function StudentProfile() {
   const [orderCount, setOrderCount] = React.useState(0);
 
   React.useEffect(() => {
-    setAddrCount(loadAddresses().length);
+    setAddrCount(loadAddresses(addressKey).length);
     try {
       const raw = window.localStorage.getItem("edc-orders");
-      const list = raw ? (JSON.parse(raw) as unknown[]) : [];
-      setOrderCount(Array.isArray(list) ? list.length : 0);
+      const list = raw ? (JSON.parse(raw) as { phone?: string }[]) : [];
+      setOrderCount(Array.isArray(list) ? list.filter((order) => normalizePhone(order.phone ?? "") === normalizePhone(me?.phone ?? "")).length : 0);
     } catch {
       setOrderCount(0);
     }
