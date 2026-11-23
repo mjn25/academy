@@ -172,132 +172,121 @@ function StudentEmptyPanel({ section }: { section: string }) {
 function StudentDashboard() {
   const currentStudentId = useCurrentStudentId();
   const { navigate } = useRouter();
-  const { assignments, submissions } = useStore();
-  const me = useStore((s) => s.students.find((x) => x.id === currentStudentId));
+  const { assignments, submissions, courses, teachers } = useStore();
+  const me = useStore((state) => state.students.find((student) => student.id === currentStudentId));
   const myCourseIds = me?.courseIds ?? [];
-  const pending = assignments
-    .filter((a) => myCourseIds.includes(a.courseId))
-    .filter((a) => {
-      const sub = submissions.find((s) => s.assignmentId === a.id && s.studentId === currentStudentId);
-      return !sub || sub.status !== "نمره‌داده‌شده";
-    })
-    .sort((x, y) => (faDateVal(x.due) ?? 99999999) - (faDateVal(y.due) ?? 99999999));
+  const myCourses = courses.filter((course) => myCourseIds.includes(course.id));
+  const myAssignments = assignments.filter((assignment) => myCourseIds.includes(assignment.courseId));
+  const mySubmissions = submissions.filter((submission) => submission.studentId === currentStudentId);
+  const submittedAssignmentIds = new Set(mySubmissions.map((submission) => submission.assignmentId));
+  const toDo = myAssignments
+    .filter((assignment) => !submittedAssignmentIds.has(assignment.id))
+    .sort((a, b) => (faDateVal(a.due) ?? 99999999) - (faDateVal(b.due) ?? 99999999));
+  const awaitingGrade = mySubmissions.filter((submission) => submission.status === "در انتظار بررسی").length;
+  const graded = mySubmissions
+    .filter((submission) => submission.status === "نمره‌داده‌شده")
+    .sort((a, b) => (Date.parse(b.gradedAt ?? b.submittedAt ?? "") || 0) - (Date.parse(a.gradedAt ?? a.submittedAt ?? "") || 0));
+  const latestGrades = graded.slice(0, 3);
+
   return (
     <div className="space-y-6">
-      <div className="rd-inside rounded-[8px] bg-white p-6 relative overflow-hidden">
-        <div className="relative flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-ink-soft">سلام سارا، آماده‌ای ادامه بدی؟ 👋</p>
-            <h2 className="mt-1 text-[17px] font-black-fa text-ink">مسیر آلمانی تو در جریان است</h2>
+      <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-ink-soft">سلام {me?.name ?? "دانشجو"}، خوش اومدی</p>
+            <h2 className="mt-1 text-[17px] font-black-fa text-ink">از همین‌جا ادامه بده</h2>
+            <p className="mt-1 text-xs leading-6 text-ink-soft">کلاس‌ها و کارهای آموزشی‌ات را یک‌جا دنبال کن.</p>
           </div>
-          <Button className="bg-rd-deep text-white hover:bg-navy-700 font-bold" onClick={() => navigate("/student/class/a1")}>
-            <Play className="size-4 me-1.5 fill-white" /> ادامه آخرین ویدئو
+          <Button className="bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate(myCourses.length ? "/student/classes" : "/courses")}>
+            <BookOpenCheck className="me-1.5 size-4" /> {myCourses.length ? "مشاهده کلاس‌ها" : "دیدن دوره‌ها"}
           </Button>
         </div>
+      </section>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={BookOpenCheck} label="دوره‌های من" value={faNum(myCourses.length) + " دوره"} />
+        <StatCard icon={ClipboardList} label="تکالیف تحویل‌نداده" value={faNum(toDo.length) + " مورد"} tint="yellow" />
+        <StatCard icon={Clock} label="در انتظار نمره" value={faNum(awaitingGrade) + " مورد"} />
+        <StatCard icon={Award} label="نمره‌های ثبت‌شده" value={faNum(graded.length) + " مورد"} tint="green" />
       </div>
 
-      {/* Bento داشبورد */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* کلاس بعدی — سلول بزرگ */}
-        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 rd-inside rounded-[8px] bg-canvas-soft/70 text-ink p-6 flex flex-col justify-between min-h-[240px]">
-          <div>
-            <p className="text-xs font-bold text-ink-soft mb-3 flex items-center gap-1.5"><CalendarDays className="size-4" /> کلاس بعدی (حضوری)</p>
-            <h3 className="text-[16px] font-black-fa text-ink">آلمانی A1 — جلسه ۱۹</h3>
-            <div className="mt-4 space-y-2 text-sm text-ink-soft">
-              <p className="flex items-center gap-2"><Clock className="size-4 text-ink-soft" /> شنبه ۱ آبان — ۱۷:۳۰ تا ۱۹:۳۰</p>
-              <p className="flex items-center gap-2"><MapPin className="size-4 text-ink-soft" /> کلاس ۲۰۴ — طبقه دوم</p>
-              <p className="flex items-center gap-2"><VideoIcon className="size-4 text-ink-soft" /> استاد: المیرا معرفت‌پور</p>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-ink">کلاس‌های من</p>
+            <Button size="sm" variant="ghost" onClick={() => navigate("/student/classes")}>همه کلاس‌ها</Button>
+          </div>
+          {myCourses.length ? (
+            <div className="space-y-2">
+              {myCourses.slice(0, 4).map((course) => (
+                <button key={course.id} onClick={() => navigate("/student/class/" + course.id)} className="flex w-full items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/40">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-rd-accent"><BookOpenCheck className="size-5" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold text-ink">{course.title}</span>
+                    <span className="mt-1 block text-[11px] text-ink-soft">{teachers.find((teacher) => teacher.id === course.teacherId)?.name ?? "استاد تعیین نشده"} · {course.type === "online" ? "آنلاین" : "حضوری"}</span>
+                  </span>
+                  <ArrowLeft className="size-4 shrink-0 text-ink-soft" />
+                </button>
+              ))}
             </div>
-          </div>
-          <div className="mt-4 rounded-[8px] bg-white border border-hairline-soft p-3.5 text-xs leading-6">
-            جلسه بعد درباره <b className="text-ink">رول‌پلی خرید و قیمت‌گویی</b> است. جزوه جلسه قبل را در بخش فایل‌ها مرور کن.
-          </div>
-        </div>
+          ) : (
+            <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-5 text-center">
+              <BookOpenCheck className="mx-auto size-7 text-ink-faint" />
+              <p className="mt-2 text-sm font-bold text-ink">هنوز در دوره‌ای ثبت‌نام نکرده‌ای</p>
+              <p className="mt-1 text-xs leading-6 text-ink-soft">بعد از ثبت‌نام، کلاس‌ها و جزئیاتشان در همین بخش نمایش داده می‌شود.</p>
+              <Button className="mt-3 bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/courses")}>مشاهده دوره‌ها</Button>
+            </div>
+          )}
+        </section>
 
-        {/* تکالیف در انتظار */}
-        <div className="sm:col-span-2 xl:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm flex items-center gap-1.5"><ClipboardList className="size-4 text-ink" /> تکالیف در انتظار</p>
-            <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(pending.length)} مورد</Badge>
+        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-ink">کارهای بعدی</p>
+            <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(toDo.length)} مورد</Badge>
           </div>
-          <div className="space-y-2.5 max-h-44 overflow-y-auto scroll-thin">
-            {pending.map((a) => (
-              <button key={a.id} onClick={() => navigate(`/student/assignments/${a.id}`)} className="w-full flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start hover:border-navy-deep transition-colors">
-                <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-xs font-bold text-ink truncate">{a.title}</span>
-                  <span className="block text-[11px] text-ink-soft mt-0.5">مهلت: {a.due}</span>
-                </span>
-                <ArrowLeft className="size-4 text-ink-soft shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
+          {toDo.length ? (
+            <div className="space-y-2">
+              {toDo.slice(0, 5).map((assignment) => (
+                <button key={assignment.id} onClick={() => navigate("/student/assignments/" + assignment.id)} className="flex w-full items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/40">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold text-ink">{assignment.title}</span>
+                    <span className="mt-1 block text-[11px] text-ink-soft">مهلت: {assignment.due}</span>
+                  </span>
+                  <ArrowLeft className="size-4 shrink-0 text-ink-soft" />
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-[8px] bg-canvas-soft/60 p-5 text-center text-xs leading-6 text-ink-soft">
+              {myAssignments.length ? "فعلاً تکلیف تحویل‌نداده‌ای نداری." : "تکلیف‌های دوره‌هایت پس از تعریف استاد اینجا نمایش داده می‌شود."}
+            </p>
+          )}
+          {awaitingGrade > 0 && <p className="mt-3 rounded-[8px] bg-info/5 p-3 text-xs text-ink-soft">{faNum(awaitingGrade)} پاسخ در انتظار بررسی استاد است.</p>}
+        </section>
 
-        {/* پیشرفت دوره‌ها */}
-        <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
-          <p className="font-bold text-ink text-sm mb-3">پیشرفت دوره‌ها</p>
-          <div className="space-y-3.5">
-            {[
-              { name: "آلمانی A1", pct: 62 },
-              { name: "آلمانی B1", pct: 58 },
-              { name: "کلاب مکالمه", pct: 80 },
-            ].map((c) => (
-              <div key={c.name}>
-                <div className="flex justify-between text-[11px] mb-1">
-                  <span className="font-semibold text-ink">{c.name}</span>
-                  <span className="text-ink-soft">{fa(c.pct)}٪</span>
-                </div>
-                <Progress value={c.pct} className="h-2 bg-canvas-soft [&>div]:bg-rd-accent" />
-              </div>
-            ))}
+        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 xl:col-span-2">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-ink">آخرین نمره‌ها</p>
+            <Button size="sm" variant="ghost" onClick={() => navigate("/student/grades")}>مشاهده کارنامه</Button>
           </div>
-        </div>
-
-        {/* آخرین نمرات */}
-        <div className="rounded-[8px] rd-inside border border-hairline-soft bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm">آخرین نمرات</p>
-            <button onClick={() => navigate("/student/grades")} className="text-[11px] font-bold text-ink">همه</button>
-          </div>
-          <div className="space-y-2.5">
-            {gradesData.a1.slice(0, 3).map((g, i) => (
-              <div key={i} className="flex items-center justify-between rounded-[8px] bg-canvas-soft px-3 py-2">
-                <span className="text-xs font-semibold text-ink truncate">{g.item}</span>
-                <span className={`text-xs font-black-fa ${g.score / g.max >= 0.8 ? "text-ok" : "text-warn"}`}>{fa(g.score)}/{fa(g.max)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* اعلان‌ها */}
-        <div className="rounded-[8px] border border-hairline-soft bg-canvas-soft p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Bell className="size-4 text-ink" /> اعلان‌ها</p>
-            <Badge className="bg-bad/10 text-bad hover:bg-bad/10">{faNum(notificationsStudent.filter((n) => n.unread).length)} جدید</Badge>
-          </div>
-          <div className="space-y-2 max-h-44 overflow-y-auto scroll-thin">
-            {notificationsStudent.slice(0, 3).map((n) => (
-              <div key={n.id} className={`rounded-[8px] p-2.5 text-xs ${n.unread ? "bg-white border border-hairline" : "opacity-60"}`}>
-                <p className="font-bold text-ink">{n.title}</p>
-                <p className="text-ink-soft mt-0.5 leading-5">{n.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* میانبرها */}
-        <div className="rounded-[8px] bg-canvas-soft p-5 flex flex-col justify-center gap-2.5">
-          {[
-            { t: "ارسال تکلیف", h: "/student/assignments" },
-            { t: "فایل‌های آموزشی", h: "/student/files" },
-            { t: "پیام به پشتیبانی", h: "/student/messages" },
-          ].map((b) => (
-            <Button key={b.t} variant="outline" className="justify-start border-hairline text-ink bg-white" onClick={() => navigate(b.h)}>
-              {b.t}
-            </Button>
-          ))}
-        </div>
+          {latestGrades.length ? (
+            <div className="grid gap-2 sm:grid-cols-3">
+              {latestGrades.map((submission) => {
+                const assignment = myAssignments.find((item) => item.id === submission.assignmentId);
+                return (
+                  <div key={submission.id} className="rounded-[8px] bg-canvas-soft/60 p-3">
+                    <p className="truncate text-xs font-bold text-ink">{assignment?.title ?? "تکلیف"}</p>
+                    <p className="mt-1 text-sm font-black-fa text-ink">{fa(submission.score ?? 0)} از {fa(assignment?.max ?? 10)}</p>
+                    <p className="mt-1 text-[10px] text-ink-soft">{assignment?.courseId ? myCourses.find((course) => course.id === assignment.courseId)?.title : ""}</p>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-[8px] bg-canvas-soft/60 p-4 text-center text-xs text-ink-soft">هنوز نمره‌ای برای نمایش ثبت نشده است.</p>
+          )}
+        </section>
       </div>
     </div>
   );
