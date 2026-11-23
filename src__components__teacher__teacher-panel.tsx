@@ -659,7 +659,7 @@ function TeacherMessages() {
     <div className="max-w-3xl">
       <PanelHeading title="پیام‌ها" desc="پیام‌ها در همین مرورگر ذخیره می‌شوند و در پنل طرف مقابل هم قابل مشاهده‌اند." />
       {myCourses.length === 0 ? (
-        <EmptyState title="کلاسی برای ارسال پیام ندارید" desc="بعد از تخصیص دوره، می‌توانید به دانشجویان همان کلاس پیام بدهید." />
+        <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-6 text-center"><p className="font-bold text-ink">کلاسی برای ارسال پیام ندارید</p><p className="mt-1 text-sm text-ink-soft">بعد از تخصیص دوره، می‌توانید به دانشجویان همان کلاس پیام بدهید.</p></div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-[8px] rd-inside border border-hairline-soft bg-white p-5 space-y-3 max-h-[520px] overflow-y-auto scroll-thin">
@@ -760,6 +760,3 @@ function TeacherProfile() {
   );
 }
 
-function useToastImport() {
-  return useToast();
-}
