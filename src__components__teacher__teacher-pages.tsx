@@ -239,8 +239,13 @@ export function TeacherAssignmentNew() {
   const me = useStore((s) => s.teachers.find((t) => t.id === currentTeacherId));
 
   const save = () => {
-    if (!courseId || !title.trim()) {
-      toast({ title: "تکمیل لازم است", description: "کلاس و عنوان تکلیف الزامی است.", variant: "destructive" });
+    const maxScore = Number(max.replace(/[^\d.]/g, ""));
+    if (!myCourses.some((course) => course.id === courseId) || !title.trim()) {
+      toast({ title: "تکمیل لازم است", description: "یک کلاس معتبر از بین کلاس‌های خودتان و عنوان تکلیف را انتخاب کنید.", variant: "destructive" });
+      return;
+    }
+    if (!Number.isFinite(maxScore) || maxScore <= 0) {
+      toast({ title: "نمره کل معتبر نیست", description: "نمره کل باید عددی بزرگ‌تر از صفر باشد.", variant: "destructive" });
       return;
     }
     const id = addAssignment({
@@ -248,7 +253,7 @@ export function TeacherAssignmentNew() {
       title: title.trim(),
       desc: desc.trim() || "شرح تکلیف در کلاس اعلام می‌شود.",
       due: due.trim() || "به‌زودی",
-      max: Number(max.replace(/[^\d.]/g, "")) || 10,
+      max: maxScore,
       createdByRole: "teacher",
       createdByName: me?.name ?? "استاد",
     });
