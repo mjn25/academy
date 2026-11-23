@@ -22,7 +22,6 @@ import {
   studentSchedule,
   notificationsStudent,
   courses,
-  quizBank,
   type Video,
   type QuizQuestion,
   teachersById,
