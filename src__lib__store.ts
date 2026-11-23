@@ -281,10 +281,10 @@ const seedPayments: StorePayment[] = [
 ];
 
 const seedActivity: ActivityItem[] = [
-  { id: "ac1", text: "تکلیف «متن معرفی خود — Vorstellung» برای دورهٔ آلمانی A1 ایجاد شد", actor: teacherNameOf("a1"), role: "teacher", time: "۲ ساعت پیش", href: "/admin/assignments/a1" },
+  { id: "ac1", text: "تکلیف «متن معرفی خود — Vorstellung» برای دورهٔ آلمانی A1 ایجاد شد", actor: teacherNameOf("a1"), role: "teacher", time: "۲ ساعت پیش", href: "/admin/classes" },
   { id: "ac2", text: "پاسخ تکلیف معرفی خود تحویل شد", actor: "سارا محمدی", role: "student", time: "۳ ساعت پیش", href: "/admin/assignments/a1" },
   { id: "ac3", text: "پیش‌فاکتور PF-1042 صادر و لینک پرداخت ارسال شد", actor: "المیرا معرفت‌پور", role: "admin", time: "دیروز", href: "/admin/students" },
-  { id: "ac4", text: "نمرهٔ تکلیف ایمیل رسمی برای ۲ دانشجو ثبت شد", actor: teacherNameOf("b1"), role: "teacher", time: "دیروز", href: "/admin/assignments/a3" },
+  { id: "ac4", text: "نمرهٔ تکلیف ایمیل رسمی برای ۲ دانشجو ثبت شد", actor: teacherNameOf("b1"), role: "teacher", time: "دیروز", href: "/admin/classes" },
 ];
 
 /* -------------------------------- Store ------------------------------ */
