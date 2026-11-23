@@ -14,7 +14,6 @@ import { useRouter } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useCurrentTeacherId } from "@/lib/current-user";
-import { feedbackComments } from "@/lib/data";
 import {
   LayoutDashboard,
   BookOpenCheck,
@@ -574,47 +573,11 @@ function TeacherStudents() {
 function TeacherFeedback() {
   return (
     <div>
-      <PanelHeading title="بازخوردها" desc="امتیاز و نظرات دانشجویان — همان گزارشی که مدیریت هم می‌بیند." />
-      <div className="grid gap-4 md:grid-cols-3 mb-6">
-        {[
-          { l: "کیفیت تدریس", v: 4.9 },
-          { l: "نظم و برنامه", v: 4.7 },
-          { l: "پاسخ‌گویی", v: 4.5 },
-        ].map((c) => (
-          <div key={c.l} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5 text-center">
-            <p className="text-2xl font-black-fa text-ink">{fa(c.v)}</p>
-            <p className="text-xs text-ink-soft mt-1">{c.l} — میانگین از ۵</p>
-            <Progress value={(c.v / 5) * 100} className="h-2 mt-3 bg-canvas-soft [&>div]:bg-rd-accent" />
-          </div>
-        ))}
-      </div>
-      <div className="space-y-3">
-        {feedbackComments.map((f) => (
-          <div key={f.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-canvas-soft text-ink font-black-fa">{f.student[0]}</span>
-              <div>
-                <p className="text-sm font-bold text-ink">{f.student}</p>
-                <p className="text-[11px] text-ink-soft">{f.course}</p>
-              </div>
-              <span className="ms-auto flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`size-4 ${i < f.score ? "fill-brand-500 text-brand-600" : "text-navy-200"}`} />
-                ))}
-              </span>
-            </div>
-            <p className="mt-3 text-sm text-ink leading-7">{f.text}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {Object.entries(f.criteria).map(([k, v]) => (
-                <span key={k} className="rounded-full bg-canvas-soft px-2.5 py-1 text-[10px] font-bold text-ink">{k}: {fa(v)}/۵</span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-5 rounded-[8px] bg-canvas-soft border border-hairline p-4 text-xs text-ink leading-6 flex items-start gap-2">
-        <Trophy className="size-5 shrink-0 text-ink" />
-        روند امتیاز شما در ۳ دوره اخیر صعودی بوده است. نظرات ممکن است ناشناس نمایش داده شود (تصمیم نهایی با کارفرما).
+      <PanelHeading title="بازخوردها" desc="بازخوردهای ثبت‌شده دانشجویان درباره کلاس‌های شما." />
+      <div className="rounded-[8px] border border-dashed border-hairline-soft bg-white p-8 text-center">
+        <Star className="mx-auto size-8 text-ink-faint" />
+        <p className="mt-3 text-sm font-bold text-ink">بازخورد ثبت‌شده‌ای وجود ندارد</p>
+        <p className="mt-1 text-xs leading-6 text-ink-soft">در نسخه فعلی، فرم ثبت و ذخیره بازخورد دانشجو در داده‌های پروژه پیاده‌سازی نشده است؛ برای جلوگیری از نمایش امتیازها و نظرات نمونه، این بخش خالی نمایش داده می‌شود.</p>
       </div>
     </div>
   );
