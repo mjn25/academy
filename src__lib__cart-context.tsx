@@ -52,11 +52,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, hydrated]);
 
   const add = React.useCallback((item: Omit<CartItem, "qty">, qty = 1) => {
-    const n = Math.max(1, Math.min(10, qty));
+    const n = item.type === "course" ? 1 : Math.max(1, Math.min(10, qty));
     setItems((prev) => {
       const existing = prev.find((p) => p.id === item.id && p.type === item.type);
       if (existing) {
-        return prev.map((p) => (p === existing ? { ...p, qty: Math.min(10, p.qty + n) } : p));
+        return prev.map((p) => (p === existing ? { ...p, qty: p.type === "course" ? 1 : Math.min(10, p.qty + n) } : p));
       }
       return [...prev, { ...item, qty: n }];
     });
@@ -68,7 +68,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   /* تغییر تعداد یک آیتم — حداقل ۱ و حداکثر ۱۰ (استپر سبد خرید) */
   const setQty = React.useCallback((id: string, qty: number) => {
-    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: Math.max(1, Math.min(10, qty)) } : p)));
+    setItems((prev) => prev.map((p) => (p.id === id ? { ...p, qty: p.type === "course" ? 1 : Math.max(1, Math.min(10, qty)) } : p)));
   }, []);
 
   const clear = React.useCallback(() => setItems([]), []);
