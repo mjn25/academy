@@ -239,8 +239,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                 <Input value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" />
               </div>
               <div>
-                <Label>ظرفیت (خالی = نامحدود)</Label>
-                <Input value={form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" />
+                <Label>ظرفیت کلاس حضوری</Label>
+                <Input value={c.type === "online" ? "" : form.capacity} onChange={(e) => setForm((f) => ({ ...f, capacity: e.target.value.replace(/[^\d]/g, "") }))} dir="ltr" inputMode="numeric" className="mt-1.5 h-10" disabled={c.type === "online"} placeholder={c.type === "online" ? "نامحدود" : "مثلاً ۱۵"} />
               </div>
             </div>
             <div>
@@ -262,7 +262,7 @@ function AdminClassDetail({ id }: { id?: string }) {
               onClick={() => {
                 const nextTitle = form.title.trim();
                 const nextPrice = Number(form.price.replace(/[^\d]/g, ""));
-                const nextCapacity = form.capacity ? Number(form.capacity.replace(/[^\d]/g, "")) : undefined;
+                const nextCapacity = c.type === "online" ? undefined : Number(form.capacity.replace(/[^\d]/g, ""));
                 if (!nextTitle) {
                   toast({ title: "عنوان دوره الزامی است", variant: "destructive" });
                   return;
@@ -271,8 +271,8 @@ function AdminClassDetail({ id }: { id?: string }) {
                   toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
                   return;
                 }
-                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, c.studentIds.length))) {
-                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت نمی‌تواند کمتر از ${faNum(c.studentIds.length)} دانشجوی ثبت‌نام‌شده باشد.`, variant: "destructive" });
+                if (c.type === "offline" && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, c.studentIds.length))) {
+                  toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت کلاس حضوری باید حداقل ${faNum(c.studentIds.length)} نفر و بزرگ‌تر از صفر باشد.`, variant: "destructive" });
                   return;
                 }
                 if (form.status === "فعال" && (!teacher || teacher.status !== "فعال")) {
