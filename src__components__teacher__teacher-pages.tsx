@@ -20,7 +20,7 @@ import { useStore } from "@/lib/store";
 import { useCurrentTeacherId } from "@/lib/current-user";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import { AssignmentMaterialsSection, StudentMaterialsCell } from "@/components/panels/assignment-materials";
-import { grades as gradesData, studentSchedule } from "@/lib/data";
+import { studentSchedule } from "@/lib/data";
 import {
   LayoutDashboard, BookOpenCheck, UserCheck, ClipboardList, Star, Users,
   MessageSquare, UserCircle, FileText, CheckCircle2, Clock, ArrowLeft, Plus, Send,
@@ -68,6 +68,7 @@ function useMyCourses() {
 /* ========================= جزئیات تکلیف + نمره‌دهی ========================= */
 
 export function TeacherAssignmentDetail({ id }: { id?: string }) {
+  const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
   const { toast } = useToast();
   const { assignments, courses, students, submissions, gradeSubmission } = useStore();
@@ -85,7 +86,15 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
   }
 
   const course = courses.find((c) => c.id === a.courseId);
-  const roster = course?.studentIds ?? [];
+  if (!course || course.teacherId !== currentTeacherId) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "تکالیف", href: "/teacher/assignments" }]} title="دسترسی به تکلیف ممکن نیست" />
+        <EmptyState title="این تکلیف در کلاس‌های شما نیست" desc="فقط می‌توانید تکالیف دوره‌هایی را مدیریت کنید که به شما تخصیص داده شده‌اند." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/assignments")}>بازگشت به تکالیف</Button>} />
+      </div>
+    );
+  }
+  const roster = course.studentIds;
   const subs = submissions.filter((s) => s.assignmentId === a.id);
   const graded = subs.filter((s) => s.status === "نمره‌داده‌شده");
   const pending = subs.filter((s) => s.status === "در انتظار بررسی");
@@ -94,8 +103,8 @@ export function TeacherAssignmentDetail({ id }: { id?: string }) {
   const doGrade = (subId: string) => {
     const raw = scores[subId];
     const num = Number(raw?.replace(/[^\d.]/g, ""));
-    if (raw === undefined || raw === "" || isNaN(num)) {
-      toast({ title: "نمره وارد نشده", description: `نمره بین ۰ تا ${a.max} وارد کنید.`, variant: "destructive" });
+    if (raw === undefined || raw.trim() === "" || !Number.isFinite(num) || num < 0 || num > a.max) {
+      toast({ title: "نمره معتبر نیست", description: `نمره باید عددی بین ۰ تا ${a.max} باشد.`, variant: "destructive" });
       return;
     }
     gradeSubmission(subId, { score: num, feedback: feedbacks[subId] || undefined });
@@ -333,7 +342,19 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
   }
 
   const sharedCourses = courses.filter((c) => c.teacherId === currentTeacherId && s.courseIds.includes(c.id));
-  const mySubs = submissions.filter((x) => x.studentId === s.id);
+  if (sharedCourses.length === 0) {
+    return (
+      <div>
+        <PageHeader crumbs={[{ label: "پنل استاد", href: "/teacher" }, { label: "دانشجویان", href: "/teacher/students" }]} title="دسترسی به پرونده ممکن نیست" />
+        <EmptyState title="این دانشجو در کلاس‌های شما نیست" desc="فقط اطلاعات آموزشی دانشجویان کلاس‌های تخصیص‌یافته به شما نمایش داده می‌شود." action={<Button className="bg-navy-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/students")}>بازگشت به دانشجویان</Button>} />
+      </div>
+    );
+  }
+  const sharedCourseIds = sharedCourses.map((course) => course.id);
+  const sharedAssignmentIds = assignments.filter((assignment) => sharedCourseIds.includes(assignment.courseId)).map((assignment) => assignment.id);
+  const mySubs = submissions.filter((submission) => submission.studentId === s.id && sharedAssignmentIds.includes(submission.assignmentId));
+  const gradedSubs = mySubs.filter((submission) => submission.status === "نمره‌داده‌شده" && typeof submission.score === "number");
+  const averageScore = gradedSubs.length ? gradedSubs.reduce((sum, submission) => sum + (submission.score ?? 0), 0) / gradedSubs.length : null;
 
   return (
     <div>
@@ -358,14 +379,18 @@ export function TeacherStudentProfile({ id }: { id?: string }) {
 
       <div className="grid gap-4 sm:grid-cols-3 mb-6">
         <StatCard icon={BookOpenCheck} label="کلاس‌های مشترک با شما" value={`${faNum(sharedCourses.length)} کلاس`} />
-        <StatCard icon={TrendingUp} label="درصد حضور" value={s.attendance ? `${fa(s.attendance)}٪` : "—"} tint="yellow" />
-        <StatCard icon={Star} label="میانگین نمره" value={s.avg ? fa(s.avg.toFixed(1)) : "—"} tint="green" />
+        <StatCard icon={FileText} label="پاسخ‌های ثبت‌شده" value={`${faNum(mySubs.length)} پاسخ`} tint="yellow" />
+        <StatCard icon={Star} label="میانگین نمره‌های ثبت‌شده" value={averageScore === null ? "—" : fa(averageScore.toFixed(1))} tint="green" />
       </div>
 
       {/* کلاس‌های مشترک */}
       <div className="grid gap-4 md:grid-cols-2 mb-6">
         {sharedCourses.map((c) => {
-          const rows = gradesData[c.id] ?? [];
+          const courseAssignments = assignments.filter((assignment) => assignment.courseId === c.id);
+          const rows = courseAssignments.flatMap((assignment) => {
+            const submission = mySubs.find((item) => item.assignmentId === assignment.id && item.status === "نمره‌داده‌شده");
+            return submission ? [{ item: assignment.title, score: submission.score ?? 0, max: assignment.max }] : [];
+          });
           return (
             <div key={c.id} className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
               <div className="flex items-center justify-between mb-3">
