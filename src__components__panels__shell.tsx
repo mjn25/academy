@@ -138,7 +138,7 @@ export function PanelShell({
         const assignment = assignments.find((item) => item.id === submission.assignmentId);
         const student = students.find((item) => item.id === submission.studentId);
         items.push({
-          id: "submission:" + submission.id, title: "پاسخ تکلیف جدید دریافت شد",
+          id: "submission:" + submission.id + ":" + submission.submittedAt, title: "پاسخ تکلیف جدید دریافت شد",
           desc: (student?.name ?? "دانشجو") + " · " + (assignment?.title ?? "تکلیف"),
           href: "/teacher/assignments", at: submission.submittedAt,
         });
@@ -155,7 +155,7 @@ export function PanelShell({
       submissions.filter((submission) => submission.studentId === studentId && submission.status === "نمره‌داده‌شده" && validDate(submission.gradedAt)).forEach((submission) => {
         const assignment = assignments.find((item) => item.id === submission.assignmentId);
         items.push({
-          id: "grade:" + submission.id, title: "نمره جدید ثبت شد", desc: assignment?.title ?? "تکلیف",
+          id: "grade:" + submission.id + ":" + submission.gradedAt, title: "نمره جدید ثبت شد", desc: assignment?.title ?? "تکلیف",
           href: "/student/grades", at: submission.gradedAt!,
         });
       });
