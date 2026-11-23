@@ -262,7 +262,7 @@ function AdminClassDetail({ id }: { id?: string }) {
                   toast({ title: "شهریه معتبر نیست", description: "مبلغ را به‌صورت عدد صفر یا بیشتر وارد کنید.", variant: "destructive" });
                   return;
                 }
-                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < roster.length)) {
+                if (form.capacity && (!Number.isInteger(nextCapacity) || (nextCapacity ?? 0) < Math.max(1, roster.length))) {
                   toast({ title: "ظرفیت معتبر نیست", description: `ظرفیت نمی‌تواند کمتر از ${faNum(roster.length)} دانشجوی ثبت‌نام‌شده باشد.`, variant: "destructive" });
                   return;
                 }
