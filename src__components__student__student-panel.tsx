@@ -9,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LineChart, Line, XAxis, YAxis, Tooltip as RTooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import { PanelShell, PanelHeading, StatCard, type PanelNavItem } from "@/components/panels/shell";
+import { PanelShell, PanelHeading, StatCard, StatusBadge, type PanelNavItem } from "@/components/panels/shell";
 import { useRouter } from "@/lib/app-context";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
