@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" xml:space="preserve">
+<defs>
+  <style type="text/css">
+    .lg-bg { fill:#0B1633; }
+    .lg-bubble { fill:#F00050; }
+    .lg-cross { fill:#FFFFFF; }
+    .z-breathe { animation: breathe 2.5s ease-in-out infinite; }
+    @keyframes breathe { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
+  </style>
+</defs>
+<rect class="lg-bg" x="1" y="1" width="28" height="28" rx="7"/>
+<g class="z-breathe">
+  <path class="lg-bubble" d="M10 6.5 H20 Q24.5 6.5 24.5 11 V16 Q24.5 20.5 20 20.5 H14.5 L9.9 24.6 Q8.7 25.6 8.7 24 V20.4 Q5.5 19.9 5.5 16 V11 Q5.5 6.5 10 6.5 Z"/>
+  <rect class="lg-cross" x="13.85" y="9.6" width="2.3" height="7.8" rx="0.7"/>
+  <rect class="lg-cross" x="11.1" y="12.35" width="7.8" height="2.3" rx="0.7"/>
+</g>
+</svg>
