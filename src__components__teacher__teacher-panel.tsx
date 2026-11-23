@@ -215,7 +215,7 @@ function TeacherAttendance() {
   const { students, courses } = useStore();
   const myCourses = React.useMemo(
     () => courses.filter((c) => c.teacherId === currentTeacherId && c.type === "offline" && c.status === "فعال"),
-    [courses],
+    [courses, currentTeacherId],
   );
   const [cls, setCls] = React.useState(myCourses[0]?.id ?? "");
   const activeCourse = myCourses.find((c) => c.id === cls) ?? myCourses[0];
