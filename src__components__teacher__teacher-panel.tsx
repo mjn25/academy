@@ -14,7 +14,7 @@ import { useRouter } from "@/lib/app-context";
 import { fa, faNum } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { useCurrentTeacherId } from "@/lib/current-user";
-import { feedbackComments, todayClassesTeacher } from "@/lib/data";
+import { feedbackComments } from "@/lib/data";
 import {
   LayoutDashboard,
   BookOpenCheck,
@@ -84,89 +84,86 @@ export function TeacherPanel({ section }: { section: string }) {
 function TeacherDashboard() {
   const currentTeacherId = useCurrentTeacherId();
   const { navigate } = useRouter();
-  const { assignments, submissions, courses } = useStore();
-  const myCourses = courses.filter((c) => c.teacherId === currentTeacherId);
-  const myAssignments = assignments.filter((a) => myCourses.some((c) => c.id === a.courseId));
-  const pendingSubs = myAssignments
-    .map((a) => ({ a, count: submissions.filter((s) => s.assignmentId === a.id && s.status === "در انتظار بررسی").length }))
-    .filter((x) => x.count > 0)
-    .sort((x, y) => y.count - x.count);
+  const { assignments, submissions, courses, students } = useStore();
+  const myCourses = courses.filter((course) => course.teacherId === currentTeacherId);
+  const myCourseIds = myCourses.map((course) => course.id);
+  const myAssignments = assignments.filter((assignment) => myCourseIds.includes(assignment.courseId));
+  const pending = myAssignments
+    .map((assignment) => ({
+      assignment,
+      count: submissions.filter((submission) => submission.assignmentId === assignment.id && submission.status === "در انتظار بررسی").length,
+    }))
+    .filter((item) => item.count > 0)
+    .sort((a, b) => b.count - a.count);
+  const studentCount = new Set(myCourses.flatMap((course) => course.studentIds)).size;
+  const pendingCount = pending.reduce((total, item) => total + item.count, 0);
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard icon={BookOpenCheck} label="کلاس‌های تخصیص‌یافته" value={`${faNum(myCourses.length)} کلاس`} />
-        <StatCard icon={Users2} label="دانشجویان فعال" value={`${faNum(new Set(myCourses.flatMap((c) => c.studentIds)).size)} نفر`} tint="yellow" />
-        <StatCard icon={ClipboardList} label="تکالیف منتظر نمره" value={`${faNum(pendingSubs.reduce((s, x) => s + x.count, 0))} مورد`} tint="red" />
-        <StatCard icon={Star} label="میانگین امتیاز شما" value="۴.۹ از ۵" tint="green" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard icon={BookOpenCheck} label="کلاس‌های شما" value={faNum(myCourses.length) + " کلاس"} />
+        <StatCard icon={Users2} label="دانشجویان کلاس‌ها" value={faNum(studentCount) + " نفر"} tint="yellow" />
+        <StatCard icon={ClipboardList} label="پاسخ‌های منتظر بررسی" value={faNum(pendingCount) + " مورد"} tint="red" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {/* کلاس‌های امروز */}
-        <div className="sm:col-span-2 xl:col-span-2 sm:row-span-2 rd-inside rounded-[8px] bg-white p-6 flex flex-col justify-between min-h-[280px]">
-          <div>
-            <p className="text-xs font-bold text-ink-soft mb-4 flex items-center gap-1.5"><Clock className="size-4" /> کلاس‌های امروز</p>
-            <div className="space-y-3">
-              {todayClassesTeacher.map((c) => (
-                <div key={c.id} className="rounded-[8px] bg-canvas-soft border border-hairline-soft p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-bold text-sm text-ink">{c.title}</p>
-                    {c.attendanceDone ? (
-                      <Badge className="bg-ok/20 text-ok hover:bg-ok/20 shrink-0"><Check className="size-3 me-1" /> ثبت شد</Badge>
-                    ) : (
-                      <Button size="sm" className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold shrink-0" onClick={() => navigate("/teacher/attendance")}>
-                        ثبت حضور و غیاب
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-ink-faint mt-2">{c.time} — {c.room} — {faNum(c.students)} دانشجو</p>
-                </div>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-ink">کلاس‌های تخصیص‌یافته</p>
+            <Button size="sm" variant="ghost" onClick={() => navigate("/teacher/classes")}>همه کلاس‌ها</Button>
+          </div>
+          {myCourses.length ? (
+            <div className="space-y-2">
+              {myCourses.slice(0, 5).map((course) => {
+                const count = new Set(course.studentIds).size;
+                return (
+                  <button key={course.id} onClick={() => navigate("/teacher/classes/" + course.id)} className="flex w-full items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/40">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-rd-accent"><BookOpenCheck className="size-5" /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-bold text-ink">{course.title}</span>
+                      <span className="mt-1 block text-[11px] text-ink-soft">{faNum(count)} دانشجو · {course.type === "online" ? "آنلاین" : "حضوری"}</span>
+                    </span>
+                    <ArrowLeft className="size-4 shrink-0 text-ink-soft" />
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[8px] border border-dashed border-hairline-soft bg-canvas-soft/40 p-5 text-center">
+              <BookOpenCheck className="mx-auto size-7 text-ink-faint" />
+              <p className="mt-2 text-sm font-bold text-ink">هنوز کلاسی به شما تخصیص داده نشده</p>
+              <p className="mt-1 text-xs leading-6 text-ink-soft">بعد از تخصیص دوره از طرف مدیریت، کلاس‌ها در این بخش نمایش داده می‌شوند.</p>
+            </div>
+          )}
+        </section>
+
+        <section className="rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-sm font-bold text-ink">پاسخ‌های منتظر نمره‌دهی</p>
+            <Badge className="bg-warn/10 text-warn hover:bg-warn/10">{faNum(pendingCount)} مورد</Badge>
+          </div>
+          {pending.length ? (
+            <div className="space-y-2">
+              {pending.slice(0, 5).map(({ assignment, count }) => (
+                <button key={assignment.id} onClick={() => navigate("/teacher/assignments/" + assignment.id)} className="flex w-full items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start transition-colors hover:border-navy-deep hover:bg-canvas-soft/40">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-bold text-ink">{assignment.title}</span>
+                    <span className="mt-1 block text-[11px] text-ink-soft">{faNum(count)} پاسخ · {myCourses.find((course) => course.id === assignment.courseId)?.title ?? "دوره"}</span>
+                  </span>
+                  <ArrowLeft className="size-4 shrink-0 text-ink-soft" />
+                </button>
               ))}
             </div>
-          </div>
-          <Button variant="secondary" className="mt-4 bg-white text-ink hover:bg-canvas-soft border border-hairline-soft" onClick={() => navigate("/teacher/assignments/new")}>
-            <Plus className="size-4 me-1.5" /> ایجاد تکلیف جدید
+          ) : (
+            <p className="rounded-[8px] bg-canvas-soft/60 p-5 text-center text-xs leading-6 text-ink-soft">
+              {myAssignments.length ? "پاسخی برای نمره‌دهی باقی نمانده است." : "با ساخت اولین تکلیف، پاسخ‌های دانشجویان در این بخش نمایش داده می‌شود."}
+            </p>
+          )}
+          <Button className="mt-4 w-full bg-rd-deep text-white hover:bg-navy-700" onClick={() => navigate("/teacher/assignments/new")} disabled={!myCourses.length}>
+            <Plus className="me-1.5 size-4" /> ایجاد تکلیف جدید
           </Button>
-        </div>
-
-        {/* تکالیف منتظر نمره */}
-        <div className="sm:col-span-2 xl:col-span-2 rd-inside rounded-[8px] border border-hairline-soft bg-white p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm">تکالیف منتظر نمره‌دهی</p>
-            <Badge className="bg-bad/10 text-bad hover:bg-bad/10">{faNum(pendingSubs.length)} مورد</Badge>
-          </div>
-          <div className="space-y-2.5 max-h-40 overflow-y-auto scroll-thin">
-            {pendingSubs.slice(0, 4).map(({ a, count }) => (
-              <button key={a.id} onClick={() => navigate(`/teacher/assignments/${a.id}`)} className="w-full flex items-center gap-3 rounded-[8px] border border-hairline-soft p-3 text-start hover:border-navy-deep transition-colors">
-                <span className="grid size-9 shrink-0 place-items-center rounded-[8px] bg-canvas-soft text-ink"><FileText className="size-4" /></span>
-                <span className="flex-1 min-w-0">
-                  <span className="block text-xs font-bold text-ink truncate">{a.title}</span>
-                  <span className="block text-[11px] text-ink-soft">{faNum(count)} تحویل‌شده — مهلت {a.due}</span>
-                </span>
-                <ArrowLeft className="size-4 text-ink-soft" />
-              </button>
-            ))}
-            {pendingSubs.length === 0 && <p className="text-xs text-ink-soft py-3 text-center">همه پاسخ‌ها نمره‌دهی شده‌اند ✓</p>}
-          </div>
-        </div>
-
-        {/* آخرین بازخوردها */}
-        <div className="sm:col-span-2 xl:col-span-2 rounded-[8px] border border-hairline-soft bg-canvas-soft p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="font-bold text-ink text-sm flex items-center gap-1.5"><Star className="size-4 fill-brand-500 text-brand-600" /> آخرین بازخوردها</p>
-            <button onClick={() => navigate("/teacher/feedback")} className="text-[11px] font-bold text-ink">مشاهده همه</button>
-          </div>
-          <div className="space-y-2.5 max-h-40 overflow-y-auto scroll-thin">
-            {feedbackComments.slice(0, 2).map((f) => (
-              <div key={f.id} className="rounded-[8px] bg-white border border-hairline-soft p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-bold text-ink">{f.student}</p>
-                  <span className="text-[11px] font-bold text-ink">{"★".repeat(f.score)} {fa(f.score)}/۵</span>
-                </div>
-                <p className="text-[11px] text-ink-soft mt-1 leading-5 line-clamp-2">{f.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );
