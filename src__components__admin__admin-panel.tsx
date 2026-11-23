@@ -26,18 +26,13 @@ import {
   Users,
   UserCheck,
   GraduationCap,
-  ClipboardCheck,
-  ShoppingBag,
   FileText,
-  TrendingUp,
   TriangleAlert,
   Plus,
   Search,
   PackageCheck,
-  Eye,
   ArrowLeft,
   Zap,
-  Info,
 } from "lucide-react";
 
 const nav = adminNav;
