@@ -21,8 +21,8 @@ import { useStore } from "@/lib/store";
 import { adminNav, ADMIN_SHELL } from "@/components/admin/admin-nav";
 import { EmptyState } from "@/components/admin/admin-assignments";
 import {
-  BookOpenCheck, ClipboardList, Users, Plus, Pencil, UserPlus, UserMinus,
-  ArrowLeft, GraduationCap, FileText, Wallet, CalendarDays,
+  BookOpenCheck, Users, Plus, Pencil, UserPlus, UserMinus,
+  ArrowLeft, GraduationCap, Wallet, CalendarDays,
 } from "lucide-react";
 
 const nav = adminNav;
@@ -38,7 +38,7 @@ export function AdminClassPanel({ id }: { id?: string }) {
 function AdminClassDetail({ id }: { id?: string }) {
   const { navigate } = useRouter();
   const { toast } = useToast();
-  const { courses, teachers, students, assignments, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
+  const { courses, teachers, students, updateCourse, setCourseTeacher, addStudentToCourse, removeStudentFromCourse } = useStore();
   const c = courses.find((x) => x.id === id);
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -59,7 +59,6 @@ function AdminClassDetail({ id }: { id?: string }) {
 
   const teacher = teachers.find((t) => t.id === c.teacherId);
   const roster = c.studentIds.map((sid) => students.find((s) => s.id === sid)).filter(Boolean) as typeof students;
-  const courseAssignments = assignments.filter((a) => a.courseId === c.id);
   const notInCourse = students.filter((s) => !c.studentIds.includes(s.id));
 
   const openEdit = () => {
@@ -84,17 +83,13 @@ function AdminClassDetail({ id }: { id?: string }) {
             <Button variant="outline" className="border-hairline text-ink h-10" onClick={openEdit}>
               <Pencil className="size-4 me-1.5" /> ویرایش دوره
             </Button>
-            <Button className="bg-rd-deep text-primary-foreground hover:bg-navy-700 font-bold h-10" onClick={() => navigate(`/admin/assignments/new?course=${c.id}`)}>
-              <Plus className="size-4 me-1.5" /> تخصیص تکلیف به این دوره
-            </Button>
           </>
         }
       />
 
       {/* آمار */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
         <StatCard icon={Users} label="دانشجویان ثبت‌نامی" value={`${faNum(roster.length)} نفر`} />
-        <StatCard icon={ClipboardList} label="تکالیف فعال" value={faNum(courseAssignments.length)} tint="yellow" />
         <StatCard icon={Wallet} label="شهریه دوره" value={faPrice(c.price)} />
         <StatCard icon={CalendarDays} label="جلسات" value={`${faNum(c.sessions)} جلسه`} tint="green" />
       </div>
